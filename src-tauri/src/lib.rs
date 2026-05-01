@@ -1,4 +1,5 @@
 mod menu;
+mod secrets;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -20,7 +21,12 @@ pub fn run() {
         .on_menu_event(|app, event| {
             menu::handle_menu_event(app, event.id().as_ref());
         })
-        .invoke_handler(tauri::generate_handler![greet])
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            secrets::save_api_key,
+            secrets::load_api_key,
+            secrets::delete_api_key,
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
