@@ -13,12 +13,13 @@ import { useGraphStore } from '@/stores/graph';
 import { useUiStore } from '@/stores/ui';
 import AddNodeMenu from './AddNodeMenu.vue';
 import InputNode from './nodes/InputNode.vue';
+import OutputNode from './nodes/OutputNode.vue';
 
 const graph = useGraphStore();
 const ui = useUiStore();
 const { project } = useVueFlow();
 
-const nodeTypes = { input: markRaw(InputNode) } as Record<string, ReturnType<typeof markRaw>>;
+const nodeTypes = { input: markRaw(InputNode), output: markRaw(OutputNode) } as Record<string, ReturnType<typeof markRaw>>;
 
 const flowNodes = computed<VFNode[]>(() =>
   graph.nodes.map((n) => ({ id: n.id, type: n.type, position: n.position, data: { config: n.config } })),
@@ -59,6 +60,15 @@ function onKeydown(e: KeyboardEvent) {
 function onNodeClick({ node }: { node: VFNode }) { ui.selectedNodeId = node.id; }
 function onPaneClick() { ui.selectedNodeId = null; menuOpen.value = false; }
 function onNodeDragStop({ node }: { node: VFNode }) { graph.updateNodePosition(node.id, node.position.x, node.position.y); }
+function onConnect(params: { source: string; target: string; sourceHandle?: string | null; targetHandle?: string | null }) {
+  graph.addEdge({
+    id: crypto.randomUUID(),
+    source: params.source,
+    target: params.target,
+    sourceHandle: params.sourceHandle ?? '',
+    targetHandle: params.targetHandle ?? '',
+  });
+}
 
 onMounted(() => window.addEventListener('keydown', onKeydown));
 onUnmounted(() => window.removeEventListener('keydown', onKeydown));
@@ -74,6 +84,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown));
       @node-click="onNodeClick"
       @pane-click="onPaneClick"
       @node-drag-stop="onNodeDragStop"
+      @connect="onConnect"
     >
       <Background />
       <Controls />

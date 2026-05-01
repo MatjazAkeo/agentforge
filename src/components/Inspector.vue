@@ -4,6 +4,7 @@ import { computed } from 'vue';
 import { useUiStore } from '@/stores/ui';
 import { useGraphStore } from '@/stores/graph';
 import InputInspector from './inspectors/InputInspector.vue';
+import OutputInspector from './inspectors/OutputInspector.vue';
 
 const ui = useUiStore();
 const graph = useGraphStore();
@@ -27,6 +28,9 @@ const selectedNode = computed(() => {
       </div>
       <div v-if="selectedNode.type === 'input'">
         <InputInspector :nodeId="selectedNode.id" />
+      </div>
+      <div v-else-if="selectedNode.type === 'output'">
+        <OutputInspector :nodeId="selectedNode.id" />
       </div>
       <div v-else class="placeholder">Inspector for {{ selectedNode.type }} added in a later task.</div>
     </div>
