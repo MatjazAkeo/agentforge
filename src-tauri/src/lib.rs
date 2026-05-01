@@ -1,3 +1,5 @@
+mod menu;
+
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -10,6 +12,14 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
+        .setup(|app| {
+            let m = menu::build_menu(app.handle())?;
+            app.set_menu(m)?;
+            Ok(())
+        })
+        .on_menu_event(|app, event| {
+            menu::handle_menu_event(app, event.id().as_ref());
+        })
         .invoke_handler(tauri::generate_handler![greet])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
