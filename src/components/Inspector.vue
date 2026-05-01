@@ -5,6 +5,7 @@ import { useUiStore } from '@/stores/ui';
 import { useGraphStore } from '@/stores/graph';
 import InputInspector from './inspectors/InputInspector.vue';
 import OutputInspector from './inspectors/OutputInspector.vue';
+import LLMCallInspector from './inspectors/LLMCallInspector.vue';
 
 const ui = useUiStore();
 const graph = useGraphStore();
@@ -31,6 +32,9 @@ const selectedNode = computed(() => {
       </div>
       <div v-else-if="selectedNode.type === 'output'">
         <OutputInspector :nodeId="selectedNode.id" />
+      </div>
+      <div v-else-if="selectedNode.type === 'llm-call'">
+        <LLMCallInspector :nodeId="selectedNode.id" />
       </div>
       <div v-else class="placeholder">Inspector for {{ selectedNode.type }} added in a later task.</div>
     </div>

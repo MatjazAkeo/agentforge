@@ -14,12 +14,13 @@ import { useUiStore } from '@/stores/ui';
 import AddNodeMenu from './AddNodeMenu.vue';
 import InputNode from './nodes/InputNode.vue';
 import OutputNode from './nodes/OutputNode.vue';
+import LLMCallNode from './nodes/LLMCallNode.vue';
 
 const graph = useGraphStore();
 const ui = useUiStore();
 const { project } = useVueFlow();
 
-const nodeTypes = { input: markRaw(InputNode), output: markRaw(OutputNode) } as Record<string, ReturnType<typeof markRaw>>;
+const nodeTypes = { input: markRaw(InputNode), output: markRaw(OutputNode), 'llm-call': markRaw(LLMCallNode) } as Record<string, ReturnType<typeof markRaw>>;
 
 const flowNodes = computed<VFNode[]>(() =>
   graph.nodes.map((n) => ({ id: n.id, type: n.type, position: n.position, data: { config: n.config } })),

@@ -79,7 +79,11 @@ export async function runGraph(args: RunGraphArgs): Promise<Run> {
         result.errorStack = (e as Error).stack;
         runStore.recordResult(result);
         run.errors.push({ nodeId: id, message: (e as Error).message, stack: (e as Error).stack });
-        run.status = 'failed';
+        if (controller.signal.aborted) {
+          run.status = 'aborted';
+        } else {
+          run.status = 'failed';
+        }
         throw e;
       }
     }
