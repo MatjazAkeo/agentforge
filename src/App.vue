@@ -5,6 +5,7 @@ import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { useGraphStore } from '@/stores/graph';
 import { useSettingsStore } from '@/stores/settings';
 import { useUiStore } from '@/stores/ui';
+import { useRunStore } from '@/stores/run';
 import { pickGraphFileToOpen, pickGraphFileToSave, readGraphFile, writeGraphFile } from '@/persistence/tauri-fs';
 import { parseGraph, serializeGraph } from '@/persistence/graph-io';
 import { loadApiKey } from '@/secrets/api-key';
@@ -16,9 +17,15 @@ import OnboardingWelcome from './components/OnboardingWelcome.vue';
 const graph = useGraphStore();
 const settings = useSettingsStore();
 const ui = useUiStore();
+const run = useRunStore();
 const showOnboarding = ref(false);
 let unlisten: UnlistenFn | null = null;
 let busy = false;
+
+function rafLoop() {
+  run.tick();
+  requestAnimationFrame(rafLoop);
+}
 
 async function bootstrap() {
   try {
@@ -87,6 +94,7 @@ async function dispatchMenu(payload: string): Promise<void> {
 onMounted(async () => {
   await bootstrap();
   unlisten = await listen<string>('menu', (e) => { void dispatchMenu(e.payload); });
+  requestAnimationFrame(rafLoop);
 });
 
 onUnmounted(() => unlisten?.());

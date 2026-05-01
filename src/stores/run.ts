@@ -9,8 +9,16 @@ export const useRunStore = defineStore('run', () => {
   const totalTokensOut = ref(0);
   const startedAtMs = ref<number | null>(null);
   const elapsedMs = ref(0);
+  const livePreviews = ref<Record<string, string>>({});
 
   const isRunning = computed(() => current.value?.status === 'running');
+
+  function setLivePreview(nodeId: string, preview: string) {
+    livePreviews.value[nodeId] = preview;
+  }
+  function clearLivePreviews() {
+    livePreviews.value = {};
+  }
 
   function start(run: Run) {
     current.value = run;
@@ -18,6 +26,7 @@ export const useRunStore = defineStore('run', () => {
     totalTokensOut.value = 0;
     startedAtMs.value = performance.now();
     elapsedMs.value = 0;
+    clearLivePreviews();
   }
 
   function tick() {
@@ -46,7 +55,7 @@ export const useRunStore = defineStore('run', () => {
   }
 
   return {
-    current, totalTokensIn, totalTokensOut, elapsedMs, isRunning,
-    start, tick, recordResult, addTokens, finish,
+    current, totalTokensIn, totalTokensOut, elapsedMs, isRunning, livePreviews,
+    start, tick, recordResult, addTokens, finish, setLivePreview, clearLivePreviews,
   };
 });

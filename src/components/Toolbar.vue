@@ -4,10 +4,14 @@ import { computed } from 'vue';
 import { useGraphStore } from '@/stores/graph';
 import { useRunStore } from '@/stores/run';
 import { useUiStore } from '@/stores/ui';
+import { useSettingsStore } from '@/stores/settings';
+import { runGraph } from '@/engine/runner';
+import { abortCurrent } from '@/engine/abort';
 
 const graph = useGraphStore();
 const run = useRunStore();
 const ui = useUiStore();
+const settings = useSettingsStore();
 
 const displayName = computed(() => {
   const path = graph.filePath;
@@ -23,8 +27,19 @@ const elapsedDisplay = computed(() => {
 });
 
 function openSettings() { ui.settingsOpen = true; }
-function onRun() { /* wired in Task 16 */ }
-function onStop() { /* wired in Task 16 */ }
+
+async function onRun() {
+  if (!settings.apiKeyConfigured) {
+    alert('Add an OpenRouter API key in Settings first.');
+    return;
+  }
+  try {
+    await runGraph({ graph: graph.graph, apiKey: settings.apiKey ?? '' });
+  } catch (err) {
+    console.error('Run failed:', err);
+  }
+}
+function onStop() { abortCurrent(); }
 </script>
 
 <template>
