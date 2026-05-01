@@ -72,12 +72,14 @@ export async function runGraph(args: RunGraphArgs): Promise<Run> {
         result.status = 'done';
         result.endedAt = new Date().toISOString();
         runStore.recordResult(result);
+        runStore.clearLivePreview(id);
       } catch (e) {
         result.status = 'error';
         result.endedAt = new Date().toISOString();
         result.errorMessage = (e as Error).message;
         result.errorStack = (e as Error).stack;
         runStore.recordResult(result);
+        runStore.clearLivePreview(id);
         run.errors.push({ nodeId: id, message: (e as Error).message, stack: (e as Error).stack });
         if (controller.signal.aborted) {
           run.status = 'aborted';

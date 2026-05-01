@@ -39,6 +39,12 @@ const responseText = computed(() => {
   const r = result.value?.details?.response as { text?: string } | undefined;
   return r?.text ?? '';
 });
+const requestJson = computed(() =>
+  result.value?.details?.request ? JSON.stringify(result.value.details.request, null, 2) : '—',
+);
+const responseJson = computed(() =>
+  result.value?.details?.response ? JSON.stringify(result.value.details.response, null, 2) : '—',
+);
 </script>
 
 <template>
@@ -86,12 +92,12 @@ const responseText = computed(() => {
 
     <section>
       <h4 @click="toggle('request')">{{ sectionsOpen.request ? '▼' : '▶' }} Raw request</h4>
-      <pre v-show="sectionsOpen.request" class="raw">{{ result?.details?.request ?? '—' }}</pre>
+      <pre v-show="sectionsOpen.request" class="raw">{{ requestJson }}</pre>
     </section>
 
     <section>
       <h4 @click="toggle('response')">{{ sectionsOpen.response ? '▼' : '▶' }} Raw response</h4>
-      <pre v-show="sectionsOpen.response" class="raw">{{ result?.details?.response ?? '—' }}</pre>
+      <pre v-show="sectionsOpen.response" class="raw">{{ responseJson }}</pre>
     </section>
 
     <section v-if="result?.errorMessage">

@@ -16,6 +16,9 @@ export const useRunStore = defineStore('run', () => {
   function setLivePreview(nodeId: string, preview: string) {
     livePreviews.value[nodeId] = preview;
   }
+  function clearLivePreview(nodeId: string) {
+    delete livePreviews.value[nodeId];
+  }
   function clearLivePreviews() {
     livePreviews.value = {};
   }
@@ -56,6 +59,6 @@ export const useRunStore = defineStore('run', () => {
 
   return {
     current, totalTokensIn, totalTokensOut, elapsedMs, isRunning, livePreviews,
-    start, tick, recordResult, addTokens, finish, setLivePreview, clearLivePreviews,
+    start, tick, recordResult, addTokens, finish, setLivePreview, clearLivePreview, clearLivePreviews,
   };
 });
