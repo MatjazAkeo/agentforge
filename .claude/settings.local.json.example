@@ -1,0 +1,9 @@
+{
+  "_comment": "Copy this file to settings.local.json for personal overrides. This file is gitignored.",
+
+  "permissions": {
+    "allow": [
+      "Bash(git push *)"
+    ]
+  }
+}

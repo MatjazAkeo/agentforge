@@ -1,0 +1,60 @@
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Grep",
+      "Glob",
+      "Write",
+      "Edit",
+      "WebFetch",
+      "WebSearch",
+      "Bash(git status)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git add *)",
+      "Bash(npm run *)",
+      "Bash(pnpm *)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(npm audit*)",
+      "Bash(pnpm audit*)",
+      "Bash(yarn audit*)",
+      "Bash(composer audit*)",
+      "Bash(CLAUDE_COMMIT_FLOW=1 git commit*)",
+      "Bash(CLAUDE_COMMIT_FLOW=1 git add *)"
+    ],
+    "deny": []
+  },
+  "statusLine": {
+    "type": "command",
+    "command": ".claude/scripts/statusline.sh"
+  },
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": true,
+    "context7@claude-plugins-official": true,
+    "figma@claude-plugins-official": true
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/session-start.sh"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/pre-commit-check.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

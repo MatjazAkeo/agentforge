@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(/Users/matjazfikfak/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.6/skills/brainstorming/scripts/start-server.sh *)",
+      "Bash(/Users/matjazfikfak/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.6/skills/brainstorming/scripts/stop-server.sh *)",
+      "Bash(rustc --version)",
+      "Bash(xcode-select -p)"
+    ]
+  }
+}
