@@ -3,6 +3,7 @@
 import { computed } from 'vue';
 import { useUiStore } from '@/stores/ui';
 import { useGraphStore } from '@/stores/graph';
+import InputInspector from './inspectors/InputInspector.vue';
 
 const ui = useUiStore();
 const graph = useGraphStore();
@@ -24,8 +25,10 @@ const selectedNode = computed(() => {
         <div class="type">{{ selectedNode.type }}</div>
         <div class="id">{{ selectedNode.id.slice(0, 8) }}…</div>
       </div>
-      <!-- Per-type inspectors plugged in by Tasks 10, 11, 17 -->
-      <div class="placeholder">Inspector content per type added in later tasks.</div>
+      <div v-if="selectedNode.type === 'input'">
+        <InputInspector :nodeId="selectedNode.id" />
+      </div>
+      <div v-else class="placeholder">Inspector for {{ selectedNode.type }} added in a later task.</div>
     </div>
   </div>
 </template>

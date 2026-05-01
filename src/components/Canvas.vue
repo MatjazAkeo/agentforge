@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted } from 'vue';
+import { computed, ref, onMounted, onUnmounted, markRaw } from 'vue';
 import { VueFlow, useVueFlow, type Node as VFNode, type Edge as VFEdge } from '@vue-flow/core';
 import { Background } from '@vue-flow/background';
 import { Controls } from '@vue-flow/controls';
@@ -12,10 +12,13 @@ import '@vue-flow/minimap/dist/style.css';
 import { useGraphStore } from '@/stores/graph';
 import { useUiStore } from '@/stores/ui';
 import AddNodeMenu from './AddNodeMenu.vue';
+import InputNode from './nodes/InputNode.vue';
 
 const graph = useGraphStore();
 const ui = useUiStore();
 const { project } = useVueFlow();
+
+const nodeTypes = { input: markRaw(InputNode) } as Record<string, ReturnType<typeof markRaw>>;
 
 const flowNodes = computed<VFNode[]>(() =>
   graph.nodes.map((n) => ({ id: n.id, type: n.type, position: n.position, data: { config: n.config } })),
@@ -66,6 +69,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown));
     <VueFlow
       :nodes="flowNodes"
       :edges="flowEdges"
+      :node-types="nodeTypes"
       :fit-view-on-init="true"
       @node-click="onNodeClick"
       @pane-click="onPaneClick"
