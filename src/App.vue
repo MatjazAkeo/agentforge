@@ -1,15 +1,34 @@
 <!-- src/App.vue -->
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { useGraphStore } from '@/stores/graph';
+import { useSettingsStore } from '@/stores/settings';
+import { useUiStore } from '@/stores/ui';
 import { pickGraphFileToOpen, pickGraphFileToSave, readGraphFile, writeGraphFile } from '@/persistence/tauri-fs';
 import { parseGraph, serializeGraph } from '@/persistence/graph-io';
+import { loadApiKey } from '@/secrets/api-key';
+
 import Layout from './components/Layout.vue';
+import Settings from './components/Settings.vue';
+import OnboardingWelcome from './components/OnboardingWelcome.vue';
 
 const graph = useGraphStore();
+const settings = useSettingsStore();
+const ui = useUiStore();
+const showOnboarding = ref(false);
 let unlisten: UnlistenFn | null = null;
 let busy = false;
+
+async function bootstrap() {
+  try {
+    const key = await loadApiKey();
+    settings.setApiKey(key);
+  } catch (err) {
+    console.error('Failed to load API key from keychain:', err);
+  }
+  showOnboarding.value = !settings.apiKeyConfigured;
+}
 
 function confirmDiscardIfDirty(action: string): boolean {
   if (!graph.dirty) return true;
@@ -66,12 +85,17 @@ async function dispatchMenu(payload: string): Promise<void> {
 }
 
 onMounted(async () => {
+  await bootstrap();
   unlisten = await listen<string>('menu', (e) => { void dispatchMenu(e.payload); });
 });
 
-onUnmounted(() => { unlisten?.(); });
+onUnmounted(() => unlisten?.());
 </script>
 
 <template>
-  <Layout />
+  <OnboardingWelcome v-if="showOnboarding" @done="showOnboarding = false" />
+  <template v-else>
+    <Layout />
+    <Settings v-if="ui.settingsOpen" />
+  </template>
 </template>
