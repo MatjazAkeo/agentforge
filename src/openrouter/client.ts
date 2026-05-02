@@ -1,3 +1,7 @@
+// Routed through Tauri's HTTP plugin to bypass the webview's CORS rules.
+// The plugin proxies the request from Rust, so OpenRouter sees a non-browser
+// origin and there are no preflight surprises with the Authorization header.
+import { fetch } from '@tauri-apps/plugin-http';
 import type { ChatCompletionRequest, StreamChunk } from './types';
 
 const BASE = 'https://openrouter.ai/api/v1';
@@ -16,12 +20,20 @@ export interface StreamArgs {
  * Throws on non-2xx response or stream error.
  */
 export async function streamChatCompletion(args: StreamArgs): Promise<string> {
+  // Defensive trim — paste-from-clipboard sometimes carries trailing whitespace/newlines
+  // that turn the Authorization header into an invalid value.
+  const apiKey = (args.apiKey ?? '').trim();
+  if (!apiKey) {
+    throw new Error('OpenRouter API key is missing — open Settings → API Key and paste your key.');
+  }
+
+  const headers = new Headers();
+  headers.set('Content-Type', 'application/json');
+  headers.set('Authorization', `Bearer ${apiKey}`);
+
   const res = await fetch(`${BASE}/chat/completions`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${args.apiKey}`,
-    },
+    headers,
     body: JSON.stringify({ ...args.request, stream: true }),
     signal: args.signal,
   });
