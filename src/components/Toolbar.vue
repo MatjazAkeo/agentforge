@@ -69,7 +69,7 @@ function onStop() { abortCurrent(); }
         type="button"
         @click="openSettings"
         title="Settings"
-        class="px-2.5 py-1.5 rounded border border-border-strong bg-elev text-text-base cursor-pointer text-base leading-none"
+        class="px-2.5 py-1 rounded border border-border-strong bg-elev text-text-base cursor-pointer text-lg leading-none"
       >⚙</button>
     </div>
   </header>

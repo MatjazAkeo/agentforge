@@ -51,3 +51,32 @@ html, body, #app {
   font-family: var(--font-ui);
   font-size: 13px;
 }
+
+/* Subtle dark-mode focus styling — replaces the bright browser default. */
+input,
+select,
+textarea,
+button {
+  outline: none;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  border-color: rgba(74, 144, 226, 0.55);
+  box-shadow: 0 0 0 1px rgba(74, 144, 226, 0.22);
+}
+
+/* Normalize <select> chrome so dropdowns line up with text inputs.
+   Adds a custom caret since `appearance: none` removes the OS one.
+   `!important` on padding-right beats Tailwind's `px-2`/`px-2.5` utilities so
+   the caret never collides with the option label. */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%23999' d='M0 0l5 6 5-6z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 10px 6px;
+  padding-right: 24px !important;
+}

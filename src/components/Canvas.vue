@@ -12,13 +12,19 @@ import '@vue-flow/minimap/dist/style.css';
 import { useGraphStore } from '@/stores/graph';
 import { useUiStore } from '@/stores/ui';
 import AddNodeMenu from './AddNodeMenu.vue';
+import HelperLines from './HelperLines.vue';
 import InputNode from './nodes/InputNode.vue';
 import OutputNode from './nodes/OutputNode.vue';
 import LLMCallNode from './nodes/LLMCallNode.vue';
 
+const GRID = 20;
+const HELPER_THRESHOLD = 5; // px in flow coords
+const NODE_DEFAULT_W = 220;
+const NODE_DEFAULT_H = 80;
+
 const graph = useGraphStore();
 const ui = useUiStore();
-const { project } = useVueFlow();
+const { project, viewport, getNodes } = useVueFlow();
 
 const nodeTypes = { input: markRaw(InputNode), output: markRaw(OutputNode), 'llm-call': markRaw(LLMCallNode) } as Record<string, ReturnType<typeof markRaw>>;
 
@@ -33,6 +39,10 @@ const menuOpen = ref(false);
 const menuScreenPos = ref({ x: 0, y: 0 });
 const menuCanvasPos = ref({ x: 0, y: 0 });
 const canvasRef = ref<HTMLDivElement | null>(null);
+
+// Helper-line state — flow-coordinates of vertical/horizontal alignment guides shown during drag.
+const helperVx = ref<number | null>(null);
+const helperHy = ref<number | null>(null);
 
 function openMenuAt(screenX: number, screenY: number) {
   menuScreenPos.value = { x: screenX, y: screenY };
@@ -60,7 +70,53 @@ function onKeydown(e: KeyboardEvent) {
 
 function onNodeClick({ node }: { node: VFNode }) { ui.selectedNodeId = node.id; }
 function onPaneClick() { ui.selectedNodeId = null; menuOpen.value = false; }
-function onNodeDragStop({ node }: { node: VFNode }) { graph.updateNodePosition(node.id, node.position.x, node.position.y); }
+
+function nodeBox(n: { position: { x: number; y: number }; dimensions?: { width: number; height: number } }) {
+  const w = n.dimensions?.width ?? NODE_DEFAULT_W;
+  const h = n.dimensions?.height ?? NODE_DEFAULT_H;
+  return {
+    minX: n.position.x,
+    maxX: n.position.x + w,
+    cX: n.position.x + w / 2,
+    minY: n.position.y,
+    maxY: n.position.y + h,
+    cY: n.position.y + h / 2,
+  };
+}
+
+function onNodeDrag({ node }: { node: VFNode }) {
+  const drag = nodeBox(node as any);
+  let lineX: number | null = null;
+  let lineY: number | null = null;
+
+  for (const other of getNodes.value) {
+    if (other.id === node.id) continue;
+    const ob = nodeBox(other as any);
+    // Vertical guides — left/right/center alignments
+    if (lineX === null) {
+      if (Math.abs(drag.minX - ob.minX) <= HELPER_THRESHOLD) lineX = ob.minX;
+      else if (Math.abs(drag.maxX - ob.maxX) <= HELPER_THRESHOLD) lineX = ob.maxX;
+      else if (Math.abs(drag.cX - ob.cX) <= HELPER_THRESHOLD) lineX = ob.cX;
+    }
+    // Horizontal guides — top/bottom/middle alignments
+    if (lineY === null) {
+      if (Math.abs(drag.minY - ob.minY) <= HELPER_THRESHOLD) lineY = ob.minY;
+      else if (Math.abs(drag.maxY - ob.maxY) <= HELPER_THRESHOLD) lineY = ob.maxY;
+      else if (Math.abs(drag.cY - ob.cY) <= HELPER_THRESHOLD) lineY = ob.cY;
+    }
+    if (lineX !== null && lineY !== null) break;
+  }
+
+  helperVx.value = lineX;
+  helperHy.value = lineY;
+}
+
+function onNodeDragStop({ node }: { node: VFNode }) {
+  helperVx.value = null;
+  helperHy.value = null;
+  graph.updateNodePosition(node.id, node.position.x, node.position.y);
+}
+
 function onConnect(params: { source: string; target: string; sourceHandle?: string | null; targetHandle?: string | null }) {
   graph.addEdge({
     id: crypto.randomUUID(),
@@ -69,6 +125,16 @@ function onConnect(params: { source: string; target: string; sourceHandle?: stri
     sourceHandle: params.sourceHandle ?? '',
     targetHandle: params.targetHandle ?? '',
   });
+}
+
+function snapAllNodesToGrid() {
+  for (const n of graph.nodes) {
+    const x = Math.round(n.position.x / GRID) * GRID;
+    const y = Math.round(n.position.y / GRID) * GRID;
+    if (x !== n.position.x || y !== n.position.y) {
+      graph.updateNodePosition(n.id, x, y);
+    }
+  }
 }
 
 onMounted(() => window.addEventListener('keydown', onKeydown));
@@ -82,19 +148,22 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown));
       :edges="flowEdges"
       :node-types="nodeTypes"
       :fit-view-on-init="true"
-      :snap-to-grid="ui.snapToGrid"
-      :snap-grid="[20, 20]"
       @node-click="onNodeClick"
       @pane-click="onPaneClick"
+      @node-drag="onNodeDrag"
       @node-drag-stop="onNodeDragStop"
       @connect="onConnect"
     >
-      <Background :gap="20" />
-      <Controls>
+      <Background :gap="GRID" />
+      <HelperLines
+        :vertical-x="helperVx"
+        :horizontal-y="helperHy"
+        :viewport="{ x: viewport.x, y: viewport.y, zoom: viewport.zoom }"
+      />
+      <Controls :show-interactive="false">
         <ControlButton
-          @click="ui.snapToGrid = !ui.snapToGrid"
-          :title="ui.snapToGrid ? 'Disable snap to grid' : 'Snap nodes to grid'"
-          :class="ui.snapToGrid ? 'snap-active' : ''"
+          @click="snapAllNodesToGrid"
+          title="Snap all nodes to nearest grid point"
         >
           <!-- 4-dot grid glyph -->
           <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
