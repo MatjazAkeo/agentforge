@@ -20,6 +20,7 @@ const ALL_OPTIONS: NodeOption[] = [
   { type: 'loop-controller', label: 'Loop Controller', description: 'Cycle anchor for ReAct, retry, refinement loops' },
   { type: 'agent', label: 'Agent', description: 'LLM ↔ Tool loop encapsulated' },
   { type: 'transform', label: 'Transform', description: 'Parse / extract / reformat data between nodes' },
+  { type: 'prompt-template', label: 'Prompt Template', description: 'String template with {{var}} placeholders' },
 ];
 
 const props = defineProps<{
@@ -81,6 +82,7 @@ function defaultConfig(type: NodeType): Record<string, unknown> {
       stopCondition: 'no-tool-calls',
     };
     case 'transform': return { mode: 'json-parse' };
+    case 'prompt-template': return { template: 'Hello {{name}}!' };
     default: return {};
   }
 }

@@ -11,6 +11,7 @@ import ToolRunnerInspector from './inspectors/ToolRunnerInspector.vue';
 import LoopControllerInspector from './inspectors/LoopControllerInspector.vue';
 import AgentInspector from './inspectors/AgentInspector.vue';
 import TransformInspector from './inspectors/TransformInspector.vue';
+import PromptTemplateInspector from './inspectors/PromptTemplateInspector.vue';
 
 const ui = useUiStore();
 const graph = useGraphStore();
@@ -60,6 +61,9 @@ const selectedNode = computed(() => {
       </div>
       <div v-else-if="selectedNode.type === 'transform'">
         <TransformInspector :nodeId="selectedNode.id" />
+      </div>
+      <div v-else-if="selectedNode.type === 'prompt-template'">
+        <PromptTemplateInspector :nodeId="selectedNode.id" />
       </div>
       <div v-else class="opacity-50">Inspector for {{ selectedNode.type }} added in a later task.</div>
     </div>
