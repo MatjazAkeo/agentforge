@@ -3,7 +3,15 @@ import { computed } from 'vue';
 import type { RunSummary } from '@/stores/runs';
 
 const props = defineProps<{ summary: RunSummary; loaded: boolean }>();
-const emit = defineEmits<{ click: [path: string] }>();
+const emit = defineEmits<{
+  click: [path: string];
+  contextmenu: [path: string, x: number, y: number];
+}>();
+
+function onContextMenu(e: MouseEvent) {
+  e.preventDefault();
+  emit('contextmenu', props.summary.path, e.clientX, e.clientY);
+}
 
 const time = computed(() => {
   // Render HH:MM:SS from ISO timestamp
@@ -32,6 +40,7 @@ const statusIcon = computed(() => {
   <button
     type="button"
     @click="emit('click', summary.path)"
+    @contextmenu="onContextMenu"
     :class="[
       'w-full text-left px-3 py-2 text-xs border-b border-border-base last:border-b-0 cursor-pointer transition',
       loaded ? 'bg-accent/15 border-l-2 border-l-accent' : 'hover:bg-elev/40 border-l-2 border-l-transparent',
