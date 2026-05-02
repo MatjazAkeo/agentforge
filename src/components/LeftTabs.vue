@@ -1,8 +1,18 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { useUiStore } from '@/stores/ui';
+import { useGraphStore } from '@/stores/graph';
 import RunsList from './runs/RunsList.vue';
+import ChatPanel from './chat/ChatPanel.vue';
 
 const ui = useUiStore();
+const graph = useGraphStore();
+
+const isChatActive = computed(() => {
+  const ins = graph.nodes.filter((n) => n.type === 'chat-input').length;
+  const outs = graph.nodes.filter((n) => n.type === 'chat-output').length;
+  return ins === 1 && outs === 1;
+});
 </script>
 
 <template>
@@ -29,10 +39,13 @@ const ui = useUiStore();
         ]"
       >Runs</button>
     </div>
-    <div class="flex-1 overflow-y-auto">
-      <div v-if="ui.leftActiveTab === 'chat'" class="flex items-center justify-center h-full opacity-50 p-3.5">
-        Not a chat graph
-      </div>
+    <div class="flex-1 overflow-hidden">
+      <template v-if="ui.leftActiveTab === 'chat'">
+        <ChatPanel v-if="isChatActive" />
+        <div v-else class="flex items-center justify-center h-full opacity-50 p-3.5 text-center text-xs">
+          This graph isn't a chat agent — add exactly one Chat Input + one Chat Output node to enable chat mode.
+        </div>
+      </template>
       <RunsList v-else />
     </div>
   </div>
