@@ -43,6 +43,9 @@ const canvasRef = ref<HTMLDivElement | null>(null);
 // Helper-line state — flow-coordinates of vertical/horizontal alignment guides shown during drag.
 const helperVx = ref<number | null>(null);
 const helperHy = ref<number | null>(null);
+// Snap-on-release targets — the node.position the dragged node should snap to if released now.
+const snapTargetX = ref<number | null>(null);
+const snapTargetY = ref<number | null>(null);
 
 function openMenuAt(screenX: number, screenY: number) {
   menuScreenPos.value = { x: screenX, y: screenY };
@@ -85,36 +88,49 @@ function nodeBox(n: { position: { x: number; y: number }; dimensions?: { width: 
 }
 
 function onNodeDrag({ node }: { node: VFNode }) {
-  const drag = nodeBox(node as any);
+  const dragNode = node as VFNode & { dimensions?: { width: number; height: number } };
+  const drag = nodeBox(dragNode);
+  const w = dragNode.dimensions?.width ?? NODE_DEFAULT_W;
+  const h = dragNode.dimensions?.height ?? NODE_DEFAULT_H;
+
   let lineX: number | null = null;
   let lineY: number | null = null;
+  let tx: number | null = null;
+  let ty: number | null = null;
 
   for (const other of getNodes.value) {
     if (other.id === node.id) continue;
-    const ob = nodeBox(other as any);
-    // Vertical guides — left/right/center alignments
+    const ob = nodeBox(other);
+    // Vertical guides — left/right/center alignments. tx is the new flow-x for the dragged
+    // node so its corresponding edge/center lands exactly on the line.
     if (lineX === null) {
-      if (Math.abs(drag.minX - ob.minX) <= HELPER_THRESHOLD) lineX = ob.minX;
-      else if (Math.abs(drag.maxX - ob.maxX) <= HELPER_THRESHOLD) lineX = ob.maxX;
-      else if (Math.abs(drag.cX - ob.cX) <= HELPER_THRESHOLD) lineX = ob.cX;
+      if (Math.abs(drag.minX - ob.minX) <= HELPER_THRESHOLD) { lineX = ob.minX; tx = ob.minX; }
+      else if (Math.abs(drag.maxX - ob.maxX) <= HELPER_THRESHOLD) { lineX = ob.maxX; tx = ob.maxX - w; }
+      else if (Math.abs(drag.cX - ob.cX) <= HELPER_THRESHOLD) { lineX = ob.cX; tx = ob.cX - w / 2; }
     }
-    // Horizontal guides — top/bottom/middle alignments
+    // Horizontal guides — top/bottom/middle alignments.
     if (lineY === null) {
-      if (Math.abs(drag.minY - ob.minY) <= HELPER_THRESHOLD) lineY = ob.minY;
-      else if (Math.abs(drag.maxY - ob.maxY) <= HELPER_THRESHOLD) lineY = ob.maxY;
-      else if (Math.abs(drag.cY - ob.cY) <= HELPER_THRESHOLD) lineY = ob.cY;
+      if (Math.abs(drag.minY - ob.minY) <= HELPER_THRESHOLD) { lineY = ob.minY; ty = ob.minY; }
+      else if (Math.abs(drag.maxY - ob.maxY) <= HELPER_THRESHOLD) { lineY = ob.maxY; ty = ob.maxY - h; }
+      else if (Math.abs(drag.cY - ob.cY) <= HELPER_THRESHOLD) { lineY = ob.cY; ty = ob.cY - h / 2; }
     }
     if (lineX !== null && lineY !== null) break;
   }
 
   helperVx.value = lineX;
   helperHy.value = lineY;
+  snapTargetX.value = tx;
+  snapTargetY.value = ty;
 }
 
 function onNodeDragStop({ node }: { node: VFNode }) {
+  const finalX = snapTargetX.value ?? node.position.x;
+  const finalY = snapTargetY.value ?? node.position.y;
+  graph.updateNodePosition(node.id, finalX, finalY);
   helperVx.value = null;
   helperHy.value = null;
-  graph.updateNodePosition(node.id, node.position.x, node.position.y);
+  snapTargetX.value = null;
+  snapTargetY.value = null;
 }
 
 function onConnect(params: { source: string; target: string; sourceHandle?: string | null; targetHandle?: string | null }) {
