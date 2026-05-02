@@ -12,8 +12,6 @@ import '@vue-flow/minimap/dist/style.css';
 import { useGraphStore } from '@/stores/graph';
 import { useUiStore } from '@/stores/ui';
 import { getSourcePortType, getTargetPortType } from '@/nodes/port-types';
-import type { Node } from '@/domain/graph';
-import type { NodeType } from '@/domain/node-types';
 import AddNodeMenu from './AddNodeMenu.vue';
 import HelperLines from './HelperLines.vue';
 import InputNode from './nodes/InputNode.vue';
@@ -27,7 +25,7 @@ const NODE_DEFAULT_H = 80;
 
 const graph = useGraphStore();
 const ui = useUiStore();
-const { project, viewport, getNodes, getSelectedNodes } = useVueFlow();
+const { project, viewport, getNodes } = useVueFlow();
 
 const nodeTypes = { input: markRaw(InputNode), output: markRaw(OutputNode), 'llm-call': markRaw(LLMCallNode) } as Record<string, ReturnType<typeof markRaw>>;
 
@@ -50,69 +48,11 @@ const helperHy = ref<number | null>(null);
 const snapTargetX = ref<number | null>(null);
 const snapTargetY = ref<number | null>(null);
 
-// In-app clipboard for copy/paste — stores a node's type+config snapshot, no edges.
-const clipboard = ref<{ type: NodeType; config: Record<string, unknown> } | null>(null);
-
 function isTypingInField(target: EventTarget | null): boolean {
   const el = target as HTMLElement | null;
   if (!el) return false;
   if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') return true;
   return el.isContentEditable === true;
-}
-
-/** Returns the node Vue Flow currently considers selected (visual selection),
- *  falling back to our store's selectedNodeId. Vue Flow is the source of truth. */
-function currentlySelectedNode(): Node | null {
-  const vfSelected = getSelectedNodes.value;
-  if (vfSelected.length > 0) {
-    const id = vfSelected[0].id;
-    return graph.nodes.find((n) => n.id === id) ?? null;
-  }
-  if (ui.selectedNodeId) {
-    return graph.nodes.find((n) => n.id === ui.selectedNodeId) ?? null;
-  }
-  return null;
-}
-
-function copySelected() {
-  const node = currentlySelectedNode();
-  if (!node) return;
-  clipboard.value = {
-    type: node.type,
-    config: structuredClone(node.config) as Record<string, unknown>,
-  };
-}
-
-function pasteFromClipboard() {
-  if (!clipboard.value) return;
-  const anchor = currentlySelectedNode()?.position ?? null;
-  const fallback = canvasRef.value
-    ? project({ x: canvasRef.value.clientWidth / 2, y: canvasRef.value.clientHeight / 2 })
-    : { x: 100, y: 100 };
-  const base = anchor ?? fallback;
-  const newNode: Node = {
-    id: crypto.randomUUID(),
-    type: clipboard.value.type,
-    position: { x: base.x + 30, y: base.y + 30 },
-    config: structuredClone(clipboard.value.config) as Node['config'],
-  };
-  graph.addNode(newNode);
-  ui.selectedNodeId = newNode.id;
-}
-
-/** Duplicate = copy + paste in one action. Bound to ⌘D so it survives the
- *  macOS Edit menu's ⌘C/⌘V interception of plain copy/paste. */
-function duplicateSelected() {
-  const node = currentlySelectedNode();
-  if (!node) return;
-  const newNode: Node = {
-    id: crypto.randomUUID(),
-    type: node.type,
-    position: { x: node.position.x + 30, y: node.position.y + 30 },
-    config: structuredClone(node.config) as Node['config'],
-  };
-  graph.addNode(newNode);
-  ui.selectedNodeId = newNode.id;
 }
 
 function openMenuAt(screenX: number, screenY: number) {
@@ -133,27 +73,10 @@ function onContextMenu(e: MouseEvent) {
   openMenuAt(e.clientX, e.clientY);
 }
 function onKeydown(e: KeyboardEvent) {
-  // Don't hijack shortcuts while the user is typing in a form control.
   if (isTypingInField(e.target)) return;
-
-  const mod = e.metaKey || e.ctrlKey;
-  const k = e.key.toLowerCase();
-  if (mod && k === 'k') {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
     e.preventDefault();
     openMenuAt(window.innerWidth / 2 - 120, 100);
-  } else if (mod && k === 'd') {
-    // ⌘D / Ctrl+D — duplicate the selected node in place (works around the
-    // macOS Edit-menu's predefined ⌘C/⌘V interception).
-    e.preventDefault();
-    duplicateSelected();
-  } else if (mod && k === 'c') {
-    // May not fire on macOS if the Edit menu's Copy item is consuming ⌘C —
-    // ⌘D is the reliable shortcut. Kept as a fallback.
-    e.preventDefault();
-    copySelected();
-  } else if (mod && k === 'v') {
-    e.preventDefault();
-    pasteFromClipboard();
   }
 }
 
