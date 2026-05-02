@@ -31,6 +31,29 @@ export interface LLMCallConfig {
   responseFormat: 'text' | 'json_object' | null;
 }
 
+export interface ToolConfig {
+  name: string;                                    // snake_case identifier exposed to the LLM
+  description: string;                             // prompt-visible description
+  inputSchema: Record<string, unknown>;            // JSON Schema for the tool's `inputs` arg
+  code: string;                                    // user-authored JS function body
+  timeoutMs: number;                               // per-invocation safety cap
+}
+
+export interface ToolGroupConfig {
+  label: string;                                   // shown on the node card; cosmetic only
+}
+
+export interface ToolRunnerConfig {
+  // No config — behavior fully driven by inputs.
+}
+
 // Plan 1 defines only these three. Other node-type configs come in later plans
 // but the union type is declared up-front for stability.
-export type NodeConfig = InputConfig | OutputConfig | LLMCallConfig | Record<string, unknown>;
+export type NodeConfig =
+  | InputConfig
+  | OutputConfig
+  | LLMCallConfig
+  | ToolConfig
+  | ToolGroupConfig
+  | ToolRunnerConfig
+  | Record<string, unknown>;
