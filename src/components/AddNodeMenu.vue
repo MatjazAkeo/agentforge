@@ -19,6 +19,7 @@ const ALL_OPTIONS: NodeOption[] = [
   { type: 'tool-runner', label: 'Tool Runner', description: 'Execute tool calls emitted by an LLM' },
   { type: 'loop-controller', label: 'Loop Controller', description: 'Cycle anchor for ReAct, retry, refinement loops' },
   { type: 'agent', label: 'Agent', description: 'LLM ↔ Tool loop encapsulated' },
+  { type: 'transform', label: 'Transform', description: 'Parse / extract / reformat data between nodes' },
 ];
 
 const props = defineProps<{
@@ -79,6 +80,7 @@ function defaultConfig(type: NodeType): Record<string, unknown> {
       maxIterations: 25,
       stopCondition: 'no-tool-calls',
     };
+    case 'transform': return { mode: 'json-parse' };
     default: return {};
   }
 }
