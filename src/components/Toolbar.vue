@@ -33,9 +33,14 @@ async function onRun() {
     return;
   }
   try {
-    await runGraph({ graph: graph.graph, apiKey: settings.apiKey ?? '' });
+    const result = await runGraph({ graph: graph.graph, apiKey: settings.apiKey ?? '' });
+    if (result.status === 'failed' && result.errors.length > 0) {
+      const first = result.errors[0];
+      alert(`Run failed at node ${first.nodeId.slice(0, 8)}…\n\n${first.message}`);
+    }
   } catch (err) {
     console.error('Run failed:', err);
+    alert(`Run failed: ${(err as Error).message ?? String(err)}`);
   }
 }
 function onStop() { abortCurrent(); }
@@ -57,8 +62,11 @@ function onStop() { abortCurrent(); }
         type="button"
         @click="onRun"
         :disabled="run.isRunning"
-        class="px-3 py-1.5 rounded font-semibold border border-success bg-success text-[#0a1f0a] cursor-pointer disabled:bg-elev disabled:border-border-strong disabled:text-text-base disabled:cursor-default disabled:opacity-50"
-      >▶ Run</button>
+        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded font-semibold border border-success bg-success text-[#0a1f0a] cursor-pointer disabled:bg-elev disabled:border-border-strong disabled:text-text-base disabled:cursor-default disabled:opacity-90"
+      >
+        <span v-if="run.isRunning" class="inline-block w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+        <span>{{ run.isRunning ? 'Running…' : '▶ Run' }}</span>
+      </button>
       <button
         type="button"
         @click="onStop"

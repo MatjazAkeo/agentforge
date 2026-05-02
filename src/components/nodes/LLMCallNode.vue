@@ -54,6 +54,7 @@ function onDelete() {
   <div
     class="node-shell group w-[260px] bg-[#25272d] border rounded-md shadow-[0_2px_8px_rgba(0,0,0,0.45)] font-ui text-text-base"
     :style="{ borderColor }"
+    :data-status="status"
   >
     <div class="relative rounded-t-md flex items-center gap-2 px-3 py-1.5 border-b border-[#16181c]">
       <span class="w-2 h-2 rounded-full bg-[#7aa2ff] flex-shrink-0" title="LLM call" />

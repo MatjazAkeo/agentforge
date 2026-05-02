@@ -31,12 +31,20 @@ export async function streamChatCompletion(args: StreamArgs): Promise<string> {
   headers.set('Content-Type', 'application/json');
   headers.set('Authorization', `Bearer ${apiKey}`);
 
-  const res = await fetch(`${BASE}/chat/completions`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({ ...args.request, stream: true }),
-    signal: args.signal,
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${BASE}/chat/completions`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ ...args.request, stream: true }),
+      signal: args.signal,
+    });
+  } catch (e) {
+    // Tauri plugin-http throws "resource id X is invalid" when an in-flight
+    // request is aborted by the user. Surface as a normal abort, not an error.
+    if (args.signal.aborted) throw new DOMException('Aborted', 'AbortError');
+    throw e;
+  }
 
   if (!res.ok) {
     const body = await res.text().catch(() => '');
@@ -52,7 +60,14 @@ export async function streamChatCompletion(args: StreamArgs): Promise<string> {
   let assembled = '';
 
   while (true) {
-    const { value, done } = await reader.read();
+    let value: Uint8Array | undefined;
+    let done = false;
+    try {
+      ({ value, done } = await reader.read());
+    } catch (e) {
+      if (args.signal.aborted) throw new DOMException('Aborted', 'AbortError');
+      throw e;
+    }
     if (done) break;
     buffer += decoder.decode(value, { stream: true });
     let nl: number;
