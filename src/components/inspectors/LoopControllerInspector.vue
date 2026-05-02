@@ -54,21 +54,23 @@ function removeChannel(i: number) {
         <span>Channels ({{ cfg.valueChannels.length }})</span>
         <button type="button" @click="addChannel" class="text-text-dim hover:text-text-base text-[11px]">+ add</button>
       </div>
-      <ul class="flex flex-col gap-1.5">
-        <li v-for="(c, i) in cfg.valueChannels" :key="i" class="flex items-center gap-1.5">
-          <input :value="c.name" @input="(e) => renameChannel(i, (e.target as HTMLInputElement).value)"
-            class="bg-elev text-text-base border border-border-base rounded px-2 py-1 text-xs font-mono flex-1">
+      <ul class="flex flex-col gap-2">
+        <li v-for="(c, i) in cfg.valueChannels" :key="i" class="flex flex-col gap-1">
+          <div class="flex items-center gap-1.5">
+            <input :value="c.name" @input="(e) => renameChannel(i, (e.target as HTMLInputElement).value)"
+              class="bg-elev text-text-base border border-border-base rounded px-2 py-1 text-xs font-mono flex-1 min-w-0">
+            <button type="button" @click="removeChannel(i)" class="text-text-dim hover:text-error text-xs flex-shrink-0">×</button>
+          </div>
           <select :value="c.type ?? 'json'"
             @change="(e) => retypeChannel(i, (e.target as HTMLSelectElement).value as LoopChannelType)"
-            class="bg-elev text-text-base border border-border-base rounded px-1 py-1 text-[11px] font-mono"
+            class="bg-elev text-text-base border border-border-base rounded px-2 py-1 text-[11px] font-mono w-full"
             title="Channel wire type">
-            <option value="json">json</option>
+            <option value="json">json (any)</option>
             <option value="string">string</option>
             <option value="messages">messages</option>
             <option value="tools">tools</option>
             <option value="tool-calls">tool-calls</option>
           </select>
-          <button type="button" @click="removeChannel(i)" class="text-text-dim hover:text-error text-xs">×</button>
         </li>
       </ul>
     </section>
