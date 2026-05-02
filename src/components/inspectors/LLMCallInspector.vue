@@ -22,6 +22,8 @@ const sectionsOpen = ref({
   request: false, response: false, errors: false,
 });
 
+const selectedIter = ref<number | null>(null);
+
 const modelOptions = computed(() =>
   settings.models.length > 0 ? settings.models : DEFAULT_MODELS,
 );
@@ -31,26 +33,51 @@ function update<K extends keyof LLMCallConfig>(key: K, value: LLMCallConfig[K]) 
 }
 function toggle(k: keyof typeof sectionsOpen.value) { sectionsOpen.value[k] = !sectionsOpen.value[k]; }
 
+const iterRecords = computed(() => result.value?.iterations ?? []);
+const selectedRecord = computed(() => {
+  if (iterRecords.value.length === 0) return null;
+  const idx = selectedIter.value ?? iterRecords.value.length;
+  return iterRecords.value.find((r) => r.iteration === idx) ?? iterRecords.value[iterRecords.value.length - 1];
+});
+
 const messages = computed(() => {
-  const req = result.value?.details?.request as { messages?: Array<{ role: string; content: string }> } | undefined;
+  const src = selectedRecord.value?.details ?? result.value?.details;
+  const req = (src as { request?: { messages?: Array<{ role: string; content: string }> } } | undefined)?.request;
   return req?.messages ?? [];
 });
-const usage = computed(() => result.value?.details?.usage as { input: number; output: number } | undefined);
-const timing = computed(() => result.value?.details?.timing as { totalMs: number; firstTokenMs: number | null } | undefined);
-const responseText = computed(() => {
-  const r = result.value?.details?.response as { text?: string } | undefined;
-  return r?.text ?? '';
+const usage = computed(() => {
+  const src = (selectedRecord.value?.details ?? result.value?.details) as { usage?: { input: number; output: number } } | undefined;
+  return src?.usage;
 });
-const requestJson = computed(() =>
-  result.value?.details?.request ? JSON.stringify(result.value.details.request, null, 2) : '—',
-);
-const responseJson = computed(() =>
-  result.value?.details?.response ? JSON.stringify(result.value.details.response, null, 2) : '—',
-);
+const timing = computed(() => {
+  const src = (selectedRecord.value?.details ?? result.value?.details) as { timing?: { totalMs: number; firstTokenMs: number | null } } | undefined;
+  return src?.timing;
+});
+const responseText = computed(() => {
+  const src = (selectedRecord.value?.details ?? result.value?.details) as { response?: { text?: string } } | undefined;
+  return src?.response?.text ?? '';
+});
+const requestJson = computed(() => {
+  const src = (selectedRecord.value?.details ?? result.value?.details) as { request?: unknown } | undefined;
+  return src?.request ? JSON.stringify(src.request, null, 2) : '—';
+});
+const responseJson = computed(() => {
+  const src = (selectedRecord.value?.details ?? result.value?.details) as { response?: unknown } | undefined;
+  return src?.response ? JSON.stringify(src.response, null, 2) : '—';
+});
 </script>
 
 <template>
   <div v-if="cfg">
+    <div v-if="iterRecords.length > 1" class="flex items-center gap-2 mb-2 text-xs">
+      <span class="opacity-60">iteration</span>
+      <select :value="selectedIter ?? iterRecords[iterRecords.length - 1].iteration"
+        @change="(e) => selectedIter = parseInt((e.target as HTMLSelectElement).value, 10)"
+        class="bg-elev text-text-base border border-border-base rounded px-1 py-0.5">
+        <option v-for="r in iterRecords" :key="r.iteration" :value="r.iteration">{{ r.iteration }}</option>
+      </select>
+    </div>
+
     <!-- Config -->
     <section class="border-t border-border-base first:border-t-0">
       <h4
