@@ -18,7 +18,9 @@ export async function runGraph(args: RunGraphArgs): Promise<Run> {
     schemaVersion: 1,
     id: crypto.randomUUID(),
     graphId: args.graph.id,
-    graphSnapshot: structuredClone(args.graph),
+    // JSON round-trip beats structuredClone here: it strips Vue reactivity proxies
+    // and only commits to JSON-shaped data, matching how the graph is persisted on disk.
+    graphSnapshot: JSON.parse(JSON.stringify(args.graph)) as Graph,
     startedAt: new Date().toISOString(),
     endedAt: null,
     status: 'running',
