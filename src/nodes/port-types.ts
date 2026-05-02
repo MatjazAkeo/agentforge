@@ -43,6 +43,23 @@ export function getSourcePortType(node: Node, handleId: string): DataType | null
       if (handleId === 'messages') return 'messages';
       if (handleId === 'results') return 'json';
       return null;
+    case 'loop-controller': {
+      const cfg = node.config as { valueChannels?: Array<{ name: string }> };
+      if (handleId === 'iteration') return 'string';
+      if (handleId.startsWith('output-')) {
+        const name = handleId.slice('output-'.length);
+        if (cfg.valueChannels?.some((c) => c.name === name)) return 'json';
+      }
+      return null;
+    }
+    case 'break':
+      if (handleId === 'value') return 'json';
+      return null;
+    case 'agent':
+      if (handleId === 'text') return 'string';
+      if (handleId === 'messages') return 'messages';
+      if (handleId === 'iterationCount') return 'string';
+      return null;
     default:
       return null;
   }
@@ -66,6 +83,27 @@ export function getTargetPortType(node: Node, handleId: string): DataType | null
       if (handleId === 'toolCalls') return 'tool-calls';
       if (handleId === 'tools') return 'tools';
       if (handleId === 'messages') return 'messages';
+      return null;
+    case 'loop-controller': {
+      const cfg = node.config as { valueChannels?: Array<{ name: string }> };
+      if (handleId === 'continue') return 'json';
+      if (handleId.startsWith('default-')) {
+        const name = handleId.slice('default-'.length);
+        if (cfg.valueChannels?.some((c) => c.name === name)) return 'json';
+      }
+      if (handleId.startsWith('input-')) {
+        const name = handleId.slice('input-'.length);
+        if (cfg.valueChannels?.some((c) => c.name === name)) return 'json';
+      }
+      return null;
+    }
+    case 'break':
+      if (handleId === 'value') return 'json';
+      return null;
+    case 'agent':
+      if (handleId === 'userMessage') return 'string';
+      if (handleId === 'messages') return 'messages';
+      if (handleId === 'tools') return 'tools';
       return null;
     default:
       return null;
