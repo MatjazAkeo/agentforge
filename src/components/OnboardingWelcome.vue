@@ -51,7 +51,7 @@ function finish() { emit('done'); }
         <input v-model="key" placeholder="sk-or-v1-…" type="password">
         <div class="row">
           <button class="btn" @click="skip">Skip — I'll add later</button>
-          <button class="btn-primary" :disabled="saving" @click="next">{{ saving ? 'Saving…' : 'Next →' }}</button>
+          <button class="btn-primary" :disabled="saving || !key.trim()" @click="next">{{ saving ? 'Saving…' : 'Next →' }}</button>
         </div>
       </section>
 
