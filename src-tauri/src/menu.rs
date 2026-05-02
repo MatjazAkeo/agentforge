@@ -40,6 +40,19 @@ pub fn build_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
         .item(&save_as_item)
         .build()?;
 
+    // Edit menu — REQUIRED on macOS for ⌘C/⌘V/⌘X/⌘A to work in text inputs.
+    // Without these items bound to those accelerators, NSResponder doesn't route
+    // the keystrokes to the focused field, and paste silently no-ops.
+    let edit_menu = SubmenuBuilder::new(app, "Edit")
+        .item(&PredefinedMenuItem::undo(app, None)?)
+        .item(&PredefinedMenuItem::redo(app, None)?)
+        .separator()
+        .item(&PredefinedMenuItem::cut(app, None)?)
+        .item(&PredefinedMenuItem::copy(app, None)?)
+        .item(&PredefinedMenuItem::paste(app, None)?)
+        .item(&PredefinedMenuItem::select_all(app, None)?)
+        .build()?;
+
     // Run menu
     let run_item = MenuItem::with_id(app, "menu.run.run", "Run", true, Some("CmdOrCtrl+Return"))?;
     let stop_item = MenuItem::with_id(app, "menu.run.stop", "Stop", true, Some("CmdOrCtrl+."))?;
@@ -52,6 +65,7 @@ pub fn build_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
     MenuBuilder::new(app)
         .item(&app_menu)
         .item(&file_menu)
+        .item(&edit_menu)
         .item(&run_menu)
         .build()
 }
