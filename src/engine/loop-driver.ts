@@ -62,8 +62,10 @@ export function computeLoopBody(graph: Graph, controllerId: string): LoopBody {
 
   const bodyNodeIds: string[] = [];
   const breakNodeIds: string[] = [];
+  // I4: use nodeById map for O(1) lookups
+  const nodeById = new Map(graph.nodes.map((n) => [n.id, n]));
   for (const id of reachable) {
-    const node = graph.nodes.find((x) => x.id === id);
+    const node = nodeById.get(id);
     if (!node) continue;
     if (node.type === 'break') {
       breakNodeIds.push(id);
@@ -111,9 +113,22 @@ export interface LoopDriverArgs {
 
 export async function driveLoop(args: LoopDriverArgs): Promise<LoopDriverResult> {
   const { graph, run, controllerId, outputsByNode, apiKey, signal } = args;
-  const controllerNode = graph.nodes.find((n) => n.id === controllerId)!;
+
+  // I4: build nodeById map once for O(1) lookups throughout driveLoop
+  const nodeById = new Map(graph.nodes.map((n) => [n.id, n]));
+
+  const controllerNode = nodeById.get(controllerId);
+  if (!controllerNode) throw new Error(`Node "${controllerId}" not found in graph`);
+
   const cfg = controllerNode.config as LoopControllerConfig;
   const body = computeLoopBody(graph, controllerId);
+
+  // I4: convert bodyNodeIds to a Set for O(1) membership checks
+  const bodySet = new Set(body.bodyNodeIds);
+
+  // I1: guard loop-controller definition lookup
+  const ctrlDef = getNodeDefinition('loop-controller');
+  if (!ctrlDef) throw new Error('No definition registered for node type "loop-controller"');
 
   // Build inputs for the controller from the upstream graph (default-* and any non-back edges).
   const allEdgesIntoController = graph.edges.filter(
@@ -126,6 +141,7 @@ export async function driveLoop(args: LoopDriverArgs): Promise<LoopDriverResult>
   }
 
   let iteration = 1;
+  let completedIterations = 0;
   let stopReason: LoopDriverResult['stopReason'] = 'continue-false';
   let bodyOutputsByNode = new Map<string, Record<string, unknown>>();
   let controllerOutputs: Record<string, unknown> = {};
@@ -135,7 +151,7 @@ export async function driveLoop(args: LoopDriverArgs): Promise<LoopDriverResult>
   // Topological order *within* the body (using internalEdges only).
   const bodyOrder = topologicalOrder({
     ...graph,
-    nodes: graph.nodes.filter((n) => body.bodyNodeIds.includes(n.id) || n.id === controllerId),
+    nodes: graph.nodes.filter((n) => bodySet.has(n.id) || n.id === controllerId),
     edges: body.internalEdges,
   });
 
@@ -144,129 +160,165 @@ export async function driveLoop(args: LoopDriverArgs): Promise<LoopDriverResult>
     if (!run.nodeResults[id].iterations) run.nodeResults[id].iterations = [];
   }
 
-  while (true) {
-    if (signal.aborted) { stopReason = 'aborted'; break; }
-    if (iteration > cfg.maxIterations) { stopReason = 'max-iterations'; break; }
-
-    // 1) Run the controller for this iteration.
-    const ctrlResult: NodeResult = run.nodeResults[controllerId];
-    ctrlResult.status = 'running';
-    const ctrlInputs: Record<string, unknown> = { ...initialInputs, iteration };
-    for (const [k, v] of Object.entries(cycledChannelValues)) ctrlInputs[k] = v;
-    const ctrlDef = getNodeDefinition('loop-controller')!;
-    const ctrlIterDetails: Record<string, unknown> = {};
-    let ctrlOut: Record<string, unknown>;
-    try {
-      ctrlOut = await ctrlDef.run(controllerNode, ctrlInputs, {
-        signal, details: ctrlIterDetails, apiKey,
-      });
-    } catch (e) {
-      ctrlResult.status = 'error';
-      ctrlResult.errorMessage = (e as Error).message;
-      stopReason = 'error';
-      throw e;
-    }
-    ctrlResult.iterations!.push({
-      iteration, startedAt: new Date().toISOString(),
-      endedAt: new Date().toISOString(),
-      inputs: JSON.parse(JSON.stringify(ctrlInputs)),
-      output: JSON.parse(JSON.stringify(ctrlOut)),
-      details: ctrlIterDetails,
-    });
-    controllerOutputs = ctrlOut;
-    outputsByNode.set(controllerId, ctrlOut);
-
-    // 2) Run each body node in topological order.
-    bodyOutputsByNode = new Map();
-    for (const id of bodyOrder) {
-      if (id === controllerId) continue;
-      if (!body.bodyNodeIds.includes(id)) continue;
+  // C1: outer try/catch to ensure controller status is always updated on error
+  try {
+    while (true) {
       if (signal.aborted) { stopReason = 'aborted'; break; }
+      if (iteration > cfg.maxIterations) { stopReason = 'max-iterations'; break; }
 
-      const node = graph.nodes.find((n) => n.id === id)!;
-      const def = getNodeDefinition(node.type)!;
-      const incoming = body.internalEdges.filter((e) => e.target === id);
-      const inputs: Record<string, unknown> = {};
-      for (const edge of incoming) {
-        const src = edge.source === controllerId
-          ? controllerOutputs
-          : (bodyOutputsByNode.get(edge.source) ?? outputsByNode.get(edge.source) ?? {});
-        // Fan-in (multiple edges to same handle) — promote to array on the second hit.
-        if (edge.targetHandle in inputs) {
-          const existing = inputs[edge.targetHandle];
-          inputs[edge.targetHandle] = Array.isArray(existing)
-            ? [...existing, src[edge.sourceHandle]]
-            : [existing, src[edge.sourceHandle]];
-        } else {
-          inputs[edge.targetHandle] = src[edge.sourceHandle];
+      // 1) Run the controller for this iteration.
+      const ctrlResult: NodeResult = run.nodeResults[controllerId];
+      ctrlResult.status = 'running';
+      const ctrlInputs: Record<string, unknown> = { ...initialInputs, iteration };
+      for (const [k, v] of Object.entries(cycledChannelValues)) ctrlInputs[k] = v;
+      const ctrlIterDetails: Record<string, unknown> = {};
+      let ctrlOut: Record<string, unknown>;
+      // M1: capture start before await so startedAt reflects the actual start time
+      const ctrlStart = new Date().toISOString();
+      try {
+        ctrlOut = await ctrlDef.run(controllerNode, ctrlInputs, {
+          signal, details: ctrlIterDetails, apiKey,
+        });
+      } catch (e) {
+        ctrlResult.status = 'error';
+        ctrlResult.errorMessage = (e as Error).message;
+        // C1: push partial IterationRecord before re-throwing
+        ctrlResult.iterations!.push({
+          iteration, startedAt: ctrlStart, endedAt: new Date().toISOString(),
+          inputs: JSON.parse(JSON.stringify(ctrlInputs)),
+          details: { error: (e as Error).message },
+        });
+        throw e;
+      }
+      ctrlResult.iterations!.push({
+        iteration, startedAt: ctrlStart,
+        endedAt: new Date().toISOString(),
+        inputs: JSON.parse(JSON.stringify(ctrlInputs)),
+        output: JSON.parse(JSON.stringify(ctrlOut)),
+        details: ctrlIterDetails,
+      });
+      controllerOutputs = ctrlOut;
+      outputsByNode.set(controllerId, ctrlOut);
+
+      // 2) Run each body node in topological order.
+      bodyOutputsByNode = new Map();
+      for (const id of bodyOrder) {
+        if (id === controllerId) continue;
+        if (!bodySet.has(id)) continue;
+        if (signal.aborted) { stopReason = 'aborted'; break; }
+
+        const node = nodeById.get(id);
+        if (!node) throw new Error(`Body node "${id}" not found in graph`);
+        // I1: guard body node definition lookup
+        const def = getNodeDefinition(node.type);
+        if (!def) throw new Error(`No definition registered for node type "${node.type}"`);
+
+        const incoming = body.internalEdges.filter((e) => e.target === id);
+        const inputs: Record<string, unknown> = {};
+        for (const edge of incoming) {
+          const src = edge.source === controllerId
+            ? controllerOutputs
+            : (bodyOutputsByNode.get(edge.source) ?? outputsByNode.get(edge.source) ?? {});
+          // Fan-in (multiple edges to same handle) — promote to array on the second hit.
+          if (edge.targetHandle in inputs) {
+            const existing = inputs[edge.targetHandle];
+            inputs[edge.targetHandle] = Array.isArray(existing)
+              ? [...existing, src[edge.sourceHandle]]
+              : [existing, src[edge.sourceHandle]];
+          } else {
+            inputs[edge.targetHandle] = src[edge.sourceHandle];
+          }
+        }
+
+        const result: NodeResult = run.nodeResults[id];
+        result.status = 'running';
+        const iterStart = new Date().toISOString();
+        const iterDetails: Record<string, unknown> = {};
+        try {
+          const out = await def.run(node, inputs, {
+            signal, details: iterDetails, apiKey,
+            onStreamUpdate: (preview) => args.setLivePreview?.(id, preview),
+          });
+          bodyOutputsByNode.set(id, out);
+          result.output = out;
+          result.input = inputs;
+          result.status = 'done';
+          args.clearLivePreview?.(id);
+          result.iterations!.push({
+            iteration, startedAt: iterStart, endedAt: new Date().toISOString(),
+            inputs: JSON.parse(JSON.stringify(inputs)),
+            output: JSON.parse(JSON.stringify(out)),
+            details: iterDetails,
+          });
+        } catch (e) {
+          result.status = 'error';
+          result.errorMessage = (e as Error).message;
+          result.errorStack = (e as Error).stack;
+          args.clearLivePreview?.(id);
+          // C1: push partial IterationRecord before re-throwing so we don't lose the input
+          result.iterations!.push({
+            iteration, startedAt: iterStart, endedAt: new Date().toISOString(),
+            inputs: JSON.parse(JSON.stringify(inputs)),
+            details: { error: (e as Error).message },
+          });
+          throw e;
         }
       }
 
-      const result: NodeResult = run.nodeResults[id];
-      result.status = 'running';
-      const iterStart = new Date().toISOString();
-      const iterDetails: Record<string, unknown> = {};
-      try {
-        const out = await def.run(node, inputs, {
-          signal, details: iterDetails, apiKey,
-          onStreamUpdate: (preview) => args.setLivePreview?.(id, preview),
-        });
-        bodyOutputsByNode.set(id, out);
-        result.output = out;
-        result.input = inputs;
-        result.status = 'done';
-        args.clearLivePreview?.(id);
-        result.iterations!.push({
-          iteration, startedAt: iterStart, endedAt: new Date().toISOString(),
-          inputs: JSON.parse(JSON.stringify(inputs)),
-          output: JSON.parse(JSON.stringify(out)),
-          details: iterDetails,
-        });
-      } catch (e) {
-        result.status = 'error';
-        result.errorMessage = (e as Error).message;
-        result.errorStack = (e as Error).stack;
-        args.clearLivePreview?.(id);
-        stopReason = 'error';
-        throw e;
-      }
-    }
+      // C2: track completed iterations — "this iteration's body ran to completion"
+      completedIterations = iteration;
 
-    // 3) Read back-edges to determine `continue` and the next iteration's channel values.
-    cycledChannelValues = {};
-    let sawContinue = false;
-    for (const back of body.backEdges) {
-      const src = bodyOutputsByNode.get(back.source) ?? outputsByNode.get(back.source) ?? {};
-      const value = src[back.sourceHandle];
-      if (back.targetHandle === 'continue') {
-        lastContinue = value;
-        sawContinue = true;
-      } else if (back.targetHandle.startsWith('input-')) {
-        cycledChannelValues[back.targetHandle] = value;
+      // 3) Read back-edges to determine `continue` and the next iteration's channel values.
+      cycledChannelValues = {};
+      let sawContinue = false;
+      for (const back of body.backEdges) {
+        const src = bodyOutputsByNode.get(back.source) ?? outputsByNode.get(back.source) ?? {};
+        const value = src[back.sourceHandle];
+        if (back.targetHandle === 'continue') {
+          lastContinue = value;
+          sawContinue = true;
+        } else if (back.targetHandle.startsWith('input-')) {
+          cycledChannelValues[back.targetHandle] = value;
+        }
       }
-    }
 
-    // 4) Halt check. Empty arrays count as falsy (alongside null/undefined/false/0/'') so that
-    //    wiring `LLMCall.toolCalls → LoopController.continue` is the natural ReAct halt.
-    const isTruthy = (v: unknown) =>
-      v !== null && v !== undefined && v !== false && v !== 0 && v !== '' &&
-      !(Array.isArray(v) && v.length === 0);
-    if (!sawContinue || !isTruthy(lastContinue)) { stopReason = 'continue-false'; break; }
-    iteration++;
+      // 4) Halt check. Empty arrays count as falsy (alongside null/undefined/false/0/'') so that
+      //    wiring `LLMCall.toolCalls → LoopController.continue` is the natural ReAct halt.
+      const isTruthy = (v: unknown) =>
+        v !== null && v !== undefined && v !== false && v !== 0 && v !== '' &&
+        !(Array.isArray(v) && v.length === 0);
+      if (!sawContinue || !isTruthy(lastContinue)) { stopReason = 'continue-false'; break; }
+      iteration++;
+    }
+  } catch (e) {
+    // C1: on any error, set controller to error state and re-throw.
+    // Break-node firing is skipped on the error path.
+    const ctrl: NodeResult = run.nodeResults[controllerId];
+    ctrl.status = 'error';
+    ctrl.details.stopReason = 'error';
+    ctrl.details.iterationCount = completedIterations;
+    throw e;
   }
 
   // Mark controller done and stash stop reason.
+  // This block is only reached on success paths (continue-false, max-iterations, aborted).
+  // M7: error path is handled by the outer catch block above and re-throws before reaching here.
+  // stopReason is never 'error' at this point — that path always re-throws above.
   const ctrl: NodeResult = run.nodeResults[controllerId];
-  // Note: stopReason cannot be 'error' here — error paths always throw before this point.
   ctrl.status = 'done';
   ctrl.details.stopReason = stopReason;
-  ctrl.details.iterationCount = iteration;
+  // C2: use completedIterations for accurate reporting (not the loop counter `iteration`)
+  ctrl.details.iterationCount = completedIterations;
 
   // 5) Fire break nodes once with the latest body outputs.
   const breakOutputs: Record<string, Record<string, unknown>> = {};
   for (const breakId of body.breakNodeIds) {
-    const node = graph.nodes.find((n) => n.id === breakId)!;
-    const def = getNodeDefinition('break')!;
+    const node = nodeById.get(breakId);
+    if (!node) throw new Error(`Break node "${breakId}" not found in graph`);
+    // I1: guard break node definition lookup
+    const def = getNodeDefinition('break');
+    if (!def) throw new Error('No definition registered for node type "break"');
+
     const incoming = graph.edges.filter((e) => e.target === breakId);
     const inputs: Record<string, unknown> = {};
     for (const edge of incoming) {
@@ -288,7 +340,8 @@ export async function driveLoop(args: LoopDriverArgs): Promise<LoopDriverResult>
     breakOutputs,
     bodyOutputs: Object.fromEntries(bodyOutputsByNode),
     controllerOutputs,
-    iterationCount: iteration,
+    // C2: return completedIterations for accurate count
+    iterationCount: completedIterations,
     stopReason,
   };
 }

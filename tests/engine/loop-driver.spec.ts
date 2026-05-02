@@ -103,3 +103,67 @@ describe('driveLoop integration', () => {
     expect(run.nodeResults.inc.iterations?.[2].output).toEqual({ result: 3, continue: false });
   });
 });
+
+describe('driveLoop halt-rule (isTruthy)', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia());
+    // Register a pass-through body node: emits inputs.continueValue as `continue`.
+    registerNodeDefinition({
+      type: 'transform',
+      inputPorts: ['continueValue'],
+      outputPorts: ['continue'],
+      async run(_node, inputs) {
+        return { continue: inputs.continueValue };
+      },
+    });
+  });
+
+  it.each([
+    { value: [],          expectedIters: 1, expectedStop: 'continue-false' },
+    { value: [{ x: 1 }], expectedIters: 5, expectedStop: 'max-iterations' },
+    { value: null,        expectedIters: 1, expectedStop: 'continue-false' },
+    { value: undefined,   expectedIters: 1, expectedStop: 'continue-false' },
+    { value: false,       expectedIters: 1, expectedStop: 'continue-false' },
+    { value: true,        expectedIters: 5, expectedStop: 'max-iterations' },
+  ])('continue=$value → iterationCount=$expectedIters, stopReason=$expectedStop', async ({ value, expectedIters, expectedStop }) => {
+    // The LC has a value channel "cont" so it emits `output-cont` (the seed value on
+    // iteration 1). The body node reads it as `continueValue` and echoes it back as
+    // `continue`. This exercises the full isTruthy halt-check with real values.
+    const graph = g(
+      [
+        n('seed', 'input'),
+        { id: 'lc', type: 'loop-controller', position: { x: 0, y: 0 },
+          config: { maxIterations: 5, valueChannels: [{ name: 'cont' }] } },
+        n('body', 'transform'),
+      ],
+      [
+        e('e1', 'seed', 'lc', 'value', 'default-cont'),
+        e('e2', 'lc', 'body', 'output-cont', 'continueValue'),
+        e('e3', 'body', 'lc', 'continue', 'continue'),
+        // cycle the cont channel so truthy values loop indefinitely (until maxIterations)
+        e('e4', 'body', 'lc', 'continue', 'input-cont'),
+      ],
+    );
+
+    const run: Run = {
+      schemaVersion: 1, id: 'r', graphId: 'g',
+      graphSnapshot: graph,
+      startedAt: '', endedAt: null, status: 'running',
+      inputs: {}, errors: [],
+      nodeResults: {
+        seed: emptyResult('seed'), lc: emptyResult('lc'), body: emptyResult('body'),
+      },
+    };
+    const outputsByNode = new Map<string, Record<string, unknown>>([
+      ['seed', { value }],
+    ]);
+
+    const out = await driveLoop({
+      graph, run, controllerId: 'lc', outputsByNode,
+      apiKey: '', signal: new AbortController().signal,
+    });
+
+    expect(out.iterationCount).toBe(expectedIters);
+    expect(out.stopReason).toBe(expectedStop);
+  });
+});

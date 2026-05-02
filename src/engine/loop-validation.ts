@@ -41,8 +41,37 @@ export function findBackEdges(graph: Graph): Edge[] {
 }
 
 /**
+ * Inline forward-reachability from a given source node, excluding back-edges
+ * into that source (to avoid following the cycle back in).
+ * Used to check for nested loop controllers without importing from loop-driver
+ * (which would create a circular import).
+ */
+function forwardReachable(graph: Graph, sourceId: string): Set<string> {
+  const fwd = new Map<string, string[]>();
+  for (const node of graph.nodes) fwd.set(node.id, []);
+  for (const edge of graph.edges) {
+    if (edge.target === sourceId) continue; // skip edges back into the source
+    fwd.get(edge.source)?.push(edge.target);
+  }
+
+  const reachable = new Set<string>();
+  const stack: string[] = [sourceId];
+  while (stack.length) {
+    const id = stack.pop()!;
+    for (const targetId of fwd.get(id) ?? []) {
+      if (!reachable.has(targetId)) {
+        reachable.add(targetId);
+        stack.push(targetId);
+      }
+    }
+  }
+  return reachable;
+}
+
+/**
  * Throws if any back-edge in the graph targets a node that is not a
  * `loop-controller`. Acyclic graphs always pass.
+ * Also throws if any loop controller is nested inside another loop controller's body.
  */
 export function validateLoopTopology(graph: Graph): void {
   const nodeById = new Map(graph.nodes.map((n) => [n.id, n]));
@@ -54,6 +83,20 @@ export function validateLoopTopology(graph: Graph): void {
         `Cycle through edge "${edge.id}" (${edge.source} → ${edge.target}) is not allowed: ` +
         `the only nodes that may receive back-edges are Loop Controllers.`,
       );
+    }
+  }
+
+  // I2: reject nested loop controllers
+  const loopControllers = graph.nodes.filter((n) => n.type === 'loop-controller');
+  for (const lc of loopControllers) {
+    const reachable = forwardReachable(graph, lc.id);
+    for (const bodyId of reachable) {
+      const bodyNode = nodeById.get(bodyId);
+      if (bodyNode?.type === 'loop-controller') {
+        throw new Error(
+          `Nested Loop Controllers are not supported in v1: "${lc.id}" contains "${bodyId}".`,
+        );
+      }
     }
   }
 }

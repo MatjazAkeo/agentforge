@@ -75,4 +75,17 @@ describe('validateLoopTopology', () => {
     );
     expect(() => validateLoopTopology(graph)).toThrow(/Loop Controller/i);
   });
+
+  it('rejects nested loop controllers', () => {
+    const graph = g(
+      [n('lc1', 'loop-controller'), n('lc2', 'loop-controller'), n('body')],
+      [
+        e('1', 'lc1', 'lc2', 'output-x', 'default-y'),
+        e('2', 'lc2', 'body', 'output-y', 'value'),
+        e('3', 'body', 'lc2', 'value', 'input-y'),
+        e('4', 'lc2', 'lc1', 'output-y', 'input-x'),
+      ],
+    );
+    expect(() => validateLoopTopology(graph)).toThrow(/[Nn]ested/);
+  });
 });
