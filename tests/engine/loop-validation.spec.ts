@@ -26,6 +26,20 @@ describe('findBackEdges', () => {
     const back = findBackEdges(graph);
     expect(back.map((x) => x.id)).toEqual(['3']);
   });
+
+  it('treats a self-loop as a back-edge', () => {
+    const graph = g([n('a')], [e('1', 'a', 'a')]);
+    const back = findBackEdges(graph);
+    expect(back.map((x) => x.id)).toEqual(['1']);
+  });
+
+  it('handles disjoint components — only the cyclic one yields back-edges', () => {
+    const graph = g(
+      [n('a'), n('b'), n('lc', 'loop-controller'), n('body')],
+      [e('1', 'a', 'b'), e('2', 'lc', 'body'), e('3', 'body', 'lc')],
+    );
+    expect(findBackEdges(graph).map((x) => x.id)).toEqual(['3']);
+  });
 });
 
 describe('validateLoopTopology', () => {
@@ -46,6 +60,18 @@ describe('validateLoopTopology', () => {
     const graph = g(
       [n('a'), n('b'), n('c')],
       [e('1', 'a', 'b'), e('2', 'b', 'c'), e('3', 'c', 'b')],
+    );
+    expect(() => validateLoopTopology(graph)).toThrow(/Loop Controller/i);
+  });
+
+  it('throws when only one of multiple back-edges is invalid', () => {
+    // Two cycles: one through a loop-controller (legal), one through a regular node (illegal).
+    const graph = g(
+      [n('a'), n('lc', 'loop-controller'), n('b'), n('c')],
+      [
+        e('1', 'a', 'lc'), e('2', 'lc', 'a'),     // legal back-edge: target is loop-controller
+        e('3', 'b', 'c'), e('4', 'c', 'b'),       // illegal back-edge: target is plain node
+      ],
     );
     expect(() => validateLoopTopology(graph)).toThrow(/Loop Controller/i);
   });

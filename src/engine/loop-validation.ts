@@ -8,6 +8,12 @@ import type { Graph, Edge } from '@/domain/graph';
  * (currently on the stack) is a back-edge.
  */
 export function findBackEdges(graph: Graph): Edge[] {
+  // Note: the SET of back-edges is well-defined for a given DFS root order, but
+  // which specific edge in a cycle is labelled the back-edge depends on the order
+  // of `graph.nodes`. The validator only cares that some such edge points at a
+  // Loop Controller, so this is acceptable. Callers that strip back-edges by id
+  // (e.g. topologicalOrderIgnoringBackEdges) get a stable result for a stable
+  // node order.
   const adj = new Map<string, Edge[]>();
   for (const node of graph.nodes) adj.set(node.id, []);
   for (const edge of graph.edges) adj.get(edge.source)?.push(edge);
