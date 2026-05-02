@@ -76,7 +76,7 @@ const iterations = computed(() => result.value?.iterations ?? []);
       :outputs="[
         { id: 'text', type: 'string', description: 'Final assistant text after the loop terminates.' },
         { id: 'messages', type: 'messages', description: 'Full conversation including tool turns.' },
-        { id: 'iterationCount', type: 'string', description: 'Number of iterations the agent ran.' },
+        { id: 'iterationCount', type: 'number', description: 'Number of iterations the agent ran.' },
       ]"
     />
   </div>

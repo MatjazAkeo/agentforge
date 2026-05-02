@@ -8,10 +8,11 @@ import type { Node } from '@/domain/graph';
  *   - `tool-calls` — Tool invocation list emitted by an LLM (distinct from `tools`)
  *   - `json`       — Arbitrary JSON-shaped data (Tool Runner's `results` output)
  */
-export type DataType = 'string' | 'messages' | 'tools' | 'tool-calls' | 'json';
+export type DataType = 'string' | 'number' | 'messages' | 'tools' | 'tool-calls' | 'json';
 
 const TYPE_COLORS: Record<DataType, string> = {
   string: '#ffaa55',
+  number: '#9aa0a8',
   messages: '#b388ff',
   tools: '#ffd54a',
   'tool-calls': '#ff5577',
@@ -51,7 +52,7 @@ export function getSourcePortType(node: Node, handleId: string): DataType | null
       return null;
     case 'loop-controller': {
       const cfg = node.config as { valueChannels?: Array<{ name: string; type?: DataType }> };
-      if (handleId === 'iteration') return 'string';
+      if (handleId === 'iteration') return 'number';
       if (handleId.startsWith('output-')) {
         const name = handleId.slice('output-'.length);
         const ch = cfg.valueChannels?.find((c) => c.name === name);
@@ -62,7 +63,7 @@ export function getSourcePortType(node: Node, handleId: string): DataType | null
     case 'agent':
       if (handleId === 'text') return 'string';
       if (handleId === 'messages') return 'messages';
-      if (handleId === 'iterationCount') return 'string';
+      if (handleId === 'iterationCount') return 'number';
       return null;
     case 'chat-input':
       if (handleId === 'userMessage') return 'string';

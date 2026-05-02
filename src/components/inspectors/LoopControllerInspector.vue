@@ -94,7 +94,7 @@ function removeChannel(i: number) {
       ]"
       :outputs="[
         { id: 'output-<name>', type: 'json', description: 'Current channel value per iteration.' },
-        { id: 'iteration', type: 'string', description: 'Current 1-based iteration index.' },
+        { id: 'iteration', type: 'number', description: 'Current 1-based iteration index.' },
       ]"
     />
   </div>

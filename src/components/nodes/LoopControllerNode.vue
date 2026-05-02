@@ -133,7 +133,7 @@ function onDelete() { graph.removeNode(props.id); }
             id="iteration"
             type="source"
             :position="Position.Right"
-            :style="{ background: colorForType('string') }"
+            :style="{ background: colorForType('number') }"
           />
         </div>
       </div>

@@ -53,7 +53,7 @@ function onDelete() { graph.removeNode(props.id); }
         <span class="text-text-dim font-mono text-[10px]">tools</span>
         <Handle id="tools" type="target" :position="Position.Left" :style="{ background: colorForType('tools') }" />
         <span class="text-text-dim font-mono text-[10px]">iterationCount</span>
-        <Handle id="iterationCount" type="source" :position="Position.Right" :style="{ background: colorForType('string') }" />
+        <Handle id="iterationCount" type="source" :position="Position.Right" :style="{ background: colorForType('number') }" />
       </div>
     </div>
     <div class="rounded-b-md px-3 py-1.5 text-[10px] opacity-60 border-t border-[#16181c] bg-[#16181c] text-center">

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted, markRaw } from 'vue';
+import { computed, ref, onMounted, onUnmounted, markRaw, watch } from 'vue';
 import { VueFlow, useVueFlow, type Node as VFNode, type Edge as VFEdge } from '@vue-flow/core';
 import { Background } from '@vue-flow/background';
 import { Controls, ControlButton } from '@vue-flow/controls';
@@ -34,7 +34,31 @@ const NODE_DEFAULT_H = 80;
 
 const graph = useGraphStore();
 const ui = useUiStore();
-const { project, viewport, getNodes } = useVueFlow();
+const { project, viewport, getNodes, removeNodes, removeEdges } = useVueFlow();
+
+// Vue Flow's internal node/edge store can drift from our Pinia store on removals
+// (the `:nodes` / `:edges` props are reactive, but Vue Flow keeps internal state
+// for selection / drag / focus that can resurrect a removed node on the next
+// reactive flush). Force-sync removals through Vue Flow's official API: when a
+// node id disappears from our store, tell Vue Flow to remove it too.
+watch(
+  () => graph.nodes.map((n) => n.id),
+  (newIds, oldIds) => {
+    if (!oldIds) return;
+    const removed = oldIds.filter((id) => !newIds.includes(id));
+    if (removed.length > 0) removeNodes(removed);
+  },
+  { flush: 'post' },
+);
+watch(
+  () => graph.edges.map((e) => e.id),
+  (newIds, oldIds) => {
+    if (!oldIds) return;
+    const removed = oldIds.filter((id) => !newIds.includes(id));
+    if (removed.length > 0) removeEdges(removed);
+  },
+  { flush: 'post' },
+);
 
 const nodeTypes = { input: markRaw(InputNode), output: markRaw(OutputNode), 'llm-call': markRaw(LLMCallNode), tool: markRaw(ToolNode), 'tool-group': markRaw(ToolGroupNode), 'tool-runner': markRaw(ToolRunnerNode), 'loop-controller': markRaw(LoopControllerNode), 'agent': markRaw(AgentNode), 'transform': markRaw(TransformNode), 'prompt-template': markRaw(PromptTemplateNode), 'chat-input': markRaw(ChatInputNode), 'chat-output': markRaw(ChatOutputNode) } as Record<string, ReturnType<typeof markRaw>>;
 
