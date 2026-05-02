@@ -15,6 +15,7 @@ import { abortCurrent } from '@/engine/abort';
 import Layout from './components/Layout.vue';
 import Settings from './components/Settings.vue';
 import OnboardingWelcome from './components/OnboardingWelcome.vue';
+import TrustPromptModal from './components/TrustPromptModal.vue';
 
 const graph = useGraphStore();
 const settings = useSettingsStore();
@@ -55,6 +56,10 @@ async function onOpen() {
   if (!path) return;
   const text = await readGraphFile(path);
   const g = parseGraph(text);
+  if (g.containsCustomCode) {
+    const decision = await ui.askForTrust(path);
+    if (decision === 'reject') return;
+  }
   graph.load(g, path);
 }
 
@@ -119,5 +124,6 @@ onUnmounted(() => unlisten?.());
   <template v-else>
     <Layout />
     <Settings v-if="ui.settingsOpen" />
+    <TrustPromptModal />
   </template>
 </template>
