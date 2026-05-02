@@ -27,10 +27,13 @@ function onDelete() {
       >×</button>
     </div>
 
-    <!-- Single output row: description preview + label + handle on right edge -->
-    <div class="relative h-7 rounded-b-md flex items-center justify-end pr-3 text-[11px]">
-      <span class="opacity-60 mr-2 truncate max-w-[140px]">{{ data.config.description || '— no description —' }}</span>
-      <span class="text-text-dim font-mono text-[10px]">def</span>
+    <!-- Description (truncated, left) + output pin (right) on the same row -->
+    <div class="relative h-7 rounded-b-md flex items-center gap-2 pl-3 pr-3 text-[11px]">
+      <span
+        :title="data.config.description"
+        class="flex-1 min-w-0 opacity-60 truncate text-left"
+      >{{ data.config.description }}</span>
+      <span class="text-text-dim font-mono text-[10px] flex-shrink-0">def</span>
       <Handle id="toolDefinition" type="source" :position="Position.Right" :style="{ background: colorForType('tools') }" />
     </div>
   </div>

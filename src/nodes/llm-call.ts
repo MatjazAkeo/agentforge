@@ -55,6 +55,9 @@ export const llmCallNode: NodeDefinition = {
       max_tokens: cfg.maxTokens ?? undefined,
       response_format: cfg.responseFormat === 'json_object' ? { type: 'json_object' as const } : undefined,
       tools: requestTools,
+      // Hint to providers that honor it (OpenAI-compatible). Many free providers
+      // ignore this and emit one call per turn regardless — that's a model-side decision.
+      parallel_tool_calls: requestTools ? true : undefined,
     };
     ctx.details.request = request;
 
@@ -91,7 +94,11 @@ export const llmCallNode: NodeDefinition = {
     ctx.details.timing = { totalMs, firstTokenMs: firstTokenAtMs };
     ctx.details.toolCalls = capturedToolCalls;
 
-    const finalMessages: ChatMessage[] = [...messages, { role: 'assistant', content: text }];
+    // Preserve tool_calls on the assistant turn — required by the OpenAI/OpenRouter
+    // spec so the subsequent `tool` messages (which carry tool_call_id) are valid.
+    const assistantMessage: ChatMessage = { role: 'assistant', content: text };
+    if (capturedToolCalls.length > 0) assistantMessage.tool_calls = capturedToolCalls;
+    const finalMessages: ChatMessage[] = [...messages, assistantMessage];
     return { text, toolCalls: capturedToolCalls, messages: finalMessages, usage };
   },
 };

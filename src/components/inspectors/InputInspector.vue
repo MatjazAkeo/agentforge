@@ -2,6 +2,8 @@
 import { computed } from 'vue';
 import { useGraphStore } from '@/stores/graph';
 import type { InputConfig } from '@/domain/node-types';
+import PortLegend from './PortLegend.vue';
+import IOValues from './IOValues.vue';
 
 const props = defineProps<{ nodeId: string }>();
 const graph = useGraphStore();
@@ -33,5 +35,13 @@ function update<K extends keyof InputConfig>(key: K, value: InputConfig[K]) {
         class="bg-elev text-text-base border border-border-base rounded px-2 py-1.5 text-sm font-ui resize-y"
       ></textarea>
     </label>
+
+    <IOValues :node-id="nodeId" />
+
+    <PortLegend
+      :outputs="[
+        { id: 'value', type: 'string', description: 'The default value, passed downstream as a string.' },
+      ]"
+    />
   </div>
 </template>

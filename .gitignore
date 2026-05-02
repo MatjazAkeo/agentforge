@@ -30,5 +30,8 @@ src-tauri/gen/
 # Project-local artifacts
 .superpowers/
 
+# Per-graph run logs — locally persisted execution traces, not source.
+graphs/*.runs/
+
 # Claude local settings (user-specific)
 .claude/settings.local.json

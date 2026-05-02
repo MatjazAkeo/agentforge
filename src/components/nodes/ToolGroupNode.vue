@@ -11,10 +11,12 @@ const run = useRunStore();
 
 const status = computed(() => run.current?.nodeResults[props.id]?.status ?? 'idle');
 
-const memberCount = computed(() => {
-  const members = run.current?.nodeResults[props.id]?.details?.members as Array<unknown> | undefined;
-  return members?.length ?? 0;
-});
+const memberCount = computed(
+  () =>
+    graph.edges.filter(
+      (e) => e.target === props.id && (e.targetHandle ?? '') === 'tools',
+    ).length,
+);
 
 function onDelete() {
   graph.removeNode(props.id);

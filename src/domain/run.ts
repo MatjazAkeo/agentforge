@@ -22,6 +22,7 @@ export interface NodeResult {
   status: NodeStatus;
   startedAt?: string;
   endedAt?: string;
+  input?: Record<string, unknown>;
   output?: unknown;
   iterations?: IterationRecord[];
   details: NodeResultDetails;

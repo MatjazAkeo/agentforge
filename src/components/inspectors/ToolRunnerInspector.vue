@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useRunStore } from '@/stores/run';
+import PortLegend from './PortLegend.vue';
+import IOValues from './IOValues.vue';
 
 interface ToolRunResult {
   toolCallId: string;
@@ -43,5 +45,19 @@ const results = computed(() =>
         </div>
       </li>
     </ul>
+
+    <IOValues :node-id="nodeId" />
+
+    <PortLegend
+      :inputs="[
+        { id: 'tools', type: 'tools', description: 'Tool definitions used to look up and execute each call.' },
+        { id: 'messages', type: 'messages', description: 'Conversation so far. Tool-result messages are appended.' },
+        { id: 'toolCalls', type: 'tool-calls', description: 'Tool invocations from an LLM Call to execute.' },
+      ]"
+      :outputs="[
+        { id: 'messages', type: 'messages', description: 'Conversation with `tool` role results appended — feed back to LLM Call.' },
+        { id: 'results', type: 'json', description: 'Raw structured results (name, input, output/error, durationMs).' },
+      ]"
+    />
   </div>
 </template>

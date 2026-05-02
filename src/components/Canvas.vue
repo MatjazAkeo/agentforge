@@ -166,13 +166,35 @@ function isValidConnection(connection: {
   return sourceType === targetType;
 }
 
+/** Some target ports accept multiple incoming edges (fan-in). */
+function targetAcceptsMultiEdge(nodeId: string, handleId: string): boolean {
+  const node = graph.nodes.find((n) => n.id === nodeId);
+  if (!node) return false;
+  if (node.type === 'tool-group' && handleId === 'tools') return true;
+  return false;
+}
+
 function onConnect(params: { source: string; target: string; sourceHandle?: string | null; targetHandle?: string | null }) {
-  // Targets accept only one incoming edge — replace any existing one so the new wire wins.
-  // Sources can fan out to many targets; nothing to clean up there.
-  const existing = graph.edges.find(
-    (e) => e.target === params.target && (e.targetHandle ?? '') === (params.targetHandle ?? ''),
-  );
-  if (existing) graph.removeEdge(existing.id);
+  // Most targets accept only one incoming edge — replace any existing one so the new wire wins.
+  // Tool Group's `tools` input is the exception: it fan-ins multiple Tool sources.
+  // Sources always fan out freely.
+  const targetHandle = params.targetHandle ?? '';
+  if (!targetAcceptsMultiEdge(params.target, targetHandle)) {
+    const existing = graph.edges.find(
+      (e) => e.target === params.target && (e.targetHandle ?? '') === targetHandle,
+    );
+    if (existing) graph.removeEdge(existing.id);
+  } else {
+    // Multi-edge port: skip duplicates from the same source/handle but allow new ones.
+    const dup = graph.edges.find(
+      (e) =>
+        e.target === params.target &&
+        (e.targetHandle ?? '') === targetHandle &&
+        e.source === params.source &&
+        (e.sourceHandle ?? '') === (params.sourceHandle ?? ''),
+    );
+    if (dup) return;
+  }
 
   graph.addEdge({
     id: crypto.randomUUID(),

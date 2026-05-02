@@ -31,6 +31,7 @@ export function getSourcePortType(node: Node, handleId: string): DataType | null
     case 'llm-call':
       if (handleId === 'text') return 'string';
       if (handleId === 'messages') return 'messages';
+      if (handleId === 'toolCalls') return 'tool-calls';
       return null;
     case 'tool':
       if (handleId === 'toolDefinition') return 'tools';

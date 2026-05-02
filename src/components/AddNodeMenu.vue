@@ -58,7 +58,7 @@ function defaultConfig(type: NodeType): Record<string, unknown> {
     };
     case 'tool': return {
       name: 'my_tool',
-      description: 'Describe what this tool does',
+      description: '',
       inputSchema: { type: 'object', properties: {} },
       code: 'return null;',
       timeoutMs: 30000,

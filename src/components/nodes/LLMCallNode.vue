@@ -92,10 +92,12 @@ function onDelete() {
         <span class="text-text-dim font-mono text-[10px]">messages</span>
         <Handle id="messages" type="source" :position="Position.Right" :style="{ background: colorForType('messages') }" />
       </div>
-      <!-- Row 3: tools in | (empty right) -->
-      <div class="relative h-6 flex items-center px-3 text-[11px]">
-        <Handle id="tools" type="target" :position="Position.Left" :style="{ background: colorForType('tools') }" />
+      <!-- Row 3: tools in | toolCalls out -->
+      <div class="relative h-6 flex items-center justify-between px-3 text-[11px]">
         <span class="text-text-dim font-mono text-[10px]">tools</span>
+        <Handle id="tools" type="target" :position="Position.Left" :style="{ background: colorForType('tools') }" />
+        <span class="text-text-dim font-mono text-[10px]">toolCalls</span>
+        <Handle id="toolCalls" type="source" :position="Position.Right" :style="{ background: colorForType('tool-calls') }" />
       </div>
     </div>
 

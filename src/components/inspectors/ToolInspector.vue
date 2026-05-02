@@ -3,6 +3,8 @@ import { computed } from 'vue';
 import { useGraphStore } from '@/stores/graph';
 import type { ToolConfig } from '@/domain/node-types';
 import MonacoEditor from '@/components/MonacoEditor.vue';
+import PortLegend from './PortLegend.vue';
+import IOValues from './IOValues.vue';
 
 const props = defineProps<{ nodeId: string }>();
 const graph = useGraphStore();
@@ -82,5 +84,13 @@ const schemaText = computed({
         Function body. Available: <code class="font-mono">inputs</code> (parsed args), <code class="font-mono">helpers.log()</code>, <code class="font-mono">helpers.fetch()</code>. Use <code class="font-mono">return</code> to emit the result.
       </div>
     </label>
+
+    <IOValues :node-id="nodeId" />
+
+    <PortLegend
+      :outputs="[
+        { id: 'toolDefinition', type: 'tools', description: 'This tool\'s definition. Wire to an LLM Call (or via a Tool Group).' },
+      ]"
+    />
   </div>
 </template>

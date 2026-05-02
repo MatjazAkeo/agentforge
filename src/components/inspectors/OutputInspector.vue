@@ -3,6 +3,8 @@ import { computed } from 'vue';
 import { useGraphStore } from '@/stores/graph';
 import { useRunStore } from '@/stores/run';
 import type { OutputConfig } from '@/domain/node-types';
+import PortLegend from './PortLegend.vue';
+import IOValues from './IOValues.vue';
 
 const props = defineProps<{ nodeId: string }>();
 const graph = useGraphStore();
@@ -36,5 +38,13 @@ function update(key: keyof OutputConfig, value: string) {
       <div class="opacity-60 text-[11px] uppercase">Value</div>
       <pre class="bg-panel p-2 rounded text-xs whitespace-pre-wrap max-h-[200px] overflow-y-auto m-0">{{ result?.details?.value ?? '— not yet run —' }}</pre>
     </section>
+
+    <IOValues :node-id="nodeId" />
+
+    <PortLegend
+      :inputs="[
+        { id: 'value', type: 'string', description: 'Final value to display. Connect any string-typed source.' },
+      ]"
+    />
   </div>
 </template>

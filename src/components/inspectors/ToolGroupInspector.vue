@@ -2,7 +2,9 @@
 import { computed } from 'vue';
 import { useGraphStore } from '@/stores/graph';
 import { useRunStore } from '@/stores/run';
-import type { ToolGroupConfig } from '@/domain/node-types';
+import type { ToolGroupConfig, ToolConfig } from '@/domain/node-types';
+import PortLegend from './PortLegend.vue';
+import IOValues from './IOValues.vue';
 
 const props = defineProps<{ nodeId: string }>();
 const graph = useGraphStore();
@@ -10,13 +12,23 @@ const run = useRunStore();
 
 const node = computed(() => graph.nodes.find((n) => n.id === props.nodeId));
 const cfg = computed(() => (node.value?.config ?? null) as ToolGroupConfig | null);
-const result = computed(() => run.current?.nodeResults[props.nodeId]);
 
-const members = computed(() =>
-  (result.value?.details?.members as Array<{ name: string; description: string }> | undefined) ?? [],
-);
+/** Live member list derived from the graph topology — populates as soon as
+ *  Tool nodes are connected, no run required. */
+const members = computed(() => {
+  const incomingEdges = graph.edges.filter(
+    (e) => e.target === props.nodeId && (e.targetHandle ?? '') === 'tools',
+  );
+  return incomingEdges
+    .map((e) => graph.nodes.find((n) => n.id === e.source))
+    .filter((n): n is NonNullable<typeof n> => !!n && n.type === 'tool')
+    .map((n) => {
+      const tc = n.config as ToolConfig;
+      return { name: tc.name ?? '(unnamed)', description: tc.description ?? '' };
+    });
+});
 
-const errorMessage = computed(() => result.value?.errorMessage ?? null);
+const errorMessage = computed(() => run.current?.nodeResults[props.nodeId]?.errorMessage ?? null);
 
 function update<K extends keyof ToolGroupConfig>(key: K, value: ToolGroupConfig[K]) {
   graph.updateNodeConfig(props.nodeId, { [key]: value });
@@ -36,16 +48,16 @@ function update<K extends keyof ToolGroupConfig>(key: K, value: ToolGroupConfig[
     </label>
 
     <section class="flex flex-col gap-1.5">
-      <div class="text-[10px] uppercase opacity-60 font-mono">Members</div>
-      <div v-if="members.length === 0" class="text-xs opacity-50 italic">— no run yet, or empty group —</div>
+      <div class="text-[10px] uppercase opacity-60 font-mono">Members ({{ members.length }})</div>
+      <div v-if="members.length === 0" class="text-xs opacity-50 italic">— connect Tool nodes to populate —</div>
       <ul v-else class="flex flex-col gap-1.5">
         <li
-          v-for="m in members"
-          :key="m.name"
+          v-for="(m, i) in members"
+          :key="i"
           class="bg-panel rounded px-2 py-1.5 text-xs"
         >
           <div class="font-mono">{{ m.name }}</div>
-          <div class="opacity-60 text-[11px]">{{ m.description }}</div>
+          <div v-if="m.description" class="opacity-60 text-[11px]">{{ m.description }}</div>
         </li>
       </ul>
     </section>
@@ -54,5 +66,16 @@ function update<K extends keyof ToolGroupConfig>(key: K, value: ToolGroupConfig[
       <div class="text-[10px] uppercase opacity-60 font-mono mb-1 text-error">Error</div>
       <pre class="bg-panel px-2 py-1.5 rounded text-xs whitespace-pre-wrap m-0 text-[#f5a5a5]">{{ errorMessage }}</pre>
     </section>
+
+    <IOValues :node-id="nodeId" />
+
+    <PortLegend
+      :inputs="[
+        { id: 'tools', type: 'tools', description: 'Tool definitions (multi-input — connect any number of Tools).' },
+      ]"
+      :outputs="[
+        { id: 'toolDefinition', type: 'tools', description: 'Aggregated list of all member tools. Wire to an LLM Call.' },
+      ]"
+    />
   </div>
 </template>

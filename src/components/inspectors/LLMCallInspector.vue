@@ -5,6 +5,8 @@ import { useRunStore } from '@/stores/run';
 import { useSettingsStore } from '@/stores/settings';
 import type { LLMCallConfig } from '@/domain/node-types';
 import { DEFAULT_MODELS } from '@/config/default-models';
+import PortLegend from './PortLegend.vue';
+import IOValues from './IOValues.vue';
 
 const props = defineProps<{ nodeId: string }>();
 const graph = useGraphStore();
@@ -150,6 +152,21 @@ const responseJson = computed(() =>
         class="bg-panel px-2 py-1.5 rounded text-xs max-h-[200px] overflow-auto whitespace-pre-wrap m-0"
       >{{ responseJson }}</pre>
     </section>
+
+    <IOValues :node-id="nodeId" />
+
+    <PortLegend
+      :inputs="[
+        { id: 'userMessage', type: 'string', description: 'Single user prompt. Becomes a `user` message before the call.' },
+        { id: 'messages', type: 'messages', description: 'Existing conversation history to continue. Combined with userMessage.' },
+        { id: 'tools', type: 'tools', description: 'Tool definitions the model may call. Wire from Tool or Tool Group.' },
+      ]"
+      :outputs="[
+        { id: 'text', type: 'string', description: 'Assistant\'s text reply (final or partial when tool-calling).' },
+        { id: 'messages', type: 'messages', description: 'Full conversation including the assistant reply — feed back for next turn.' },
+        { id: 'toolCalls', type: 'tool-calls', description: 'Tool invocations emitted by the model. Wire to a Tool Runner.' },
+      ]"
+    />
 
     <!-- Error -->
     <section v-if="result?.errorMessage" class="border-t border-border-base">

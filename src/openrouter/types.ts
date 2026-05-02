@@ -20,6 +20,8 @@ export interface ChatCompletionRequest {
   stream?: boolean;
   response_format?: { type: 'json_object' } | undefined;
   tools?: Array<{ type: 'function'; function: { name: string; description: string; parameters: object } }>;
+  tool_choice?: 'auto' | 'none' | 'required' | { type: 'function'; function: { name: string } };
+  parallel_tool_calls?: boolean;
 }
 
 export interface ChatCompletionUsage {

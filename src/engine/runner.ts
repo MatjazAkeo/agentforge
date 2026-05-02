@@ -79,6 +79,9 @@ export async function runGraph(args: RunGraphArgs): Promise<Run> {
       const result: NodeResult = run.nodeResults[id];
       result.status = 'running';
       result.startedAt = new Date().toISOString();
+      // Snapshot inputs so the inspector can display per-handle values after the run.
+      // JSON-clone strips reactive proxies and matches how outputs are persisted.
+      result.input = JSON.parse(JSON.stringify(inputs));
 
       try {
         const ctx = {
