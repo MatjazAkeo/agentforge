@@ -104,6 +104,67 @@ describe('driveLoop integration', () => {
   });
 });
 
+describe('driveLoop abort', () => {
+  beforeEach(() => setActivePinia(createPinia()));
+
+  it('aborts cleanly during a body iteration', async () => {
+    let bodyCalls = 0;
+    registerNodeDefinition({
+      type: 'transform',
+      inputPorts: ['value'],
+      outputPorts: ['result', 'continue'],
+      async run(_node, _inputs, ctx) {
+        bodyCalls++;
+        await new Promise<void>((resolve) => {
+          if (ctx.signal.aborted) { resolve(); return; }
+          ctx.signal.addEventListener('abort', () => resolve(), { once: true });
+          setTimeout(resolve, 200);
+        });
+        return { result: 0, continue: true };
+      },
+    });
+
+    const ac = new AbortController();
+    const graph = g(
+      [
+        n('seed', 'input'),
+        { id: 'lc', type: 'loop-controller', position: { x: 0, y: 0 },
+          config: { maxIterations: 100, valueChannels: [{ name: 'n' }] } },
+        n('inc', 'transform'),
+      ],
+      [
+        e('e1', 'seed', 'lc', 'value', 'default-n'),
+        e('e2', 'lc', 'inc', 'output-n', 'value'),
+        e('e3', 'inc', 'lc', 'result', 'input-n'),
+        e('e4', 'inc', 'lc', 'continue', 'continue'),
+      ],
+    );
+
+    const run: Run = {
+      schemaVersion: 1, id: 'r', graphId: 'g',
+      graphSnapshot: graph,
+      startedAt: '', endedAt: null, status: 'running',
+      inputs: {}, errors: [],
+      nodeResults: {
+        seed: emptyResult('seed'), lc: emptyResult('lc'), inc: emptyResult('inc'),
+      },
+    };
+    const outputsByNode = new Map<string, Record<string, unknown>>([['seed', { value: 0 }]]);
+
+    // Abort partway through the first body iteration.
+    setTimeout(() => ac.abort(), 30);
+
+    const out = await driveLoop({
+      graph, run, controllerId: 'lc', outputsByNode,
+      apiKey: '', signal: ac.signal,
+    });
+
+    expect(out.stopReason).toBe('aborted');
+    // The crucial check: only ONE body call was made (no extra iteration after abort).
+    expect(bodyCalls).toBe(1);
+  });
+});
+
 describe('driveLoop halt-rule (isTruthy)', () => {
   beforeEach(() => {
     setActivePinia(createPinia());

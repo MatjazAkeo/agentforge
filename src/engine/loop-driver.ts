@@ -160,6 +160,10 @@ export async function driveLoop(args: LoopDriverArgs): Promise<LoopDriverResult>
     if (!run.nodeResults[id].iterations) run.nodeResults[id].iterations = [];
   }
 
+  // I3: record when the driver started running the controller node.
+  const driverStart = new Date().toISOString();
+  run.nodeResults[controllerId].startedAt = driverStart;
+
   // C1: outer try/catch to ensure controller status is always updated on error
   try {
     while (true) {
@@ -233,6 +237,8 @@ export async function driveLoop(args: LoopDriverArgs): Promise<LoopDriverResult>
         const result: NodeResult = run.nodeResults[id];
         result.status = 'running';
         const iterStart = new Date().toISOString();
+        // I3: record startedAt on first iteration only (??= keeps earliest timestamp).
+        result.startedAt = result.startedAt ?? iterStart;
         const iterDetails: Record<string, unknown> = {};
         try {
           const out = await def.run(node, inputs, {
@@ -243,6 +249,8 @@ export async function driveLoop(args: LoopDriverArgs): Promise<LoopDriverResult>
           result.output = out;
           result.input = inputs;
           result.status = 'done';
+          // I3: update endedAt after every successful iteration so it reflects the last completion.
+          result.endedAt = new Date().toISOString();
           args.clearLivePreview?.(id);
           result.iterations!.push({
             iteration, startedAt: iterStart, endedAt: new Date().toISOString(),
@@ -254,6 +262,8 @@ export async function driveLoop(args: LoopDriverArgs): Promise<LoopDriverResult>
           result.status = 'error';
           result.errorMessage = (e as Error).message;
           result.errorStack = (e as Error).stack;
+          // I3: record endedAt on error path too.
+          result.endedAt = new Date().toISOString();
           args.clearLivePreview?.(id);
           // C1: push partial IterationRecord before re-throwing so we don't lose the input
           result.iterations!.push({
@@ -264,6 +274,10 @@ export async function driveLoop(args: LoopDriverArgs): Promise<LoopDriverResult>
           throw e;
         }
       }
+
+      // C1: if the signal was aborted mid-body, exit the outer loop immediately before
+      // doing back-edge reads or the halt check — prevents one extra LLM call.
+      if (signal.aborted) { stopReason = 'aborted'; break; }
 
       // C2: track completed iterations — "this iteration's body ran to completion"
       completedIterations = iteration;
@@ -297,6 +311,8 @@ export async function driveLoop(args: LoopDriverArgs): Promise<LoopDriverResult>
     ctrl.status = 'error';
     ctrl.details.stopReason = 'error';
     ctrl.details.iterationCount = completedIterations;
+    // I3: record endedAt on error path.
+    ctrl.endedAt = new Date().toISOString();
     throw e;
   }
 
@@ -309,6 +325,8 @@ export async function driveLoop(args: LoopDriverArgs): Promise<LoopDriverResult>
   ctrl.details.stopReason = stopReason;
   // C2: use completedIterations for accurate reporting (not the loop counter `iteration`)
   ctrl.details.iterationCount = completedIterations;
+  // I3: record endedAt on success paths.
+  ctrl.endedAt = new Date().toISOString();
 
   // 5) Fire break nodes once with the latest body outputs.
   const breakOutputs: Record<string, Record<string, unknown>> = {};
@@ -329,10 +347,14 @@ export async function driveLoop(args: LoopDriverArgs): Promise<LoopDriverResult>
     }
     const result: NodeResult = run.nodeResults[breakId];
     result.status = 'running';
+    // I3: record startedAt for break nodes.
+    result.startedAt = new Date().toISOString();
     const out = await def.run(node, inputs, { signal, details: {}, apiKey });
     result.input = inputs;
     result.output = out;
     result.status = 'done';
+    // I3: record endedAt for break nodes.
+    result.endedAt = new Date().toISOString();
     breakOutputs[breakId] = out;
   }
 
