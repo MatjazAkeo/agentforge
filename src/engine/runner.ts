@@ -14,7 +14,7 @@ export async function runGraph(args: RunGraphArgs): Promise<Run> {
   const runStore = useRunStore();
   const controller = newRunAbortController();
 
-  const run: Run = {
+  const initial: Run = {
     schemaVersion: 1,
     id: crypto.randomUUID(),
     graphId: args.graph.id,
@@ -29,9 +29,14 @@ export async function runGraph(args: RunGraphArgs): Promise<Run> {
     errors: [],
   };
   for (const node of args.graph.nodes) {
-    run.nodeResults[node.id] = { nodeId: node.id, status: 'idle', details: {} };
+    initial.nodeResults[node.id] = { nodeId: node.id, status: 'idle', details: {} };
   }
-  runStore.start(run);
+  runStore.start(initial);
+
+  // CRITICAL: use the store's reactive Proxy for all mutations from here on.
+  // Pinia/Vue wraps the run we passed to start() in a Proxy; mutations on the
+  // original `initial` reference bypass that Proxy and don't trigger reactivity.
+  const run = runStore.current as Run;
 
   const order = topologicalOrder(args.graph);
   const incoming = incomingEdges(args.graph);
@@ -49,17 +54,16 @@ export async function runGraph(args: RunGraphArgs): Promise<Run> {
         throw new Error(`No definition registered for node type "${node.type}"`);
       }
 
-      // Build inputs from upstream outputs
       const inputs: Record<string, unknown> = {};
       for (const edge of incoming.get(id) ?? []) {
         const sourceOutputs = outputsByNode.get(edge.source) ?? {};
         inputs[edge.targetHandle] = sourceOutputs[edge.sourceHandle];
       }
 
+      // Reactive reference — mutations here propagate to every component watching this node's status.
       const result: NodeResult = run.nodeResults[id];
       result.status = 'running';
       result.startedAt = new Date().toISOString();
-      runStore.recordResult(result);
 
       try {
         const ctx = {
@@ -73,27 +77,21 @@ export async function runGraph(args: RunGraphArgs): Promise<Run> {
         result.output = outputs;
         result.status = 'done';
         result.endedAt = new Date().toISOString();
-        runStore.recordResult(result);
         runStore.clearLivePreview(id);
       } catch (e) {
         result.status = 'error';
         result.endedAt = new Date().toISOString();
         result.errorMessage = (e as Error).message;
         result.errorStack = (e as Error).stack;
-        runStore.recordResult(result);
         runStore.clearLivePreview(id);
         run.errors.push({ nodeId: id, message: (e as Error).message, stack: (e as Error).stack });
-        if (controller.signal.aborted) {
-          run.status = 'aborted';
-        } else {
-          run.status = 'failed';
-        }
+        run.status = controller.signal.aborted ? 'aborted' : 'failed';
         throw e;
       }
     }
     if (run.status === 'running') run.status = 'completed';
   } catch {
-    // Already recorded
+    // already recorded
   } finally {
     runStore.finish(run.status);
   }

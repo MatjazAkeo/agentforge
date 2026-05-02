@@ -36,11 +36,15 @@ async function onRun() {
     const result = await runGraph({ graph: graph.graph, apiKey: settings.apiKey ?? '' });
     if (result.status === 'failed' && result.errors.length > 0) {
       const first = result.errors[0];
-      alert(`Run failed at node ${first.nodeId.slice(0, 8)}…\n\n${first.message}`);
+      // Defer so Vue's render queue flushes (timer / spinner / pulse all relax) BEFORE
+      // alert() blocks the thread and freezes the UI mid-update.
+      setTimeout(() => {
+        alert(`Run failed at node ${first.nodeId.slice(0, 8)}…\n\n${first.message}`);
+      }, 0);
     }
   } catch (err) {
     console.error('Run failed:', err);
-    alert(`Run failed: ${(err as Error).message ?? String(err)}`);
+    setTimeout(() => alert(`Run failed: ${(err as Error).message ?? String(err)}`), 0);
   }
 }
 function onStop() { abortCurrent(); }

@@ -1,7 +1,7 @@
-// Routed through Tauri's HTTP plugin to bypass the webview's CORS rules.
-// The plugin proxies the request from Rust, so OpenRouter sees a non-browser
-// origin and there are no preflight surprises with the Authorization header.
-import { fetch } from '@tauri-apps/plugin-http';
+// Native browser fetch — the WKWebView accepts cross-origin requests to
+// OpenRouter (verified by Settings → Test connection). Tauri's plugin-http
+// caused 401s due to a header-forwarding subtlety; native fetch is simpler
+// and works as long as we hand it a non-empty trimmed key.
 import type { ChatCompletionRequest, StreamChunk } from './types';
 
 const BASE = 'https://openrouter.ai/api/v1';
