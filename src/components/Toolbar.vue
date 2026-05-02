@@ -1,16 +1,26 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useGraphStore } from '@/stores/graph';
 import { useRunStore } from '@/stores/run';
 import { useUiStore } from '@/stores/ui';
 import { useSettingsStore } from '@/stores/settings';
 import { runGraph } from '@/engine/runner';
 import { abortCurrent } from '@/engine/abort';
+import TemplatePickerModal from './TemplatePickerModal.vue';
+import type { BundledTemplate } from '@/templates';
 
 const graph = useGraphStore();
 const run = useRunStore();
 const ui = useUiStore();
 const settings = useSettingsStore();
+
+const templatesOpen = ref(false);
+
+function onPickTemplate(tpl: BundledTemplate) {
+  const cloned = JSON.parse(JSON.stringify(tpl.graph));
+  graph.load(cloned, null);
+  templatesOpen.value = false;
+}
 
 const displayName = computed(() => {
   const path = graph.filePath;
@@ -63,6 +73,12 @@ function onStop() { abortCurrent(); }
       <span class="tabular-nums">⏱ <strong>{{ elapsedDisplay }}</strong></span>
     </div>
     <div class="ml-auto flex gap-1.5">
+      <button
+        type="button"
+        @click="templatesOpen = true"
+        class="px-3 py-1.5 rounded border border-border-strong bg-elev text-text-base cursor-pointer disabled:opacity-50 disabled:cursor-default"
+      >Templates</button>
+      <TemplatePickerModal :open="templatesOpen" @close="templatesOpen = false" @pick="onPickTemplate" />
       <button
         type="button"
         @click="onRun"

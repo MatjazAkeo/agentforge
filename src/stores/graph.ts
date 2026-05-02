@@ -39,7 +39,7 @@ export const useGraphStore = defineStore('graph', () => {
     dirty.value = false;
   }
 
-  function load(g: Graph, path: string) {
+  function load(g: Graph, path: string | null) {
     graph.value = g;
     filePath.value = path;
     dirty.value = false;
