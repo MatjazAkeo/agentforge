@@ -5,6 +5,5 @@ import type { ModelEntry } from '@/stores/settings';
 // the Settings → Models tab (Plan 4). To find current free model ids, browse:
 //   https://openrouter.ai/models?max_price=0
 export const DEFAULT_MODELS: ModelEntry[] = [
-  { id: 'meta-llama/llama-3.3-70b-instruct:free', displayName: 'Llama 3.3 70B (free)', supportsTools: true, supportsJsonMode: true, notes: '' },
   { id: 'openai/gpt-oss-120b:free', displayName: 'GPT-OSS 120B (free)', supportsTools: true, supportsJsonMode: true, notes: '' },
 ];

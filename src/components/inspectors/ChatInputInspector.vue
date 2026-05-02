@@ -7,10 +7,10 @@ import PortLegend from './PortLegend.vue';
 const props = defineProps<{ nodeId: string }>();
 const graph = useGraphStore();
 
-// Spec §6.12 UX warning: if userMessage has outgoing edges but messages doesn't,
+// Spec §6.12 UX warning: if `text` has outgoing edges but `messages` doesn't,
 // AND the graph has an LLM Call or Agent, warn that chat will feel amnesiac.
 const warning = computed(() => {
-  const userMsgEdges = graph.edges.filter((e) => e.source === props.nodeId && e.sourceHandle === 'userMessage');
+  const userMsgEdges = graph.edges.filter((e) => e.source === props.nodeId && e.sourceHandle === 'text');
   const messagesEdges = graph.edges.filter((e) => e.source === props.nodeId && e.sourceHandle === 'messages');
   if (userMsgEdges.length === 0 || messagesEdges.length > 0) return null;
   const hasLLM = graph.nodes.some((n) => n.type === 'llm-call' || n.type === 'agent');
@@ -30,7 +30,7 @@ const warning = computed(() => {
     <IOValues :node-id="nodeId" />
     <PortLegend
       :outputs="[
-        { id: 'userMessage', type: 'string', description: 'The latest user message (single turn).' },
+        { id: 'text', type: 'string', description: 'The latest user message (single turn).' },
         { id: 'messages', type: 'messages', description: 'Full chat history including the latest user message.' },
       ]"
     />

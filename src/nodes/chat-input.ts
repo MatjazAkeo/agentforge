@@ -3,7 +3,7 @@ import { registerNodeDefinition, type NodeDefinition } from './registry';
 export const chatInputNode: NodeDefinition = {
   type: 'chat-input',
   inputPorts: [],
-  outputPorts: ['userMessage', 'messages'],
+  outputPorts: ['text', 'messages'],
   async run(_node, _inputs, ctx) {
     if (!ctx.chatSession) {
       throw new Error(
@@ -11,7 +11,7 @@ export const chatInputNode: NodeDefinition = {
       );
     }
     return {
-      userMessage: ctx.chatSession.userMessage,
+      text: ctx.chatSession.userMessage,
       messages: ctx.chatSession.history,
     };
   },

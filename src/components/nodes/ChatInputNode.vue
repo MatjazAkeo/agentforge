@@ -37,8 +37,8 @@ function onDelete() { graph.removeNode(props.id); }
     </div>
     <div class="py-1">
       <div class="relative h-6 flex items-center justify-end pr-3 text-[11px]">
-        <span class="text-text-dim font-mono text-[10px]">userMessage</span>
-        <Handle id="userMessage" type="source" :position="Position.Right" :style="{ background: colorForType('string') }" />
+        <span class="text-text-dim font-mono text-[10px]">text</span>
+        <Handle id="text" type="source" :position="Position.Right" :style="{ background: colorForType('string') }" />
       </div>
       <div class="relative h-6 flex items-center justify-end pr-3 text-[11px]">
         <span class="text-text-dim font-mono text-[10px]">messages</span>

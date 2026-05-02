@@ -15,7 +15,7 @@ const baseCtx = (chatSession?: { userMessage: string; history: { role: string; c
 });
 
 describe('chatInputNode', () => {
-  it('emits userMessage and messages from ctx.chatSession', async () => {
+  it('emits text and messages from ctx.chatSession', async () => {
     const session = {
       userMessage: 'hello',
       history: [
@@ -25,7 +25,7 @@ describe('chatInputNode', () => {
       ],
     };
     const out = await chatInputNode.run(makeNode('chat-input'), {}, baseCtx(session));
-    expect(out.userMessage).toBe('hello');
+    expect(out.text).toBe('hello');
     expect(out.messages).toEqual(session.history);
   });
 

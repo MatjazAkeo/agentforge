@@ -87,9 +87,9 @@ function onDelete() { graph.removeNode(props.id); }
         <span class="text-text-dim font-mono text-[10px]">default</span>
       </div>
 
-      <!-- Back-edge input (cycles in from body, ↺ glyph + dashed left accent) -->
+      <!-- Back-edge input (cycles in from body) — distinguished by the ↺ glyph -->
       <div
-        class="relative h-6 flex items-center pl-3 text-[11px] border-l-2 border-dashed border-[#7aff8a]/40"
+        class="relative h-6 flex items-center pl-3 text-[11px]"
         title="back-edge: cycles in from the loop body"
       >
         <Handle

@@ -7,10 +7,10 @@ export const promptTemplateNode: NodeDefinition = {
   // The static port lists describe the OUTPUT only; dynamic inputs are resolved
   // by port-types.ts at connection time using the live template config.
   inputPorts: [],
-  outputPorts: ['rendered'],
+  outputPorts: ['text'],
   async run(node, inputs) {
     const cfg = node.config as PromptTemplateConfig;
-    return { rendered: renderTemplate(cfg.template ?? '', inputs) };
+    return { text: renderTemplate(cfg.template ?? '', inputs) };
   },
 };
 

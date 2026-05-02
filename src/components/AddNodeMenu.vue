@@ -56,7 +56,7 @@ function defaultConfig(type: NodeType): Record<string, unknown> {
     case 'input': return { name: 'input', defaultValue: '' };
     case 'output': return { format: 'auto' };
     case 'llm-call': return {
-      model: 'meta-llama/llama-3.3-70b-instruct:free',
+      model: 'openai/gpt-oss-120b:free',
       systemPrompt: '',
       temperature: 0.7,
       maxTokens: null,
@@ -76,7 +76,7 @@ function defaultConfig(type: NodeType): Record<string, unknown> {
       valueChannels: [{ name: 'value', type: 'json' }],
     };
     case 'agent': return {
-      model: 'meta-llama/llama-3.3-70b-instruct:free',
+      model: 'openai/gpt-oss-120b:free',
       systemPrompt: '',
       temperature: 0.7,
       maxTokens: null,

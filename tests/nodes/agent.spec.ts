@@ -30,7 +30,7 @@ describe('agentNode', () => {
       request: {}, response: { text: 'final' },
       usage: { input: 1, output: 2 }, timing: { totalMs: 1, firstTokenMs: 0 },
     });
-    const out = await agentNode.run(makeAgent(), { userMessage: 'hi' }, ctx());
+    const out = await agentNode.run(makeAgent(), { text: 'hi' }, ctx());
     expect(out.text).toBe('final');
     expect(out.iterationCount).toBe(1);
   });
@@ -44,7 +44,7 @@ describe('agentNode', () => {
     ];
     vi.spyOn(llmOnceModule, 'llmOnce').mockImplementation(async () => responses.shift()!);
     const tools = [{ name: 'noop', description: '', inputSchema: { type: 'object' }, code: 'return null;', timeoutMs: 1000 }];
-    const out = await agentNode.run(makeAgent(), { userMessage: 'go', tools }, ctx());
+    const out = await agentNode.run(makeAgent(), { text: 'go', tools }, ctx());
     expect(out.iterationCount).toBe(2);
     expect(out.text).toBe('done');
   });
@@ -57,6 +57,6 @@ describe('agentNode', () => {
     const node = makeAgent();
     (node.config as Record<string, unknown>).maxIterations = 2;
     const tools = [{ name: 'x', description: '', inputSchema: { type: 'object' }, code: 'return 1;', timeoutMs: 1000 }];
-    await expect(agentNode.run(node, { userMessage: 'go', tools }, ctx())).rejects.toThrow(/maxIterations/);
+    await expect(agentNode.run(node, { text: 'go', tools }, ctx())).rejects.toThrow(/maxIterations/);
   });
 });

@@ -27,7 +27,7 @@ export function colorForType(type: DataType | null): string {
 export function getSourcePortType(node: Node, handleId: string): DataType | null {
   switch (node.type) {
     case 'input':
-      if (handleId === 'value') return 'string';
+      if (handleId === 'text') return 'string';
       return null;
     case 'llm-call':
       if (handleId === 'text') return 'string';
@@ -48,7 +48,7 @@ export function getSourcePortType(node: Node, handleId: string): DataType | null
       if (handleId === 'result') return 'json';
       return null;
     case 'prompt-template':
-      if (handleId === 'rendered') return 'string';
+      if (handleId === 'text') return 'string';
       return null;
     case 'loop-controller': {
       const cfg = node.config as { valueChannels?: Array<{ name: string; type?: DataType }> };
@@ -66,7 +66,7 @@ export function getSourcePortType(node: Node, handleId: string): DataType | null
       if (handleId === 'iterationCount') return 'number';
       return null;
     case 'chat-input':
-      if (handleId === 'userMessage') return 'string';
+      if (handleId === 'text') return 'string';
       if (handleId === 'messages') return 'messages';
       return null;
     default:
@@ -81,7 +81,7 @@ export function getTargetPortType(node: Node, handleId: string): DataType | null
       if (handleId === 'value') return 'string';
       return null;
     case 'llm-call':
-      if (handleId === 'userMessage') return 'string';
+      if (handleId === 'text') return 'string';
       if (handleId === 'messages') return 'messages';
       if (handleId === 'tools') return 'tools';
       return null;
@@ -123,7 +123,7 @@ export function getTargetPortType(node: Node, handleId: string): DataType | null
       return null;
     }
     case 'agent':
-      if (handleId === 'userMessage') return 'string';
+      if (handleId === 'text') return 'string';
       if (handleId === 'messages') return 'messages';
       if (handleId === 'tools') return 'tools';
       return null;

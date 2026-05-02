@@ -22,7 +22,7 @@ describe('runGraph (Input → Output)', () => {
         { id: 'a', type: 'input', position: { x: 0, y: 0 }, config: { name: 'q', defaultValue: 'hello' } },
         { id: 'b', type: 'output', position: { x: 0, y: 0 }, config: { format: 'auto' } },
       ],
-      edges: [{ id: 'e', source: 'a', sourceHandle: 'value', target: 'b', targetHandle: 'value' }],
+      edges: [{ id: 'e', source: 'a', sourceHandle: 'text', target: 'b', targetHandle: 'value' }],
       containsCustomCode: false,
     };
 
@@ -63,7 +63,7 @@ describe('runGraph with Loop Controller', () => {
         { id: 'out', type: 'output', position: { x: 0, y: 0 }, config: { format: 'auto' } },
       ],
       edges: [
-        { id: 'e1', source: 'seed', sourceHandle: 'value', target: 'lc', targetHandle: 'default-n' },
+        { id: 'e1', source: 'seed', sourceHandle: 'text', target: 'lc', targetHandle: 'default-n' },
         { id: 'e2', source: 'lc', sourceHandle: 'output-n', target: 'inc', targetHandle: 'value' },
         { id: 'e3', source: 'inc', sourceHandle: 'result', target: 'lc', targetHandle: 'input-n' },
         { id: 'e4', source: 'inc', sourceHandle: 'continue', target: 'lc', targetHandle: 'continue' },
@@ -104,7 +104,7 @@ describe('runGraph with Loop Controller', () => {
         { id: 'out', type: 'output', position: { x: 0, y: 0 }, config: { format: 'auto' } },
       ],
       edges: [
-        { id: 'e1', source: 'seed', sourceHandle: 'value', target: 'lc', targetHandle: 'default-n' },
+        { id: 'e1', source: 'seed', sourceHandle: 'text', target: 'lc', targetHandle: 'default-n' },
         { id: 'e2', source: 'lc', sourceHandle: 'output-n', target: 'inc', targetHandle: 'value' },
         { id: 'e3', source: 'inc', sourceHandle: 'result', target: 'lc', targetHandle: 'input-n' },
         { id: 'e4', source: 'inc', sourceHandle: 'continue', target: 'lc', targetHandle: 'continue' },
@@ -137,7 +137,7 @@ describe('runGraph with Loop Controller', () => {
         { id: 'out', type: 'output', position: { x: 0, y: 0 }, config: { format: 'auto' } },
       ],
       edges: [
-        { id: 'e1', source: 'seed', sourceHandle: 'value', target: 'lc', targetHandle: 'default-n' },
+        { id: 'e1', source: 'seed', sourceHandle: 'text', target: 'lc', targetHandle: 'default-n' },
         { id: 'e2', source: 'lc', sourceHandle: 'output-n', target: 'inc', targetHandle: 'value' },
         { id: 'e3', source: 'inc', sourceHandle: 'result', target: 'lc', targetHandle: 'input-n' },
         { id: 'e4', source: 'inc', sourceHandle: 'continue', target: 'lc', targetHandle: 'continue' },

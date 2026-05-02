@@ -33,14 +33,14 @@ function buildInitialMessages(cfg: AgentConfig, inputs: Record<string, unknown>)
   }
   const messages: ChatMessage[] = [];
   if (cfg.systemPrompt) messages.push({ role: 'system', content: cfg.systemPrompt });
-  const um = typeof inputs.userMessage === 'string' ? inputs.userMessage : '';
-  if (um) messages.push({ role: 'user', content: um });
+  const userText = typeof inputs.text === 'string' ? inputs.text : '';
+  if (userText) messages.push({ role: 'user', content: userText });
   return messages;
 }
 
 export const agentNode: NodeDefinition = {
   type: 'agent',
-  inputPorts: ['messages', 'userMessage', 'tools'],
+  inputPorts: ['messages', 'text', 'tools'],
   outputPorts: ['text', 'messages', 'iterationCount'],
   async run(node, inputs, ctx) {
     const cfg = node.config as AgentConfig;

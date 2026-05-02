@@ -6,16 +6,99 @@
   "updatedAt": "2026-05-02T00:00:00.000Z",
   "containsCustomCode": false,
   "nodes": [
-    { "id": "in",   "type": "input",    "position": { "x": 60,  "y": 200 }, "config": { "name": "question", "defaultValue": "Explain a closure in one sentence." } },
-    { "id": "llm1", "type": "llm-call", "position": { "x": 360, "y": 80  }, "config": { "model": "meta-llama/llama-3.3-70b-instruct:free", "systemPrompt": "", "temperature": 0.5, "maxTokens": null, "responseFormat": null } },
-    { "id": "llm2", "type": "llm-call", "position": { "x": 360, "y": 360 }, "config": { "model": "openai/gpt-oss-120b:free", "systemPrompt": "", "temperature": 0.5, "maxTokens": null, "responseFormat": null } },
-    { "id": "out1", "type": "output",   "position": { "x": 720, "y": 80  }, "config": { "format": "auto" } },
-    { "id": "out2", "type": "output",   "position": { "x": 720, "y": 360 }, "config": { "format": "auto" } }
+    {
+      "id": "in",
+      "type": "input",
+      "position": {
+        "x": 60,
+        "y": 200
+      },
+      "config": {
+        "name": "question",
+        "defaultValue": "Explain a closure in one sentence."
+      }
+    },
+    {
+      "id": "llm1",
+      "type": "llm-call",
+      "position": {
+        "x": 360,
+        "y": 80
+      },
+      "config": {
+        "model": "openai/gpt-oss-120b:free",
+        "systemPrompt": "",
+        "temperature": 0.5,
+        "maxTokens": null,
+        "responseFormat": null
+      }
+    },
+    {
+      "id": "llm2",
+      "type": "llm-call",
+      "position": {
+        "x": 360,
+        "y": 360
+      },
+      "config": {
+        "model": "openai/gpt-oss-120b:free",
+        "systemPrompt": "",
+        "temperature": 0.5,
+        "maxTokens": null,
+        "responseFormat": null
+      }
+    },
+    {
+      "id": "out1",
+      "type": "output",
+      "position": {
+        "x": 720,
+        "y": 80
+      },
+      "config": {
+        "format": "auto"
+      }
+    },
+    {
+      "id": "out2",
+      "type": "output",
+      "position": {
+        "x": 720,
+        "y": 360
+      },
+      "config": {
+        "format": "auto"
+      }
+    }
   ],
   "edges": [
-    { "id": "e1", "source": "in",   "sourceHandle": "value", "target": "llm1", "targetHandle": "userMessage" },
-    { "id": "e2", "source": "in",   "sourceHandle": "value", "target": "llm2", "targetHandle": "userMessage" },
-    { "id": "e3", "source": "llm1", "sourceHandle": "text",  "target": "out1", "targetHandle": "value" },
-    { "id": "e4", "source": "llm2", "sourceHandle": "text",  "target": "out2", "targetHandle": "value" }
+    {
+      "id": "e1",
+      "source": "in",
+      "sourceHandle": "text",
+      "target": "llm1",
+      "targetHandle": "text"
+    },
+    {
+      "id": "e2",
+      "source": "in",
+      "sourceHandle": "text",
+      "target": "llm2",
+      "targetHandle": "text"
+    },
+    {
+      "id": "e3",
+      "source": "llm1",
+      "sourceHandle": "text",
+      "target": "out1",
+      "targetHandle": "value"
+    },
+    {
+      "id": "e4",
+      "source": "llm2",
+      "sourceHandle": "text",
+      "target": "out2",
+      "targetHandle": "value"
+    }
   ]
 }

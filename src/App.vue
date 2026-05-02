@@ -11,6 +11,7 @@ import { parseGraph, serializeGraph } from '@/persistence/graph-io';
 import { loadApiKey } from '@/secrets/api-key';
 import { runGraph } from '@/engine/runner';
 import { abortCurrent } from '@/engine/abort';
+import { TEMPLATES } from '@/templates';
 
 import Layout from './components/Layout.vue';
 import Settings from './components/Settings.vue';
@@ -38,6 +39,13 @@ async function bootstrap() {
     console.error('Failed to load API key from keychain:', err);
   }
   showOnboarding.value = !settings.apiKeyConfigured;
+
+  // Load the "Hello Model" template by default for a never-empty canvas.
+  // Untitled — user must Save As before runs persist.
+  const helloTemplate = TEMPLATES.find((t) => t.id === 'hello-model');
+  if (helloTemplate) {
+    graph.load(JSON.parse(JSON.stringify(helloTemplate.graph)), null);
+  }
 }
 
 function confirmDiscardIfDirty(action: string): boolean {

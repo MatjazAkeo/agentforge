@@ -6,20 +6,147 @@
   "updatedAt": "2026-05-02T00:00:00.000Z",
   "containsCustomCode": true,
   "nodes": [
-    { "id": "in",   "type": "input",           "position": { "x": 40,  "y": 80  }, "config": { "name": "question", "defaultValue": "Summarize the homepage in two sentences." } },
-    { "id": "url",  "type": "input",           "position": { "x": 40,  "y": 220 }, "config": { "name": "url", "defaultValue": "https://example.com" } },
-    { "id": "tool", "type": "tool",            "position": { "x": 320, "y": 220 }, "config": { "name": "fetch_url", "description": "Fetch the text content of a URL.", "inputSchema": { "type": "object", "properties": { "url": { "type": "string" } }, "required": ["url"] }, "code": "const r = await helpers.fetch(inputs.url); return await r.text();", "timeoutMs": 30000 } },
-    { "id": "tg",   "type": "tool-group",      "position": { "x": 600, "y": 220 }, "config": { "label": "fetcher" } },
-    { "id": "ag",   "type": "agent",           "position": { "x": 900, "y": 80  }, "config": { "model": "meta-llama/llama-3.3-70b-instruct:free", "systemPrompt": "Use fetch_url to retrieve the page content, then answer the user's question.", "temperature": 0.3, "maxTokens": null, "maxIterations": 4, "stopCondition": "no-tool-calls" } },
-    { "id": "tpl",  "type": "prompt-template", "position": { "x": 600, "y": 80  }, "config": { "template": "Question: {{q}}\n\nAvailable URL: {{u}}\n\nUse the fetch_url tool to retrieve the page, then answer." } },
-    { "id": "out",  "type": "output",          "position": { "x": 1240,"y": 80  }, "config": { "format": "auto" } }
+    {
+      "id": "in",
+      "type": "input",
+      "position": {
+        "x": 40,
+        "y": 80
+      },
+      "config": {
+        "name": "question",
+        "defaultValue": "Summarize the homepage in two sentences."
+      }
+    },
+    {
+      "id": "url",
+      "type": "input",
+      "position": {
+        "x": 40,
+        "y": 220
+      },
+      "config": {
+        "name": "url",
+        "defaultValue": "https://example.com"
+      }
+    },
+    {
+      "id": "tool",
+      "type": "tool",
+      "position": {
+        "x": 320,
+        "y": 220
+      },
+      "config": {
+        "name": "fetch_url",
+        "description": "Fetch the text content of a URL.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "url": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "url"
+          ]
+        },
+        "code": "const r = await helpers.fetch(inputs.url); return await r.text();",
+        "timeoutMs": 30000
+      }
+    },
+    {
+      "id": "tg",
+      "type": "tool-group",
+      "position": {
+        "x": 600,
+        "y": 220
+      },
+      "config": {
+        "label": "fetcher"
+      }
+    },
+    {
+      "id": "ag",
+      "type": "agent",
+      "position": {
+        "x": 900,
+        "y": 80
+      },
+      "config": {
+        "model": "openai/gpt-oss-120b:free",
+        "systemPrompt": "Use fetch_url to retrieve the page content, then answer the user's question.",
+        "temperature": 0.3,
+        "maxTokens": null,
+        "maxIterations": 4,
+        "stopCondition": "no-tool-calls"
+      }
+    },
+    {
+      "id": "tpl",
+      "type": "prompt-template",
+      "position": {
+        "x": 600,
+        "y": 80
+      },
+      "config": {
+        "template": "Question: {{q}}\n\nAvailable URL: {{u}}\n\nUse the fetch_url tool to retrieve the page, then answer."
+      }
+    },
+    {
+      "id": "out",
+      "type": "output",
+      "position": {
+        "x": 1240,
+        "y": 80
+      },
+      "config": {
+        "format": "auto"
+      }
+    }
   ],
   "edges": [
-    { "id": "e1", "source": "in",   "sourceHandle": "value", "target": "tpl", "targetHandle": "q" },
-    { "id": "e2", "source": "url",  "sourceHandle": "value", "target": "tpl", "targetHandle": "u" },
-    { "id": "e3", "source": "tpl",  "sourceHandle": "rendered", "target": "ag", "targetHandle": "userMessage" },
-    { "id": "e4", "source": "tool", "sourceHandle": "toolDefinition", "target": "tg", "targetHandle": "tools" },
-    { "id": "e5", "source": "tg",   "sourceHandle": "toolDefinition", "target": "ag", "targetHandle": "tools" },
-    { "id": "e6", "source": "ag",   "sourceHandle": "text", "target": "out", "targetHandle": "value" }
+    {
+      "id": "e1",
+      "source": "in",
+      "sourceHandle": "text",
+      "target": "tpl",
+      "targetHandle": "q"
+    },
+    {
+      "id": "e2",
+      "source": "url",
+      "sourceHandle": "text",
+      "target": "tpl",
+      "targetHandle": "u"
+    },
+    {
+      "id": "e3",
+      "source": "tpl",
+      "sourceHandle": "text",
+      "target": "ag",
+      "targetHandle": "text"
+    },
+    {
+      "id": "e4",
+      "source": "tool",
+      "sourceHandle": "toolDefinition",
+      "target": "tg",
+      "targetHandle": "tools"
+    },
+    {
+      "id": "e5",
+      "source": "tg",
+      "sourceHandle": "toolDefinition",
+      "target": "ag",
+      "targetHandle": "tools"
+    },
+    {
+      "id": "e6",
+      "source": "ag",
+      "sourceHandle": "text",
+      "target": "out",
+      "targetHandle": "value"
+    }
   ]
 }

@@ -78,10 +78,10 @@ function onDelete() {
 
     <!-- Paired port rows. Inputs left, outputs right. -->
     <div class="py-1">
-      <!-- Row 1: userMessage in | text out -->
+      <!-- Row 1: text in | text out -->
       <div class="relative h-6 flex items-center justify-between px-3 text-[11px]">
-        <span class="text-text-dim font-mono text-[10px]">userMessage</span>
-        <Handle id="userMessage" type="target" :position="Position.Left" :style="{ background: colorForType('string') }" />
+        <span class="text-text-dim font-mono text-[10px]">text</span>
+        <Handle id="text" type="target" :position="Position.Left" :style="{ background: colorForType('string') }" />
         <span class="text-text-dim font-mono text-[10px]">text</span>
         <Handle id="text" type="source" :position="Position.Right" :style="{ background: colorForType('string') }" />
       </div>

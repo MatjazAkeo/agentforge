@@ -69,7 +69,7 @@ const iterations = computed(() => result.value?.iterations ?? []);
     <IOValues :node-id="nodeId" />
     <PortLegend
       :inputs="[
-        { id: 'userMessage', type: 'string', description: 'Initial user prompt for the agent.' },
+        { id: 'text', type: 'string', description: 'Initial user prompt for the agent.' },
         { id: 'messages', type: 'messages', description: 'Existing conversation to continue.' },
         { id: 'tools', type: 'tools', description: 'Tools the agent may call. Wire from a Tool Group.' },
       ]"

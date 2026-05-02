@@ -6,24 +6,175 @@
   "updatedAt": "2026-05-02T00:00:00.000Z",
   "containsCustomCode": false,
   "nodes": [
-    { "id": "in",     "type": "input",           "position": { "x": 40,  "y": 60  }, "config": { "name": "topic", "defaultValue": "Closures in JavaScript let functions remember the variables that existed in the surrounding scope when they were created." } },
-    { "id": "lc",     "type": "loop-controller", "position": { "x": 320, "y": 60  }, "config": { "maxIterations": 5, "valueChannels": [{ "name": "text", "type": "string" }] } },
-    { "id": "rev",    "type": "llm-call",        "position": { "x": 600, "y": 20  }, "config": { "model": "meta-llama/llama-3.3-70b-instruct:free", "systemPrompt": "Rewrite the user's text to be SHORTER and more accurate. Output ONLY the revised text — no commentary.", "temperature": 0.3, "maxTokens": null, "responseFormat": null } },
-    { "id": "critic", "type": "llm-call",        "position": { "x": 600, "y": 200 }, "config": { "model": "meta-llama/llama-3.3-70b-instruct:free", "systemPrompt": "Critique the user's text. Respond ONLY with JSON: {\"good\": boolean, \"critique\": string}. `good` is true only if the text is technically accurate AND under 25 words.", "temperature": 0, "maxTokens": null, "responseFormat": "json_object" } },
-    { "id": "parse",  "type": "transform",       "position": { "x": 900, "y": 200 }, "config": { "mode": "json-parse" } },
-    { "id": "good",   "type": "transform",       "position": { "x": 1180,"y": 240 }, "config": { "mode": "json-path", "path": "good" } },
-    { "id": "neg",    "type": "transform",       "position": { "x": 1180,"y": 320 }, "config": { "mode": "regex-extract", "pattern": "false" } },
-    { "id": "out",    "type": "output",          "position": { "x": 1480,"y": 60  }, "config": { "format": "auto" } }
+    {
+      "id": "in",
+      "type": "input",
+      "position": {
+        "x": 40,
+        "y": 60
+      },
+      "config": {
+        "name": "topic",
+        "defaultValue": "Closures in JavaScript let functions remember the variables that existed in the surrounding scope when they were created."
+      }
+    },
+    {
+      "id": "lc",
+      "type": "loop-controller",
+      "position": {
+        "x": 320,
+        "y": 60
+      },
+      "config": {
+        "maxIterations": 5,
+        "valueChannels": [
+          {
+            "name": "text",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "id": "rev",
+      "type": "llm-call",
+      "position": {
+        "x": 600,
+        "y": 20
+      },
+      "config": {
+        "model": "openai/gpt-oss-120b:free",
+        "systemPrompt": "Rewrite the user's text to be SHORTER and more accurate. Output ONLY the revised text — no commentary.",
+        "temperature": 0.3,
+        "maxTokens": null,
+        "responseFormat": null
+      }
+    },
+    {
+      "id": "critic",
+      "type": "llm-call",
+      "position": {
+        "x": 600,
+        "y": 200
+      },
+      "config": {
+        "model": "openai/gpt-oss-120b:free",
+        "systemPrompt": "Critique the user's text. Respond ONLY with JSON: {\"good\": boolean, \"critique\": string}. `good` is true only if the text is technically accurate AND under 25 words.",
+        "temperature": 0,
+        "maxTokens": null,
+        "responseFormat": "json_object"
+      }
+    },
+    {
+      "id": "parse",
+      "type": "transform",
+      "position": {
+        "x": 900,
+        "y": 200
+      },
+      "config": {
+        "mode": "json-parse"
+      }
+    },
+    {
+      "id": "good",
+      "type": "transform",
+      "position": {
+        "x": 1180,
+        "y": 240
+      },
+      "config": {
+        "mode": "json-path",
+        "path": "good"
+      }
+    },
+    {
+      "id": "neg",
+      "type": "transform",
+      "position": {
+        "x": 1180,
+        "y": 320
+      },
+      "config": {
+        "mode": "regex-extract",
+        "pattern": "false"
+      }
+    },
+    {
+      "id": "out",
+      "type": "output",
+      "position": {
+        "x": 1480,
+        "y": 60
+      },
+      "config": {
+        "format": "auto"
+      }
+    }
   ],
   "edges": [
-    { "id": "e1",  "source": "in",     "sourceHandle": "value",        "target": "lc",     "targetHandle": "default-text" },
-    { "id": "e2",  "source": "lc",     "sourceHandle": "output-text",  "target": "rev",    "targetHandle": "userMessage" },
-    { "id": "e3",  "source": "rev",    "sourceHandle": "text",         "target": "critic", "targetHandle": "userMessage" },
-    { "id": "e4",  "source": "rev",    "sourceHandle": "text",         "target": "lc",     "targetHandle": "input-text" },
-    { "id": "e5",  "source": "critic", "sourceHandle": "text",         "target": "parse",  "targetHandle": "value" },
-    { "id": "e6",  "source": "parse",  "sourceHandle": "result",       "target": "good",   "targetHandle": "value" },
-    { "id": "e7",  "source": "good",   "sourceHandle": "result",       "target": "neg",    "targetHandle": "value" },
-    { "id": "e8",  "source": "neg",    "sourceHandle": "result",       "target": "lc",     "targetHandle": "continue" },
-    { "id": "e9",  "source": "lc",     "sourceHandle": "output-text",  "target": "out",    "targetHandle": "value" }
+    {
+      "id": "e1",
+      "source": "in",
+      "sourceHandle": "text",
+      "target": "lc",
+      "targetHandle": "default-text"
+    },
+    {
+      "id": "e2",
+      "source": "lc",
+      "sourceHandle": "output-text",
+      "target": "rev",
+      "targetHandle": "text"
+    },
+    {
+      "id": "e3",
+      "source": "rev",
+      "sourceHandle": "text",
+      "target": "critic",
+      "targetHandle": "text"
+    },
+    {
+      "id": "e4",
+      "source": "rev",
+      "sourceHandle": "text",
+      "target": "lc",
+      "targetHandle": "input-text"
+    },
+    {
+      "id": "e5",
+      "source": "critic",
+      "sourceHandle": "text",
+      "target": "parse",
+      "targetHandle": "value"
+    },
+    {
+      "id": "e6",
+      "source": "parse",
+      "sourceHandle": "result",
+      "target": "good",
+      "targetHandle": "value"
+    },
+    {
+      "id": "e7",
+      "source": "good",
+      "sourceHandle": "result",
+      "target": "neg",
+      "targetHandle": "value"
+    },
+    {
+      "id": "e8",
+      "source": "neg",
+      "sourceHandle": "result",
+      "target": "lc",
+      "targetHandle": "continue"
+    },
+    {
+      "id": "e9",
+      "source": "lc",
+      "sourceHandle": "output-text",
+      "target": "out",
+      "targetHandle": "value"
+    }
   ]
 }

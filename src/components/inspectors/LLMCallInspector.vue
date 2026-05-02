@@ -184,8 +184,8 @@ const responseJson = computed(() => {
 
     <PortLegend
       :inputs="[
-        { id: 'userMessage', type: 'string', description: 'Single user prompt. Becomes a `user` message before the call.' },
-        { id: 'messages', type: 'messages', description: 'Existing conversation history to continue. Combined with userMessage.' },
+        { id: 'text', type: 'string', description: 'Single user prompt. Becomes a `user` message before the call.' },
+        { id: 'messages', type: 'messages', description: 'Existing conversation history to continue. Combined with `text` if no upstream messages.' },
         { id: 'tools', type: 'tools', description: 'Tool definitions the model may call. Wire from Tool or Tool Group.' },
       ]"
       :outputs="[

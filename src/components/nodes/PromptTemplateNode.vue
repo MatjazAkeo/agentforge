@@ -39,22 +39,25 @@ function onDelete() { graph.removeNode(props.id); }
         class="opacity-0 group-hover:opacity-100 transition w-5 h-5 rounded text-text-dim hover:bg-error/25 hover:text-error flex items-center justify-center text-base leading-none">×</button>
     </div>
 
-    <!-- Dynamic input rows, one per placeholder -->
-    <div v-if="placeholders.length === 0" class="px-3 py-2 text-[11px] text-text-dim italic opacity-60">
-      No placeholders in template — output is the literal template.
-    </div>
-    <div
-      v-for="name in placeholders"
-      :key="name"
-      class="relative h-6 flex items-center px-3 text-[11px]"
-    >
-      <Handle :id="name" type="target" :position="Position.Left" :style="{ background: colorForType('json') }" />
-      <span class="text-text-dim font-mono text-[10px]">{{ name }}</span>
+    <!-- Output row FIRST so its handle Y stays stable as placeholders come and go.
+         Inputs follow below — one row per placeholder. -->
+    <div class="relative h-6 flex items-center justify-end pr-3 text-[11px]">
+      <span class="text-text-dim font-mono text-[10px]">text</span>
+      <Handle id="text" type="source" :position="Position.Right" :style="{ background: colorForType('string') }" />
     </div>
 
-    <div class="relative h-6 rounded-b-md flex items-center justify-end pr-3 text-[11px] border-t border-[#16181c] bg-[#16181c]">
-      <span class="text-text-dim font-mono text-[10px]">rendered</span>
-      <Handle id="rendered" type="source" :position="Position.Right" :style="{ background: colorForType('string') }" />
+    <div v-if="placeholders.length === 0" class="px-3 py-2 text-[11px] text-text-dim italic opacity-60 rounded-b-md border-t border-[#16181c] bg-[#16181c]">
+      No placeholders in template — output is the literal template.
+    </div>
+    <div v-else class="border-t border-[#16181c] rounded-b-md bg-[#16181c]/40">
+      <div
+        v-for="name in placeholders"
+        :key="name"
+        class="relative h-6 flex items-center px-3 text-[11px]"
+      >
+        <Handle :id="name" type="target" :position="Position.Left" :style="{ background: colorForType('json') }" />
+        <span class="text-text-dim font-mono text-[10px]">{{ name }}</span>
+      </div>
     </div>
   </div>
 </template>

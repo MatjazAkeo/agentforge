@@ -10,7 +10,7 @@ describe('input node', () => {
     };
     const ctx = { signal: new AbortController().signal, details: {}, apiKey: '' };
     const result = await inputNode.run(node, {}, ctx);
-    expect(result).toEqual({ value: 'hello' });
+    expect(result).toEqual({ text: 'hello' });
   });
 
   it('emits empty string when defaultValue is empty', async () => {
@@ -20,6 +20,6 @@ describe('input node', () => {
     };
     const ctx = { signal: new AbortController().signal, details: {}, apiKey: '' };
     const result = await inputNode.run(node, {}, ctx);
-    expect(result).toEqual({ value: '' });
+    expect(result).toEqual({ text: '' });
   });
 });

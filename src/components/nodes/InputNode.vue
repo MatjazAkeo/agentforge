@@ -57,8 +57,8 @@ function onDelete() {
     </div>
 
     <div class="relative h-7 flex items-center justify-end pr-3 text-[11px]">
-      <span class="text-text-dim font-mono text-[10px]">value</span>
-      <Handle id="value" type="source" :position="Position.Right" :style="{ background: colorForType('string') }" />
+      <span class="text-text-dim font-mono text-[10px]">text</span>
+      <Handle id="text" type="source" :position="Position.Right" :style="{ background: colorForType('string') }" />
     </div>
 
     <div

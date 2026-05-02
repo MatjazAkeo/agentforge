@@ -13,10 +13,10 @@ function buildMessages(cfg: LLMCallConfig, inputs: Record<string, unknown>): Cha
     }
     return upstream as ChatMessage[];
   }
-  const userMessage = typeof inputs.userMessage === 'string' ? inputs.userMessage : '';
+  const userText = typeof inputs.text === 'string' ? inputs.text : '';
   const messages: ChatMessage[] = [];
   if (cfg.systemPrompt) messages.push({ role: 'system', content: cfg.systemPrompt });
-  if (userMessage) messages.push({ role: 'user', content: userMessage });
+  if (userText) messages.push({ role: 'user', content: userText });
   return messages;
 }
 
@@ -32,7 +32,7 @@ function flattenTools(input: unknown): ToolDefinitionPayload[] {
 
 export const llmCallNode: NodeDefinition = {
   type: 'llm-call',
-  inputPorts: ['messages', 'userMessage', 'tools'],
+  inputPorts: ['messages', 'text', 'tools'],
   outputPorts: ['text', 'toolCalls', 'messages', 'usage'],
   async run(node, inputs, ctx) {
     const cfg = node.config as LLMCallConfig;

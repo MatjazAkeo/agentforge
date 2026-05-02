@@ -25,7 +25,7 @@
         "y": 199.75
       },
       "config": {
-        "model": "meta-llama/llama-3.3-70b-instruct:free",
+        "model": "openai/gpt-oss-120b:free",
         "systemPrompt": "",
         "temperature": 0.7,
         "maxTokens": null,
@@ -49,8 +49,8 @@
       "id": "605d8999-b6da-4087-9cde-abf4dd969644",
       "source": "edfb4da6-6753-427f-a118-6aa9283a0bdd",
       "target": "a3e15cca-f8a4-45cd-9861-21fbe362caf3",
-      "sourceHandle": "value",
-      "targetHandle": "userMessage"
+      "sourceHandle": "text",
+      "targetHandle": "text"
     },
     {
       "id": "20994b69-24ef-4a73-b68c-675c8179e7a9",
