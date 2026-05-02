@@ -1,12 +1,13 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { useGraphStore } from '@/stores/graph';
 import type { InputConfig } from '@/domain/node-types';
 
 const props = defineProps<{ nodeId: string }>();
 const graph = useGraphStore();
 
-const node = graph.nodes.find((n) => n.id === props.nodeId);
-const cfg = node ? (node.config as InputConfig) : null;
+const node = computed(() => graph.nodes.find((n) => n.id === props.nodeId));
+const cfg = computed(() => (node.value?.config ?? null) as InputConfig | null);
 
 function update<K extends keyof InputConfig>(key: K, value: InputConfig[K]) {
   graph.updateNodeConfig(props.nodeId, { [key]: value });

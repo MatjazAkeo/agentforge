@@ -9,6 +9,8 @@ import { useRunStore } from '@/stores/run';
 import { pickGraphFileToOpen, pickGraphFileToSave, readGraphFile, writeGraphFile } from '@/persistence/tauri-fs';
 import { parseGraph, serializeGraph } from '@/persistence/graph-io';
 import { loadApiKey } from '@/secrets/api-key';
+import { runGraph } from '@/engine/runner';
+import { abortCurrent } from '@/engine/abort';
 
 import Layout from './components/Layout.vue';
 import Settings from './components/Settings.vue';
@@ -73,6 +75,16 @@ async function onSaveAs() {
   graph.markSaved(path);
 }
 
+async function onRunFromMenu() {
+  if (!settings.apiKeyConfigured) {
+    alert('Add an OpenRouter API key in Settings first.');
+    return;
+  }
+  await runGraph({ graph: graph.graph, apiKey: settings.apiKey ?? '' });
+}
+
+function onStopFromMenu() { abortCurrent(); }
+
 async function dispatchMenu(payload: string): Promise<void> {
   if (busy) return;
   busy = true;
@@ -82,6 +94,8 @@ async function dispatchMenu(payload: string): Promise<void> {
       case 'menu.file.open': await onOpen(); break;
       case 'menu.file.save': await onSave(); break;
       case 'menu.file.save_as': await onSaveAs(); break;
+      case 'menu.run.run': await onRunFromMenu(); break;
+      case 'menu.run.stop': onStopFromMenu(); break;
     }
   } catch (err) {
     console.error('Menu handler failed:', payload, err);

@@ -43,7 +43,7 @@ const previewText = computed(() => {
     <Handle id="messages" type="target" :position="Position.Left" :style="{ top: '40%' }" />
     <Handle id="userMessage" type="target" :position="Position.Left" :style="{ top: '60%' }" />
     <Handle id="text" type="source" :position="Position.Right" :style="{ top: '40%' }" />
-    <Handle id="messages-out" type="source" :position="Position.Right" :style="{ top: '60%' }" />
+    <Handle id="messages" type="source" :position="Position.Right" :style="{ top: '60%' }" />
   </div>
 </template>
 
