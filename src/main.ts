@@ -8,6 +8,7 @@ import './styles/vue-flow-overrides.css';
 import '@/nodes/input';
 import '@/nodes/output';
 import '@/nodes/llm-call';
+import '@/nodes/tool';
 
 // Tauri's plugin-http leaks an "Unhandled Promise Rejection: The resource id X
 // is invalid" when a request is aborted mid-flight. The error fires from an
