@@ -78,7 +78,9 @@ section h3 { margin: 4px 0 0; }
 section p { font-size: 13px; opacity: 0.85; margin: 0; }
 input { width: 80%; background: var(--bg-elev); color: var(--text); border: 1px solid var(--border); border-radius: 4px; padding: 6px 10px; font-size: 13px; }
 .row { display: flex; gap: 8px; }
-.btn, .btn-primary { padding: 6px 14px; border-radius: 4px; cursor: pointer; font-size: 12px; border: 1px solid var(--border-strong); background: var(--bg-elev); color: var(--text); }
+.btn, .btn-primary { padding: 6px 14px; border-radius: 4px; cursor: pointer; font-size: 12px; border: 1px solid var(--border-strong); background: var(--bg-elev); color: var(--text); transition: opacity 120ms, background-color 120ms, border-color 120ms; }
 .btn-primary { background: var(--accent); color: white; border-color: var(--accent); }
+.btn:disabled, .btn-primary:disabled { cursor: not-allowed; opacity: 0.45; }
+.btn-primary:disabled { background: var(--bg-elev); color: var(--text-dim); border-color: var(--border-strong); }
 a { color: var(--accent); }
 </style>
