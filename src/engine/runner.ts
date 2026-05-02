@@ -4,6 +4,8 @@ import { topologicalOrder, incomingEdges } from './scheduler';
 import { getNodeDefinition } from '@/nodes/registry';
 import { useRunStore } from '@/stores/run';
 import { newRunAbortController } from './abort';
+import { useGraphStore } from '@/stores/graph';
+import { writeRun } from '@/persistence/runs-dir';
 
 export interface RunGraphArgs {
   graph: Graph;
@@ -107,5 +109,16 @@ export async function runGraph(args: RunGraphArgs): Promise<Run> {
   } finally {
     runStore.finish(run.status);
   }
+
+  // Persist the run if the graph has been saved to a file. Untitled graphs aren't persisted.
+  const graphStore = useGraphStore();
+  if (graphStore.filePath) {
+    try {
+      await writeRun(graphStore.filePath, run);
+    } catch (e) {
+      console.error('Failed to save run:', e);
+    }
+  }
+
   return run;
 }
