@@ -9,12 +9,19 @@ const run = useRunStore();
 const graph = useGraphStore();
 
 const result = computed(() => run.current?.nodeResults[props.id]);
-const preview = computed(() => {
+
+const hasValue = computed(() => {
   const v = result.value?.details?.value;
-  if (v === undefined || v === null) return '— not yet run —';
+  return v !== undefined && v !== null;
+});
+
+const preview = computed(() => {
+  if (!hasValue.value) return '— not yet run —';
+  const v = result.value?.details?.value;
   const s = typeof v === 'string' ? v : JSON.stringify(v);
   return s.length > 200 ? `${s.slice(0, 200)}…` : s;
 });
+
 const borderColor = computed(() => {
   switch (result.value?.status) {
     case 'done': return 'var(--success)';
@@ -35,9 +42,8 @@ function onDelete() {
     class="node-shell group w-[240px] bg-[#25272d] border rounded-md shadow-[0_2px_8px_rgba(0,0,0,0.45)] font-ui text-text-base"
     :style="{ borderColor }"
   >
-    <!-- Title bar -->
     <div class="relative rounded-t-md flex items-center gap-2 px-3 py-1.5 border-b border-[#16181c]">
-      <span class="w-2 h-2 rounded-full bg-[#4ad7e2] flex-shrink-0" />
+      <span class="w-2 h-2 rounded-full bg-[#ff7676] flex-shrink-0" title="sink" />
       <div class="flex-1 min-w-0">
         <div class="text-text-base font-medium text-xs leading-tight">Output</div>
         <div class="text-text-dim text-[10px] font-mono truncate">format · {{ data.config.format }}</div>
@@ -50,14 +56,17 @@ function onDelete() {
       >×</button>
     </div>
 
-    <!-- Port row: value (in) left | empty right -->
     <div class="relative h-7 flex items-center pl-3 text-[11px]">
       <Handle id="value" type="target" :position="Position.Left" />
       <span class="text-text-dim font-mono text-[10px]">value</span>
     </div>
 
-    <!-- Result -->
-    <div class="rounded-b-md px-3 py-2 text-[11px] opacity-90 border-t border-[#16181c] bg-[#16181c] min-h-[34px] whitespace-pre-wrap break-words">
+    <div
+      :class="[
+        'rounded-b-md px-3 py-2 text-[11px] border-t border-[#16181c] bg-[#16181c] min-h-[34px] whitespace-pre-wrap break-words',
+        hasValue ? 'text-left opacity-90' : 'text-center italic opacity-55',
+      ]"
+    >
       {{ preview }}
     </div>
   </div>
