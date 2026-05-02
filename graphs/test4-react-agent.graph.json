@@ -18,8 +18,7 @@
     { "id": "llm", "type": "llm-call", "position": { "x": 940, "y": 40 },
       "config": { "model": "openai/gpt-oss-120b:free", "systemPrompt": "You are a calculator that always uses the provided tools.", "temperature": 0, "maxTokens": null, "responseFormat": null } },
     { "id": "tr", "type": "tool-runner", "position": { "x": 1280, "y": 40 }, "config": {} },
-    { "id": "br", "type": "break", "position": { "x": 1620, "y": 60 }, "config": {} },
-    { "id": "out", "type": "output", "position": { "x": 1820, "y": 60 }, "config": { "format": "auto" } }
+    { "id": "out", "type": "output", "position": { "x": 1620, "y": 60 }, "config": { "format": "auto" } }
   ],
   "edges": [
     { "id": "e01", "source": "in",   "sourceHandle": "value", "target": "lc", "targetHandle": "default-messages" },
@@ -32,7 +31,6 @@
     { "id": "e08", "source": "llm",  "sourceHandle": "messages",         "target": "tr",  "targetHandle": "messages" },
     { "id": "e09", "source": "tr",   "sourceHandle": "messages",         "target": "lc",  "targetHandle": "input-messages" },
     { "id": "e10", "source": "llm",  "sourceHandle": "toolCalls",        "target": "lc",  "targetHandle": "continue" },
-    { "id": "e11", "source": "lc",   "sourceHandle": "output-messages",  "target": "br",  "targetHandle": "value" },
-    { "id": "e12", "source": "br",   "sourceHandle": "value",            "target": "out", "targetHandle": "value" }
+    { "id": "e11", "source": "lc",   "sourceHandle": "output-messages",  "target": "out", "targetHandle": "value" }
   ]
 }

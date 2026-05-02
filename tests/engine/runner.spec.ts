@@ -10,7 +10,6 @@ import { registerNodeDefinition } from '@/nodes/registry';
 import '@/nodes/input';
 import '@/nodes/output';
 import '@/nodes/loop-controller';
-import '@/nodes/break';
 
 describe('runGraph (Input → Output)', () => {
   beforeEach(() => setActivePinia(createPinia()));
@@ -61,7 +60,6 @@ describe('runGraph with Loop Controller', () => {
         { id: 'lc', type: 'loop-controller', position: { x: 0, y: 0 },
           config: { maxIterations: 10, valueChannels: [{ name: 'n' }] } },
         { id: 'inc', type: 'transform', position: { x: 0, y: 0 }, config: {} },
-        { id: 'br', type: 'break', position: { x: 0, y: 0 }, config: {} },
         { id: 'out', type: 'output', position: { x: 0, y: 0 }, config: { format: 'auto' } },
       ],
       edges: [
@@ -69,8 +67,7 @@ describe('runGraph with Loop Controller', () => {
         { id: 'e2', source: 'lc', sourceHandle: 'output-n', target: 'inc', targetHandle: 'value' },
         { id: 'e3', source: 'inc', sourceHandle: 'result', target: 'lc', targetHandle: 'input-n' },
         { id: 'e4', source: 'inc', sourceHandle: 'continue', target: 'lc', targetHandle: 'continue' },
-        { id: 'e5', source: 'lc', sourceHandle: 'output-n', target: 'br', targetHandle: 'value' },
-        { id: 'e6', source: 'br', sourceHandle: 'value', target: 'out', targetHandle: 'value' },
+        { id: 'e5', source: 'lc', sourceHandle: 'output-n', target: 'out', targetHandle: 'value' },
       ],
     };
 
@@ -78,8 +75,8 @@ describe('runGraph with Loop Controller', () => {
     expect(result.status).toBe('completed');
     expect(result.nodeResults.inc.iterations?.length).toBe(3);
     expect(result.nodeResults.lc.details.stopReason).toBe('continue-false');
-    // Break node is wired to lc's output-n, which on the last iteration
-    // holds the channel value entering that iteration (2), not inc's result (3).
-    expect(result.nodeResults.br.output).toEqual({ value: 2 });
+    // Output reads lc.output-n directly (no Break needed). After the loop ends,
+    // lc's last-iteration output-n holds the channel value entering that iteration (2).
+    expect(result.nodeResults.out.details.value).toBe(2);
   });
 });

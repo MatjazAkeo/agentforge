@@ -14,8 +14,7 @@ Subsequent plans add: chat sidebar & templates (Plan 4).
 
 ### Plan 3 features
 
-- **Loop Controller** node — declarative cycle anchor. Configurable channels (named state slots that flow through the loop), `maxIterations` safety cap, and a `continue` boolean input that halts the loop when falsy
-- **Break** node — exit point that fires once after the loop terminates
+- **Loop Controller** node — declarative cycle anchor. Configurable channels (named state slots that flow through the loop), `maxIterations` safety cap, and a `continue` boolean input that halts the loop when falsy. Wire `lc.output-<name>` directly to post-loop consumers — no separate exit node needed
 - **Agent** node — convenience wrapper for the LLM↔ToolRunner loop; uses the same internal helpers as the raw nodes (no parallel implementation)
 - **Per-iteration recording** — every loop body node gets an `IterationRecord` per pass, viewable in a collapsible iteration tree in the inspectors
 - **LLM Call iteration selector** — when an LLM Call sits inside a loop, the inspector shows a dropdown to pick which iteration to view

@@ -9,7 +9,6 @@ import ToolInspector from './inspectors/ToolInspector.vue';
 import ToolGroupInspector from './inspectors/ToolGroupInspector.vue';
 import ToolRunnerInspector from './inspectors/ToolRunnerInspector.vue';
 import LoopControllerInspector from './inspectors/LoopControllerInspector.vue';
-import BreakInspector from './inspectors/BreakInspector.vue';
 import AgentInspector from './inspectors/AgentInspector.vue';
 
 const ui = useUiStore();
@@ -54,9 +53,6 @@ const selectedNode = computed(() => {
       </div>
       <div v-else-if="selectedNode.type === 'loop-controller'">
         <LoopControllerInspector :nodeId="selectedNode.id" />
-      </div>
-      <div v-else-if="selectedNode.type === 'break'">
-        <BreakInspector :nodeId="selectedNode.id" />
       </div>
       <div v-else-if="selectedNode.type === 'agent'">
         <AgentInspector :nodeId="selectedNode.id" />

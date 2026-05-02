@@ -8,8 +8,6 @@ import type { LoopControllerConfig } from '@/domain/node-types';
 export interface LoopBody {
   /** Node ids that re-run on every iteration. */
   bodyNodeIds: string[];
-  /** Break nodes attached to this controller — fire once after termination. */
-  breakNodeIds: string[];
   /** Edges internal to the body (excluding the back-edges). */
   internalEdges: Graph['edges'];
   /** The back-edges from body → loop-controller. */
@@ -19,7 +17,9 @@ export interface LoopBody {
 /**
  * Resolves which body nodes belong to the given Loop Controller.
  * Body = nodes downstream of the LC's outputs that lie on a path back to the LC
- * via a back-edge. Break nodes are listed separately because they fire only once.
+ * via a back-edge. Post-loop terminals (e.g. an Output reading `lc.output-X`) are
+ * NOT in the body — they fire once after the loop completes via the main pass,
+ * which reads the LC's last-iteration outputs from `outputsByNode`.
  */
 export function computeLoopBody(graph: Graph, controllerId: string): LoopBody {
   const back = findBackEdges(graph).filter((e) => e.target === controllerId);
@@ -61,16 +61,11 @@ export function computeLoopBody(graph: Graph, controllerId: string): LoopBody {
   }
 
   const bodyNodeIds: string[] = [];
-  const breakNodeIds: string[] = [];
   // I4: use nodeById map for O(1) lookups
   const nodeById = new Map(graph.nodes.map((n) => [n.id, n]));
   for (const id of reachable) {
     const node = nodeById.get(id);
     if (!node) continue;
-    if (node.type === 'break') {
-      breakNodeIds.push(id);
-      continue;
-    }
     if (reachesBack.has(id)) bodyNodeIds.push(id);
   }
 
@@ -82,17 +77,17 @@ export function computeLoopBody(graph: Graph, controllerId: string): LoopBody {
       !back.some((b) => b.id === e.id),
   );
 
-  return { bodyNodeIds, breakNodeIds, internalEdges, backEdges: back };
+  return { bodyNodeIds, internalEdges, backEdges: back };
 }
 
 /**
  * Runs the loop body for one Loop Controller until termination.
  * Mutates the run's NodeResults in place — body nodes get an IterationRecord
- * appended each iteration, the controller's `details.iterationCount` is updated,
- * and break nodes' outputs are written when the loop exits.
+ * appended each iteration, the controller's `details.iterationCount` is updated.
+ * After exit, the LC's `controllerOutputs` is published to `outputsByNode` so
+ * post-loop nodes (in the main pass) can read the final channel values.
  */
 export interface LoopDriverResult {
-  breakOutputs: Record<string, Record<string, unknown>>;
   bodyOutputs: Record<string, Record<string, unknown>>;
   controllerOutputs: Record<string, unknown>;
   iterationCount: number;
@@ -328,38 +323,11 @@ export async function driveLoop(args: LoopDriverArgs): Promise<LoopDriverResult>
   // I3: record endedAt on success paths.
   ctrl.endedAt = new Date().toISOString();
 
-  // 5) Fire break nodes once with the latest body outputs.
-  const breakOutputs: Record<string, Record<string, unknown>> = {};
-  for (const breakId of body.breakNodeIds) {
-    const node = nodeById.get(breakId);
-    if (!node) throw new Error(`Break node "${breakId}" not found in graph`);
-    // I1: guard break node definition lookup
-    const def = getNodeDefinition('break');
-    if (!def) throw new Error('No definition registered for node type "break"');
-
-    const incoming = graph.edges.filter((e) => e.target === breakId);
-    const inputs: Record<string, unknown> = {};
-    for (const edge of incoming) {
-      const src = bodyOutputsByNode.get(edge.source)
-        ?? outputsByNode.get(edge.source)
-        ?? (edge.source === controllerId ? controllerOutputs : {});
-      inputs[edge.targetHandle] = src[edge.sourceHandle];
-    }
-    const result: NodeResult = run.nodeResults[breakId];
-    result.status = 'running';
-    // I3: record startedAt for break nodes.
-    result.startedAt = new Date().toISOString();
-    const out = await def.run(node, inputs, { signal, details: {}, apiKey });
-    result.input = inputs;
-    result.output = out;
-    result.status = 'done';
-    // I3: record endedAt for break nodes.
-    result.endedAt = new Date().toISOString();
-    breakOutputs[breakId] = out;
-  }
+  // The LC's last-iteration `controllerOutputs` are already in `outputsByNode`
+  // from the iteration loop, so any post-loop node downstream of `lc.output-X`
+  // can read it directly in the runner's main pass.
 
   return {
-    breakOutputs,
     bodyOutputs: Object.fromEntries(bodyOutputsByNode),
     controllerOutputs,
     // C2: return completedIterations for accurate count

@@ -15,26 +15,23 @@ function g(nodes: Node[], edges: Edge[]): Graph {
 describe('computeLoopBody', () => {
   it('returns nodes between LC outputs and the back-edge', () => {
     const graph = g(
-      [n('input', 'input'), n('lc', 'loop-controller'), n('a', 'llm-call'), n('b', 'transform'), n('br', 'break'), n('out', 'output')],
+      [n('input', 'input'), n('lc', 'loop-controller'), n('a', 'llm-call'), n('b', 'transform'), n('out', 'output')],
       [
         e('1', 'input', 'lc', 'value', 'default-x'),
         e('2', 'lc', 'a', 'output-x', 'userMessage'),
         e('3', 'a', 'b', 'text', 'value'),
         e('4', 'b', 'lc', 'result', 'input-x'),
-        e('5', 'b', 'br', 'result', 'value'),
-        e('6', 'br', 'out', 'value', 'value'),
+        e('5', 'lc', 'out', 'output-x', 'value'),
       ],
     );
     const body = computeLoopBody(graph, 'lc');
     expect(body.bodyNodeIds.sort()).toEqual(['a', 'b']);
-    expect(body.breakNodeIds).toEqual(['br']);
   });
 
   it('returns empty body when LC has no back-edges', () => {
     const graph = g([n('lc', 'loop-controller')], []);
     const body = computeLoopBody(graph, 'lc');
     expect(body.bodyNodeIds).toEqual([]);
-    expect(body.breakNodeIds).toEqual([]);
   });
 });
 
@@ -43,7 +40,6 @@ import { setActivePinia, createPinia } from 'pinia';
 import type { Run, NodeResult } from '@/domain/run';
 import { registerNodeDefinition } from '@/nodes/registry';
 import '@/nodes/loop-controller';
-import '@/nodes/break';
 
 function emptyResult(id: string): NodeResult {
   return { nodeId: id, status: 'idle', details: {} };

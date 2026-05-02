@@ -21,7 +21,6 @@ import ToolNode from './nodes/ToolNode.vue';
 import ToolGroupNode from './nodes/ToolGroupNode.vue';
 import ToolRunnerNode from './nodes/ToolRunnerNode.vue';
 import LoopControllerNode from './nodes/LoopControllerNode.vue';
-import BreakNode from './nodes/BreakNode.vue';
 import AgentNode from './nodes/AgentNode.vue';
 
 const GRID = 20;
@@ -33,7 +32,7 @@ const graph = useGraphStore();
 const ui = useUiStore();
 const { project, viewport, getNodes } = useVueFlow();
 
-const nodeTypes = { input: markRaw(InputNode), output: markRaw(OutputNode), 'llm-call': markRaw(LLMCallNode), tool: markRaw(ToolNode), 'tool-group': markRaw(ToolGroupNode), 'tool-runner': markRaw(ToolRunnerNode), 'loop-controller': markRaw(LoopControllerNode), 'break': markRaw(BreakNode), 'agent': markRaw(AgentNode) } as Record<string, ReturnType<typeof markRaw>>;
+const nodeTypes = { input: markRaw(InputNode), output: markRaw(OutputNode), 'llm-call': markRaw(LLMCallNode), tool: markRaw(ToolNode), 'tool-group': markRaw(ToolGroupNode), 'tool-runner': markRaw(ToolRunnerNode), 'loop-controller': markRaw(LoopControllerNode), 'agent': markRaw(AgentNode) } as Record<string, ReturnType<typeof markRaw>>;
 
 const flowNodes = computed<VFNode[]>(() =>
   graph.nodes.map((n) => ({ id: n.id, type: n.type, position: n.position, data: { config: n.config } })),
@@ -166,9 +165,11 @@ function isValidConnection(connection: {
   const sourceType = getSourcePortType(sourceNode, connection.sourceHandle ?? '');
   const targetType = getTargetPortType(targetNode, connection.targetHandle ?? '');
   if (!sourceType || !targetType) return false;
-  // `json` is the universal target type — anything plugs in. (Loop Controller's
-  // channel ports are typed json so that arbitrary state shapes can flow through.)
-  if (targetType === 'json') return true;
+  // `json` is universal on BOTH sides — anything plugs into a json target,
+  // and a json source plugs into anything. Loop Controller channels carry
+  // arbitrary shapes; their `output-<name>` ports are typed json so they can
+  // feed string/messages/tools targets without an explicit cast.
+  if (targetType === 'json' || sourceType === 'json') return true;
   return sourceType === targetType;
 }
 

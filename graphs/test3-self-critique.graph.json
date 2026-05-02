@@ -6,24 +6,19 @@
   "updatedAt": "2026-05-02T14:00:00.000Z",
   "containsCustomCode": false,
   "nodes": [
-    { "id": "in", "type": "input", "position": { "x": 40, "y": 40 },
-      "config": { "name": "topic", "defaultValue": "Write a one-sentence definition of \"closure\" in JavaScript." } },
-    { "id": "draft", "type": "llm-call", "position": { "x": 320, "y": 40 },
-      "config": { "model": "meta-llama/llama-3.3-70b-instruct:free", "systemPrompt": "Write a single sentence answering the user.", "temperature": 0.6, "maxTokens": null, "responseFormat": null } },
-    { "id": "lc", "type": "loop-controller", "position": { "x": 640, "y": 60 },
-      "config": { "maxIterations": 5, "valueChannels": [{ "name": "draft" }] } },
-    { "id": "critic", "type": "llm-call", "position": { "x": 960, "y": 40 },
-      "config": { "model": "meta-llama/llama-3.3-70b-instruct:free", "systemPrompt": "Critique the user-provided sentence. Respond ONLY with JSON: {\"good\": boolean, \"critique\": string}. `good` is true only if the sentence is technically accurate AND under 25 words.", "temperature": 0, "maxTokens": null, "responseFormat": "json_object" } },
-    { "id": "br", "type": "break", "position": { "x": 1280, "y": 60 }, "config": {} },
-    { "id": "out", "type": "output", "position": { "x": 1480, "y": 60 }, "config": { "format": "auto" } }
+    { "id": "in", "type": "input", "position": { "x": 40, "y": 60 },
+      "config": { "name": "topic", "defaultValue": "Closures in JavaScript let functions remember the variables that existed in the surrounding scope when they were created." } },
+    { "id": "lc", "type": "loop-controller", "position": { "x": 360, "y": 60 },
+      "config": { "maxIterations": 3, "valueChannels": [{ "name": "text" }] } },
+    { "id": "rev", "type": "llm-call", "position": { "x": 720, "y": 40 },
+      "config": { "model": "meta-llama/llama-3.3-70b-instruct:free", "systemPrompt": "You are a precise editor. Read the user's text and rewrite it to be SHORTER, more accurate, and more readable. Output ONLY the revised text — no preamble, no quotes, no commentary.", "temperature": 0.4, "maxTokens": null, "responseFormat": null } },
+    { "id": "out", "type": "output", "position": { "x": 1100, "y": 60 }, "config": { "format": "auto" } }
   ],
   "edges": [
-    { "id": "e1", "source": "in", "sourceHandle": "value", "target": "draft", "targetHandle": "userMessage" },
-    { "id": "e2", "source": "draft", "sourceHandle": "text", "target": "lc", "targetHandle": "default-draft" },
-    { "id": "e3", "source": "lc", "sourceHandle": "output-draft", "target": "critic", "targetHandle": "userMessage" },
-    { "id": "e4", "source": "critic", "sourceHandle": "text", "target": "lc", "targetHandle": "input-draft" },
-    { "id": "e5", "source": "critic", "sourceHandle": "text", "target": "lc", "targetHandle": "continue" },
-    { "id": "e6", "source": "lc", "sourceHandle": "output-draft", "target": "br", "targetHandle": "value" },
-    { "id": "e7", "source": "br", "sourceHandle": "value", "target": "out", "targetHandle": "value" }
+    { "id": "e1", "source": "in",  "sourceHandle": "value",        "target": "lc",  "targetHandle": "default-text" },
+    { "id": "e2", "source": "lc",  "sourceHandle": "output-text",  "target": "rev", "targetHandle": "userMessage" },
+    { "id": "e3", "source": "rev", "sourceHandle": "text",         "target": "lc",  "targetHandle": "input-text" },
+    { "id": "e4", "source": "rev", "sourceHandle": "text",         "target": "lc",  "targetHandle": "continue" },
+    { "id": "e5", "source": "lc",  "sourceHandle": "output-text",  "target": "out", "targetHandle": "value" }
   ]
 }

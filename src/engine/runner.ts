@@ -46,13 +46,12 @@ export async function runGraph(args: RunGraphArgs): Promise<Run> {
   validateLoopTopology(args.graph);
   const order = topologicalOrderIgnoringBackEdges(args.graph);
 
-  // Track break + body node ids to skip during the main pass — they're fired by driveLoop.
+  // Track body node ids to skip during the main pass — they're fired by driveLoop.
   const skip = new Set<string>();
   for (const node of args.graph.nodes) {
     if (node.type === 'loop-controller') {
       const body = computeLoopBody(args.graph, node.id);
       for (const b of body.bodyNodeIds) skip.add(b);
-      for (const b of body.breakNodeIds) skip.add(b);
     }
   }
 
@@ -75,8 +74,8 @@ export async function runGraph(args: RunGraphArgs): Promise<Run> {
           setLivePreview: (nid, p) => runStore.setLivePreview(nid, p),
           clearLivePreview: (nid) => runStore.clearLivePreview(nid),
         });
-        // Make break outputs available to downstream nodes in the main pass.
-        for (const [bid, out] of Object.entries(driverOut.breakOutputs)) outputsByNode.set(bid, out);
+        // The LC's last-iteration outputs were already published to outputsByNode
+        // by driveLoop; post-loop nodes in the main pass read it directly.
         if (driverOut.stopReason === 'max-iterations') {
           throw new Error(`Loop Controller "${id}" exceeded maxIterations`);
         }

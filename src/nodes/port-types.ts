@@ -52,9 +52,6 @@ export function getSourcePortType(node: Node, handleId: string): DataType | null
       }
       return null;
     }
-    case 'break':
-      if (handleId === 'value') return 'json';
-      return null;
     case 'agent':
       if (handleId === 'text') return 'string';
       if (handleId === 'messages') return 'messages';
@@ -97,9 +94,6 @@ export function getTargetPortType(node: Node, handleId: string): DataType | null
       }
       return null;
     }
-    case 'break':
-      if (handleId === 'value') return 'json';
-      return null;
     case 'agent':
       if (handleId === 'userMessage') return 'string';
       if (handleId === 'messages') return 'messages';

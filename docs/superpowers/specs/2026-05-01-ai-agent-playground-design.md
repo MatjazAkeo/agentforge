@@ -143,7 +143,6 @@ type NodeType =
   | 'prompt-template'
   | 'transform'
   | 'loop-controller'
-  | 'break'
   | 'agent'
   | 'chat-input'
   | 'chat-output';
@@ -309,19 +308,16 @@ The single node that may participate in cycles. Provides the spine for any itera
 2. Body produces values, including a `continue` boolean, that wire back into `input-<name>` and `continue`.
 3. Loop Controller waits for all back-edges to arrive.
 4. If `continue` is truthy and `iteration < maxIterations`: iteration++, the new `input-<name>` values become the next iteration's `output-<name>` values, body re-runs.
-5. If `continue` is falsy: loop terminates. Control passes to any **Break** node connected to the Loop Controller; downstream of Break runs as a normal DAG.
+5. If `continue` is falsy: loop terminates. The Loop Controller's `output-<name>` ports retain their last-iteration values, which post-loop nodes (downstream in the main DAG pass) read directly. There is no separate exit node.
 6. If `iteration === maxIterations` and `continue` is still truthy: loop errors with a `MaxIterationsExceeded` error.
 
 **Inspector:** every iteration is captured as an `IterationRecord` and shown as a tree in the inspector, with each iteration's full per-node state navigable.
 
-### 6.10 Break
+### 6.10 (deleted — Break node) — _post-implementation_
 
-Companion to the Loop Controller. The exit point from a loop.
+The original spec had a Break node as the explicit "loop exit" gate. It was removed during Plan 3 implementation: the Loop Controller's `output-<name>` ports already carry the last-iteration channel value to post-loop nodes, so Break was redundant in every example pattern (self-critique, ReAct, agent). Wire `lc.output-<name>` directly to whatever consumes the loop's result.
 
-- **Config:** none
-- **Inputs:** `value` (typically wired from the same source(s) that feed `input-<name>` channels — it captures the "final" value when the loop terminates)
-- **Outputs:** `value` (passes through; downstream of Break runs after the loop terminates)
-- **Behavior:** the Break node acts as a barrier — its downstream nodes do not fire until its parent Loop Controller signals termination. When the loop terminates (`continue` went falsy), the Break node fires with the most recent `value`.
+The only case where a separate exit was strictly needed — surfacing a body-node value that was *not* a channel — is solved by promoting that value to a channel (one extra `valueChannels` entry).
 
 ### 6.11 Agent (convenience encapsulation)
 
@@ -488,7 +484,7 @@ The Tool node itself does not execute; per-invocation detail lives on the Tool R
 | Members | Flat list of every Tool definition flowing through this group, with their names and descriptions |
 | Validation | Any duplicate-name conflicts (red-flagged with which Tool nodes are colliding) |
 
-### 8.8 Input / Output / Transform / Break / Chat Input / Chat Output
+### 8.8 Input / Output / Transform / Chat Input / Chat Output
 
 Just the value, formatted by type. Transform additionally shows the input value and the operation applied. Chat Input/Output show the relevant message text.
 
@@ -618,15 +614,15 @@ Five starter graphs ship with the app, accessible via `File → New from Templat
 
 1. **Hello Model** — `Input → LLM Call → Output`. Demonstrates the simplest run.
 2. **Two-Model Comparison** — same input branched into two LLM Call nodes with different models, both feeding two Output nodes.
-3. **Self-Critique Loop** — `Input → LLM (initial draft) → Loop Controller (default-draft) → [LLM critique → Transform parses {good: bool, critique: string} → LLM revise (uses critique to improve draft)] → input-draft, continue = !good → Break → Output`. The loop runs until the critique returns `good: true` or `maxIterations` is hit. Demonstrates the Loop Controller pattern with a non-trivial state channel (`draft`) and a model-determined termination condition.
+3. **Self-Critique / Refinement Loop** — `Input → Loop Controller (default-text) → LLM (reviser) → input-text + continue → output-text → Output`. The reviser rewrites its own previous output each iteration; the loop halts at `maxIterations`. Demonstrates the Loop Controller pattern with a single state channel (`text`) and progressive refinement. (A version that halts on a model-determined `good=true` condition needs the Transform node, which lands in Plan 4.)
 4. **RAG-lite** — `Input (URL) → Tool (fetch URL) → Prompt Template (combines URL contents + question) → LLM Call → Output`.
-5. **Raw ReAct Agent** — full ReAct loop made entirely from primitives, **no encapsulation**. Uses Loop Controller + LLM Call + Tool Runner + Tools + Break, plus Chat Input / Chat Output for the interactive loop:
+5. **Raw ReAct Agent** — full ReAct loop made entirely from primitives, **no encapsulation**. Uses Loop Controller + LLM Call + Tool Runner + Tools, plus Chat Input / Chat Output for the interactive loop:
    - Chat Input feeds initial `messages` and `userMessage` into a Loop Controller's `default-messages` channel
    - The Loop Controller's `output-messages` feeds an LLM Call. A Tool Group labeled "Web tools" aggregates `http_get` and `calculator` Tools and feeds a single edge into both the LLM Call's `tools` input and the Tool Runner's `tools` input
    - LLM Call's `messages` and `toolCalls` feed a Tool Runner
    - Tool Runner's extended `messages` wires back into the Loop Controller's `input-messages`
-   - The `continue` channel is computed: truthy if the LLM Call's `toolCalls` is non-empty, falsy otherwise (computed via a small Transform node)
-   - Break's `value` (the final `messages`) is wired through a Transform that extracts the last assistant message into Chat Output
+   - The `continue` input is wired directly from the LLM Call's `toolCalls` output — empty arrays are treated as falsy, so the loop halts when the model emits no more tool calls. No Transform needed.
+   - Loop Controller's `output-messages` (the final conversation after halt) wires directly into Chat Output (or through a small Transform that extracts the last assistant message)
 6. **Encapsulated Agent (chat)** — the same ReAct behavior as Template 5, but using a single **Agent node** instead of unrolling the loop. `Chat Input → Agent (Tool Group "Web tools" with `http_get` + `calculator` wired into the Agent's `tools` input) → Chat Output`. Side-by-side with Template 5, this template makes the equivalence between the encapsulated and raw forms tangible — open both, run the same chat message, compare what the inspector shows.
 
 Templates are stored as graph JSON files inside the app bundle and copied into memory on selection (the user must Save As to give them a real location before running).
@@ -683,7 +679,7 @@ The implementation plan (next step) will sequence work, but the phases are rough
 2. **LLM Call node:** OpenRouter client, streaming, basic inspector, Settings → API Key
 3. **Tool + Tool Group + Tool Runner nodes:** Web Worker sandbox, Monaco source editor, trust prompt, tool execution end-to-end, Tool Group aggregation
 4. **Run model:** persistent run files, basic run-history sidebar
-5. **Loop Controller + Break:** the cycle scheduler, paired-port handling, `maxIterations` enforcement, per-iteration inspector
+5. **Loop Controller:** the cycle scheduler, paired-port handling, `maxIterations` enforcement, per-iteration inspector
 6. **Agent node:** the convenience encapsulation — reuses the iteration scheduler from phase 5 internally
 7. **Prompt Template, Transform, polish:** complete the foundational node set
 8. **Chat Sidebar:** Chat Input / Chat Output nodes, sidebar UI, run-per-turn behavior
@@ -724,13 +720,14 @@ The design spec was written ahead of code. After shipping Plans 1, 2, and 3, the
 ### Plan 3 (Loops & Agents)
 
 - **Cycle support** — the runner validates back-edges before each run (`src/engine/loop-validation.ts`); the only nodes that may receive a back-edge are `loop-controller` nodes. The topological order is computed with back-edges removed (`topologicalOrderIgnoringBackEdges` in `src/engine/scheduler.ts`); the loop driver (`src/engine/loop-driver.ts`) re-runs body nodes once per iteration.
-- **Loop driver** — per-controller iteration engine. Computes the body and break-node sets via reachability analysis (forward from the LC + reverse from back-edge sources), runs the body in topological order each iteration, and stores an `IterationRecord` on every body node and the controller. Halt conditions: `continue` falsy, `maxIterations` exceeded, `signal` aborted, or any body-node error.
+- **Loop driver** — per-controller iteration engine. Computes the body via reachability analysis (forward from the LC + reverse from back-edge sources), runs the body in topological order each iteration, and stores an `IterationRecord` on every body node and the controller. Halt conditions: `continue` falsy, `maxIterations` exceeded, `signal` aborted, or any body-node error.
 - **`continue` truthiness** — empty arrays count as falsy (alongside `null`/`undefined`/`false`/`0`/`''`). This is what makes `LLMCall.toolCalls → LoopController.continue` the natural ReAct halt wire — the model emitting no tool calls in a turn means an empty array, which terminates the loop. No Transform node needed.
 - **Nested loop controllers rejected** — `validateLoopTopology` walks each LC's body and throws if any body node is itself a `loop-controller`. v1 doesn't support nesting; this catches the misconfiguration explicitly.
-- **Error path on body failure** — body-node throws are caught by an outer `try` in `driveLoop`; the controller's `status` flips to `'error'`, the failing body node's partial `IterationRecord` is appended (with `details.error`), and the error rethrows to the runner. The cleanup block that fires Break nodes is skipped on the error path.
+- **Error path on body failure** — body-node throws are caught by an outer `try` in `driveLoop`; the controller's `status` flips to `'error'`, the failing body node's partial `IterationRecord` is appended (with `details.error`), and the error rethrows to the runner.
 - **`completedIterations` vs. loop counter** — the loop's internal `iteration` variable is `cfg.maxIterations + 1` when it exits via `max-iterations`. The driver tracks `completedIterations` separately for accurate reporting (`ctrl.details.iterationCount`, `LoopDriverResult.iterationCount`).
-- **`json` is a universal target type** — `Canvas.vue:isValidConnection` lets any source type plug into a `json` target port. Loop Controller's channel ports are typed `json` so they accept arbitrary state shapes (string, ChatMessage[], objects). Source-side stays strictly typed.
+- **`json` is a universal type on BOTH sides** — `Canvas.vue:isValidConnection` lets any source plug into a `json` target AND lets a `json` source plug into any target. Loop Controller's `output-<name>` ports are typed `json` (they carry arbitrary channel shapes) and the symmetric rule lets them flow into `string` / `messages` / `tools` consumers without explicit casts. The implicit "trust the runtime shape" cost is acceptable: every existing wire in the example graphs ends up plugged into a node that already coerces or validates its input.
 - **Agent node = packaged subgraph** — the Agent (`src/nodes/agent.ts`) reuses the same single-turn LLM call (`src/nodes/_internals/llm-once.ts`) and tool batch (`src/nodes/_internals/tool-batch.ts`) helpers as `LLMCall` and `ToolRunner`. Exactly one implementation of each primitive; the Agent is the convenience wrapper, not a parallel codepath.
 - **Agent iteration shape** — the Agent records its own richer per-iteration shape under `ctx.details.iterations` (each entry has `llm` + `tools` sub-records). The shared `IterationTree.vue` consumes the canonical `IterationRecord` shape; the Agent inspector projects its richer shape down to that interface for display.
 - **Inspector iteration UX** — the LLM Call inspector shows an iteration selector when `result.iterations.length > 1`. The Loop Controller and Agent inspectors share `IterationTree.vue`. Each iteration is a collapsible row showing inputs/output JSON.
 - **Known gaps deferred to Plan 4** — Transform node (§6.8) and Chat Input/Chat Output (§6.12) remain unimplemented. Self-critique (Template 5) currently relies on `responseFormat: 'json_object'` and the empty-array-falsy continue trick rather than a Transform that parses `{good: bool}`.
+- **Break node removed (post-implementation)** — Plan 3 originally shipped a Break node as the explicit loop exit. After end-to-end testing, every example pattern (test3 self-critique, test4 ReAct, test5 agent) wired Break as a pure passthrough on `lc.output-<name>`, which the LC already exposes to post-loop nodes via `outputsByNode`. Break was deleted: NodeType union, port-types, registry, UI components, and example graphs all updated to wire `lc.output-<name>` directly to post-loop consumers. The one capability lost — surfacing a non-channel body value to nodes after the loop — is recovered by promoting that value to a `valueChannels` entry. See §6.10.

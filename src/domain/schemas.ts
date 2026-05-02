@@ -12,7 +12,7 @@ export const nodeSchema = z.object({
   id: z.string(),
   type: z.enum([
     'input', 'output', 'llm-call', 'tool', 'tool-group', 'tool-runner',
-    'prompt-template', 'transform', 'loop-controller', 'break', 'agent',
+    'prompt-template', 'transform', 'loop-controller', 'agent',
     'chat-input', 'chat-output',
   ]),
   position: positionSchema,

@@ -9,7 +9,6 @@ export type NodeType =
   | 'prompt-template'
   | 'transform'
   | 'loop-controller'
-  | 'break'
   | 'agent'
   | 'chat-input'
   | 'chat-output';
@@ -52,10 +51,6 @@ export interface LoopControllerConfig {
   valueChannels: Array<{ name: string }>;  // declared state channels
 }
 
-export interface BreakConfig {
-  // intentionally empty — Break is a passthrough
-}
-
 export interface AgentConfig {
   model: string;
   systemPrompt: string;
@@ -75,6 +70,5 @@ export type NodeConfig =
   | ToolGroupConfig
   | ToolRunnerConfig
   | LoopControllerConfig
-  | BreakConfig
   | AgentConfig
   | Record<string, unknown>;
