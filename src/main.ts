@@ -8,6 +8,7 @@ import './styles/vue-flow-overrides.css';
 import '@/nodes/input';
 import '@/nodes/output';
 import '@/nodes/llm-call';
+import '@/nodes/loop-controller';
 import '@/nodes/tool';
 import '@/nodes/tool-group';
 import '@/nodes/tool-runner';
