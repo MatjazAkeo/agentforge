@@ -8,6 +8,7 @@ import LLMCallInspector from './inspectors/LLMCallInspector.vue';
 import ToolInspector from './inspectors/ToolInspector.vue';
 import ToolGroupInspector from './inspectors/ToolGroupInspector.vue';
 import ToolRunnerInspector from './inspectors/ToolRunnerInspector.vue';
+import LoopControllerInspector from './inspectors/LoopControllerInspector.vue';
 
 const ui = useUiStore();
 const graph = useGraphStore();
@@ -48,6 +49,9 @@ const selectedNode = computed(() => {
       </div>
       <div v-else-if="selectedNode.type === 'tool-runner'">
         <ToolRunnerInspector :nodeId="selectedNode.id" />
+      </div>
+      <div v-else-if="selectedNode.type === 'loop-controller'">
+        <LoopControllerInspector :nodeId="selectedNode.id" />
       </div>
       <div v-else class="opacity-50">Inspector for {{ selectedNode.type }} added in a later task.</div>
     </div>

@@ -17,6 +17,7 @@ const ALL_OPTIONS: NodeOption[] = [
   { type: 'tool', label: 'Tool', description: 'Define a callable function the LLM can use' },
   { type: 'tool-group', label: 'Tool Group', description: 'Aggregate multiple tools into a single edge' },
   { type: 'tool-runner', label: 'Tool Runner', description: 'Execute tool calls emitted by an LLM' },
+  { type: 'loop-controller', label: 'Loop Controller', description: 'Cycle anchor for ReAct, retry, refinement loops' },
 ];
 
 const props = defineProps<{
@@ -65,6 +66,10 @@ function defaultConfig(type: NodeType): Record<string, unknown> {
     };
     case 'tool-group': return { label: 'tools' };
     case 'tool-runner': return {};
+    case 'loop-controller': return {
+      maxIterations: 25,
+      valueChannels: [{ name: 'value' }],
+    };
     default: return {};
   }
 }
