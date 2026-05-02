@@ -46,6 +46,9 @@ export function getSourcePortType(node: Node, handleId: string): DataType | null
     case 'transform':
       if (handleId === 'result') return 'json';
       return null;
+    case 'prompt-template':
+      if (handleId === 'rendered') return 'string';
+      return null;
     case 'loop-controller': {
       const cfg = node.config as { valueChannels?: Array<{ name: string }> };
       if (handleId === 'iteration') return 'string';
@@ -87,6 +90,17 @@ export function getTargetPortType(node: Node, handleId: string): DataType | null
     case 'transform':
       if (handleId === 'value') return 'json';
       return null;
+    case 'prompt-template': {
+      const cfg = node.config as { template?: string };
+      // Dynamic: any handle that matches a {{var}} placeholder in the template.
+      const tpl = cfg.template ?? '';
+      const re = /\{\{\s*([A-Za-z_][A-Za-z0-9_]*)\s*\}\}/g;
+      let m: RegExpExecArray | null;
+      while ((m = re.exec(tpl)) !== null) {
+        if (m[1] === handleId) return 'json';
+      }
+      return null;
+    }
     case 'loop-controller': {
       const cfg = node.config as { valueChannels?: Array<{ name: string }> };
       if (handleId === 'continue') return 'json';

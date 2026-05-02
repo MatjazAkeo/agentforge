@@ -10,6 +10,7 @@ import '@/nodes/input';
 import '@/nodes/output';
 import '@/nodes/llm-call';
 import '@/nodes/loop-controller';
+import '@/nodes/prompt-template';
 import '@/nodes/tool';
 import '@/nodes/tool-group';
 import '@/nodes/tool-runner';

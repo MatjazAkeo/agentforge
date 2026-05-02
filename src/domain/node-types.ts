@@ -58,6 +58,10 @@ export interface TransformConfig {
   template?: string;
 }
 
+export interface PromptTemplateConfig {
+  template: string;  // contains {{var}} placeholders
+}
+
 export interface LoopControllerConfig {
   maxIterations: number;            // default 25
   valueChannels: Array<{ name: string }>;  // declared state channels
@@ -82,6 +86,7 @@ export type NodeConfig =
   | ToolGroupConfig
   | ToolRunnerConfig
   | TransformConfig
+  | PromptTemplateConfig
   | LoopControllerConfig
   | AgentConfig
   | Record<string, unknown>;
