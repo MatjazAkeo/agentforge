@@ -15,6 +15,7 @@ const ALL_OPTIONS: NodeOption[] = [
   { type: 'output', label: 'Output', description: 'Display final value' },
   { type: 'llm-call', label: 'LLM Call', description: 'Send a chat completion to OpenRouter' },
   { type: 'tool', label: 'Tool', description: 'Define a callable function the LLM can use' },
+  { type: 'tool-group', label: 'Tool Group', description: 'Aggregate multiple tools into a single edge' },
 ];
 
 const props = defineProps<{
@@ -61,6 +62,7 @@ function defaultConfig(type: NodeType): Record<string, unknown> {
       code: 'return null;',
       timeoutMs: 30000,
     };
+    case 'tool-group': return { label: 'tools' };
     default: return {};
   }
 }
