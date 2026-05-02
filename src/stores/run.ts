@@ -56,7 +56,10 @@ export const useRunStore = defineStore('run', () => {
 
   function finish(status: RunStatus) {
     if (!current.value) return;
-    current.value.status = status;
+    // Safety net: a caller that lost track of an error path may pass 'running'
+    // here; coerce to 'failed' so the UI never gets stuck thinking we're still
+    // running. Any explicit 'completed' / 'failed' / 'aborted' is honored.
+    current.value.status = status === 'running' ? 'failed' : status;
     current.value.endedAt = new Date().toISOString();
     if (startedAtMs.value !== null) {
       elapsedMs.value = performance.now() - startedAtMs.value;

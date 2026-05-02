@@ -68,16 +68,29 @@ export async function runGraph(args: RunGraphArgs): Promise<Run> {
       const node = args.graph.nodes.find((n) => n.id === id)!;
 
       if (node.type === 'loop-controller') {
-        const driverOut = await driveLoop({
-          graph: args.graph, run, controllerId: id, outputsByNode,
-          apiKey: args.apiKey, signal: controller.signal,
-          setLivePreview: (nid, p) => runStore.setLivePreview(nid, p),
-          clearLivePreview: (nid) => runStore.clearLivePreview(nid),
-        });
-        // The LC's last-iteration outputs were already published to outputsByNode
-        // by driveLoop; post-loop nodes in the main pass read it directly.
-        if (driverOut.stopReason === 'max-iterations') {
-          throw new Error(`Loop Controller "${id}" exceeded maxIterations`);
+        try {
+          await driveLoop({
+            graph: args.graph, run, controllerId: id, outputsByNode,
+            apiKey: args.apiKey, signal: controller.signal,
+            setLivePreview: (nid, p) => runStore.setLivePreview(nid, p),
+            clearLivePreview: (nid) => runStore.clearLivePreview(nid),
+          });
+          // max-iterations is a soft halt (graceful give-up), not an error —
+          // production ReAct loops use it as a safety cap. The Loop Controller's
+          // details.stopReason records 'max-iterations' for transparency. Only
+          // unexpected throws (LLM/tool failures, body errors) propagate here.
+          //
+          // The LC's last-iteration outputs were already published to
+          // outputsByNode by driveLoop; post-loop nodes in the main pass read
+          // them directly.
+        } catch (e) {
+          // Mirror the per-node error path: record on the run, mark status, rethrow.
+          // driveLoop already set the controller's and failing body node's NodeResult
+          // to 'error'; here we lift that to run-level so isRunning flips off and the
+          // UI stops the timer / clears the spinner.
+          run.errors.push({ nodeId: id, message: (e as Error).message, stack: (e as Error).stack });
+          run.status = controller.signal.aborted ? 'aborted' : 'failed';
+          throw e;
         }
         continue;
       }

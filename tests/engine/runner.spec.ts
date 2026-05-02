@@ -79,4 +79,77 @@ describe('runGraph with Loop Controller', () => {
     // lc's last-iteration output-n holds the channel value entering that iteration (2).
     expect(result.nodeResults.out.details.value).toBe(2);
   });
+
+  it('completes (soft halt) when continue is always truthy and maxIterations is reached', async () => {
+    registerNodeDefinition({
+      type: 'transform',
+      inputPorts: ['value'],
+      outputPorts: ['result', 'continue'],
+      async run(_node, inputs) {
+        return { result: Number(inputs.value) + 1, continue: true }; // never halts on its own
+      },
+    });
+
+    const graph: Graph = {
+      schemaVersion: 1, id: 'g', name: 'g', createdAt: '', updatedAt: '',
+      containsCustomCode: false,
+      nodes: [
+        { id: 'seed', type: 'input', position: { x: 0, y: 0 }, config: { name: 'n', defaultValue: '0' } },
+        { id: 'lc', type: 'loop-controller', position: { x: 0, y: 0 },
+          config: { maxIterations: 3, valueChannels: [{ name: 'n' }] } },
+        { id: 'inc', type: 'transform', position: { x: 0, y: 0 }, config: {} },
+        { id: 'out', type: 'output', position: { x: 0, y: 0 }, config: { format: 'auto' } },
+      ],
+      edges: [
+        { id: 'e1', source: 'seed', sourceHandle: 'value', target: 'lc', targetHandle: 'default-n' },
+        { id: 'e2', source: 'lc', sourceHandle: 'output-n', target: 'inc', targetHandle: 'value' },
+        { id: 'e3', source: 'inc', sourceHandle: 'result', target: 'lc', targetHandle: 'input-n' },
+        { id: 'e4', source: 'inc', sourceHandle: 'continue', target: 'lc', targetHandle: 'continue' },
+        { id: 'e5', source: 'lc', sourceHandle: 'output-n', target: 'out', targetHandle: 'value' },
+      ],
+    };
+
+    const result = await runGraph({ graph, apiKey: '' });
+    expect(result.status).toBe('completed');
+    expect(result.nodeResults.lc.details.stopReason).toBe('max-iterations');
+    expect(result.nodeResults.lc.details.iterationCount).toBe(3);
+  });
+
+  it('marks the run failed and is no longer running when a body node throws', async () => {
+    registerNodeDefinition({
+      type: 'transform',
+      inputPorts: ['value'],
+      outputPorts: ['result', 'continue'],
+      async run() { throw new Error('simulated upstream 429'); },
+    });
+
+    const graph: Graph = {
+      schemaVersion: 1, id: 'g', name: 'g', createdAt: '', updatedAt: '',
+      containsCustomCode: false,
+      nodes: [
+        { id: 'seed', type: 'input', position: { x: 0, y: 0 }, config: { name: 'n', defaultValue: '0' } },
+        { id: 'lc', type: 'loop-controller', position: { x: 0, y: 0 },
+          config: { maxIterations: 3, valueChannels: [{ name: 'n' }] } },
+        { id: 'inc', type: 'transform', position: { x: 0, y: 0 }, config: {} },
+        { id: 'out', type: 'output', position: { x: 0, y: 0 }, config: { format: 'auto' } },
+      ],
+      edges: [
+        { id: 'e1', source: 'seed', sourceHandle: 'value', target: 'lc', targetHandle: 'default-n' },
+        { id: 'e2', source: 'lc', sourceHandle: 'output-n', target: 'inc', targetHandle: 'value' },
+        { id: 'e3', source: 'inc', sourceHandle: 'result', target: 'lc', targetHandle: 'input-n' },
+        { id: 'e4', source: 'inc', sourceHandle: 'continue', target: 'lc', targetHandle: 'continue' },
+        { id: 'e5', source: 'lc', sourceHandle: 'output-n', target: 'out', targetHandle: 'value' },
+      ],
+    };
+
+    const result = await runGraph({ graph, apiKey: '' });
+    expect(result.status).toBe('failed');
+    expect(result.errors.length).toBe(1);
+    expect(result.errors[0].message).toMatch(/simulated upstream 429/);
+    expect(result.nodeResults.inc.status).toBe('error');
+    expect(result.nodeResults.lc.status).toBe('error');
+    // Run store must reflect not-running so the UI Stop button releases.
+    const runStore = useRunStore();
+    expect(runStore.isRunning).toBe(false);
+  });
 });
