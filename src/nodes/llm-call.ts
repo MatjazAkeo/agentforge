@@ -1,7 +1,8 @@
 import { registerNodeDefinition, type NodeDefinition } from './registry';
 import type { LLMCallConfig } from '@/domain/node-types';
 import { streamChatCompletion } from '@/openrouter/client';
-import type { ChatMessage } from '@/openrouter/types';
+import type { ChatMessage, ToolCall } from '@/openrouter/types';
+import type { ToolDefinitionPayload } from './tool';
 import { useRunStore } from '@/stores/run';
 
 function buildMessages(cfg: LLMCallConfig, inputs: Record<string, unknown>): ChatMessage[] {
@@ -27,12 +28,33 @@ export const llmCallNode: NodeDefinition = {
     const cfg = node.config as LLMCallConfig;
     const messages = buildMessages(cfg, inputs);
 
+    const toolsInput = inputs.tools as ToolDefinitionPayload[] | ToolDefinitionPayload[][] | ToolDefinitionPayload | undefined;
+
+    // Flatten potential array-of-arrays from multi-edge fan-in via Tool Group
+    const flatTools: ToolDefinitionPayload[] = [];
+    if (Array.isArray(toolsInput)) {
+      for (const item of toolsInput) {
+        if (Array.isArray(item)) flatTools.push(...item);
+        else flatTools.push(item as ToolDefinitionPayload);
+      }
+    } else if (toolsInput) {
+      flatTools.push(toolsInput as ToolDefinitionPayload);
+    }
+
+    const requestTools = flatTools.length > 0
+      ? flatTools.map((t) => ({
+          type: 'function' as const,
+          function: { name: t.name, description: t.description, parameters: t.inputSchema },
+        }))
+      : undefined;
+
     const request = {
       model: cfg.model,
       messages,
       temperature: cfg.temperature,
       max_tokens: cfg.maxTokens ?? undefined,
       response_format: cfg.responseFormat === 'json_object' ? { type: 'json_object' as const } : undefined,
+      tools: requestTools,
     };
     ctx.details.request = request;
 
@@ -40,6 +62,7 @@ export const llmCallNode: NodeDefinition = {
     let assembled = '';
     let usage = { input: 0, output: 0 };
     let firstTokenAtMs: number | null = null;
+    let capturedToolCalls: ToolCall[] = [];
 
     useRunStore().incrementApiCalls();
 
@@ -57,15 +80,19 @@ export const llmCallNode: NodeDefinition = {
         usage = { input: u.input, output: u.output };
         useRunStore().addTokens(u.input, u.output);
       },
+      onToolCalls: (calls) => {
+        capturedToolCalls = calls;
+      },
     });
 
     const totalMs = performance.now() - t0;
     ctx.details.response = { text };
     ctx.details.usage = usage;
     ctx.details.timing = { totalMs, firstTokenMs: firstTokenAtMs };
+    ctx.details.toolCalls = capturedToolCalls;
 
     const finalMessages: ChatMessage[] = [...messages, { role: 'assistant', content: text }];
-    return { text, toolCalls: [], messages: finalMessages, usage };
+    return { text, toolCalls: capturedToolCalls, messages: finalMessages, usage };
   },
 };
 

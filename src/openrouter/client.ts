@@ -2,7 +2,7 @@
 // OpenRouter (verified by Settings → Test connection). Tauri's plugin-http
 // caused 401s due to a header-forwarding subtlety; native fetch is simpler
 // and works as long as we hand it a non-empty trimmed key.
-import type { ChatCompletionRequest, StreamChunk } from './types';
+import type { ChatCompletionRequest, StreamChunk, ToolCall } from './types';
 
 const BASE = 'https://openrouter.ai/api/v1';
 
@@ -13,6 +13,7 @@ export interface StreamArgs {
   onContentDelta?: (delta: string) => void;
   onUsage?: (usage: { input: number; output: number; cached?: number }) => void;
   onRawChunk?: (chunk: StreamChunk) => void;
+  onToolCalls?: (calls: ToolCall[]) => void;
 }
 
 /**
@@ -58,6 +59,12 @@ export async function streamChatCompletion(args: StreamArgs): Promise<string> {
   const decoder = new TextDecoder();
   let buffer = '';
   let assembled = '';
+  const toolCallsAcc: Record<number, ToolCall> = {};
+
+  const emitToolCalls = () => {
+    const finalToolCalls = Object.values(toolCallsAcc);
+    if (finalToolCalls.length > 0) args.onToolCalls?.(finalToolCalls);
+  };
 
   while (true) {
     let value: Uint8Array | undefined;
@@ -77,7 +84,10 @@ export async function streamChatCompletion(args: StreamArgs): Promise<string> {
       const dataLine = event.split('\n').find((l) => l.startsWith('data: '));
       if (!dataLine) continue;
       const payload = dataLine.slice(6);
-      if (payload === '[DONE]') return assembled;
+      if (payload === '[DONE]') {
+        emitToolCalls();
+        return assembled;
+      }
       let chunk: StreamChunk;
       try { chunk = JSON.parse(payload); } catch { continue; }
       args.onRawChunk?.(chunk);
@@ -86,6 +96,17 @@ export async function streamChatCompletion(args: StreamArgs): Promise<string> {
       if (typeof content === 'string') {
         assembled += content;
         args.onContentDelta?.(content);
+      }
+      const toolDeltas = choice?.delta?.tool_calls;
+      if (toolDeltas) {
+        for (const td of toolDeltas) {
+          const idx = td.index!;
+          const acc = toolCallsAcc[idx] ??= { id: '', type: 'function', function: { name: '', arguments: '' } };
+          if (td.id) acc.id = td.id;
+          if (td.type) acc.type = td.type as 'function';
+          if (td.function?.name) acc.function.name += td.function.name;
+          if (td.function?.arguments) acc.function.arguments += td.function.arguments;
+        }
       }
       if (chunk.usage) {
         args.onUsage?.({
@@ -96,6 +117,7 @@ export async function streamChatCompletion(args: StreamArgs): Promise<string> {
       }
     }
   }
+  emitToolCalls();
   return assembled;
 }
 
