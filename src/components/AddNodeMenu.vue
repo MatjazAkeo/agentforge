@@ -73,7 +73,7 @@ function defaultConfig(type: NodeType): Record<string, unknown> {
     case 'tool-runner': return {};
     case 'loop-controller': return {
       maxIterations: 25,
-      valueChannels: [{ name: 'value' }],
+      valueChannels: [{ name: 'value', type: 'json' }],
     };
     case 'agent': return {
       model: 'meta-llama/llama-3.3-70b-instruct:free',

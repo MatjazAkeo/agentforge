@@ -14,7 +14,7 @@
       "config": { "name": "multiply", "description": "Multiply two numbers.", "inputSchema": { "type": "object", "properties": { "a": { "type": "number" }, "b": { "type": "number" } }, "required": ["a", "b"] }, "code": "return inputs.a * inputs.b;", "timeoutMs": 30000 } },
     { "id": "tg", "type": "tool-group", "position": { "x": 320, "y": 320 }, "config": { "label": "math tools" } },
     { "id": "lc", "type": "loop-controller", "position": { "x": 600, "y": 60 },
-      "config": { "maxIterations": 6, "valueChannels": [{ "name": "messages" }] } },
+      "config": { "maxIterations": 6, "valueChannels": [{ "name": "messages", "type": "messages" }] } },
     { "id": "llm", "type": "llm-call", "position": { "x": 940, "y": 40 },
       "config": { "model": "openai/gpt-oss-120b:free", "systemPrompt": "You are a calculator that always uses the provided tools.", "temperature": 0, "maxTokens": null, "responseFormat": null } },
     { "id": "tr", "type": "tool-runner", "position": { "x": 1280, "y": 40 }, "config": {} },

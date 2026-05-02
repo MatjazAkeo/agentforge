@@ -82,7 +82,7 @@ function onDelete() { graph.removeNode(props.id); }
           :id="`default-${ch.name}`"
           type="target"
           :position="Position.Left"
-          :style="{ background: colorForType('json') }"
+          :style="{ background: colorForType(ch.type ?? 'json') }"
         />
         <span class="text-text-dim font-mono text-[10px]">default</span>
       </div>
@@ -96,7 +96,7 @@ function onDelete() { graph.removeNode(props.id); }
           :id="`input-${ch.name}`"
           type="target"
           :position="Position.Left"
-          :style="{ background: colorForType('json') }"
+          :style="{ background: colorForType(ch.type ?? 'json') }"
         />
         <span class="text-text-dim font-mono text-[10px]">↺ input</span>
       </div>
@@ -108,7 +108,7 @@ function onDelete() { graph.removeNode(props.id); }
           :id="`output-${ch.name}`"
           type="source"
           :position="Position.Right"
-          :style="{ background: colorForType('json') }"
+          :style="{ background: colorForType(ch.type ?? 'json') }"
         />
       </div>
     </div>

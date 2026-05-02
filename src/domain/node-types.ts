@@ -70,9 +70,20 @@ export interface ChatOutputConfig {
   format: 'text' | 'markdown';
 }
 
+/**
+ * `LoopChannelType` is the wire-type of a single declared channel. It maps 1:1 to
+ * `DataType` from `port-types.ts`. Declared per-channel so the LC card's ports
+ * (`default-X`, `input-X`, `output-X`) get the right color and validate against the
+ * right shape, instead of all defaulting to the polymorphic `json` wildcard.
+ */
+export type LoopChannelType = 'string' | 'messages' | 'tools' | 'tool-calls' | 'json';
+
 export interface LoopControllerConfig {
   maxIterations: number;            // default 25
-  valueChannels: Array<{ name: string }>;  // declared state channels
+  /** State channels that flow through the loop. Each declares a type so the
+   *  three derived ports (`default-<name>`, `input-<name>`, `output-<name>`)
+   *  validate consistently. Omitted `type` defaults to `json` (universal). */
+  valueChannels: Array<{ name: string; type?: LoopChannelType }>;
 }
 
 export interface AgentConfig {

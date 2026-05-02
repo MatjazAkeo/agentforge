@@ -50,11 +50,12 @@ export function getSourcePortType(node: Node, handleId: string): DataType | null
       if (handleId === 'rendered') return 'string';
       return null;
     case 'loop-controller': {
-      const cfg = node.config as { valueChannels?: Array<{ name: string }> };
+      const cfg = node.config as { valueChannels?: Array<{ name: string; type?: DataType }> };
       if (handleId === 'iteration') return 'string';
       if (handleId.startsWith('output-')) {
         const name = handleId.slice('output-'.length);
-        if (cfg.valueChannels?.some((c) => c.name === name)) return 'json';
+        const ch = cfg.valueChannels?.find((c) => c.name === name);
+        if (ch) return ch.type ?? 'json';
       }
       return null;
     }
@@ -106,15 +107,17 @@ export function getTargetPortType(node: Node, handleId: string): DataType | null
       return null;
     }
     case 'loop-controller': {
-      const cfg = node.config as { valueChannels?: Array<{ name: string }> };
+      const cfg = node.config as { valueChannels?: Array<{ name: string; type?: DataType }> };
       if (handleId === 'continue') return 'json';
       if (handleId.startsWith('default-')) {
         const name = handleId.slice('default-'.length);
-        if (cfg.valueChannels?.some((c) => c.name === name)) return 'json';
+        const ch = cfg.valueChannels?.find((c) => c.name === name);
+        if (ch) return ch.type ?? 'json';
       }
       if (handleId.startsWith('input-')) {
         const name = handleId.slice('input-'.length);
-        if (cfg.valueChannels?.some((c) => c.name === name)) return 'json';
+        const ch = cfg.valueChannels?.find((c) => c.name === name);
+        if (ch) return ch.type ?? 'json';
       }
       return null;
     }

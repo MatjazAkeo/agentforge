@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import { useGraphStore } from '@/stores/graph';
 import { useRunStore } from '@/stores/run';
-import type { LoopControllerConfig } from '@/domain/node-types';
+import type { LoopControllerConfig, LoopChannelType } from '@/domain/node-types';
 import IterationTree from './IterationTree.vue';
 import IOValues from './IOValues.vue';
 import PortLegend from './PortLegend.vue';
@@ -20,12 +20,17 @@ function update<K extends keyof LoopControllerConfig>(key: K, value: LoopControl
 }
 
 function addChannel() {
-  const next = [...(cfg.value?.valueChannels ?? []), { name: `channel${(cfg.value?.valueChannels?.length ?? 0) + 1}` }];
-  update('valueChannels', next);
+  const existing = cfg.value?.valueChannels ?? [];
+  update('valueChannels', [...existing, { name: `channel${existing.length + 1}`, type: 'json' as LoopChannelType }]);
 }
 function renameChannel(i: number, name: string) {
   const next = [...(cfg.value?.valueChannels ?? [])];
-  next[i] = { name };
+  next[i] = { ...next[i], name };
+  update('valueChannels', next);
+}
+function retypeChannel(i: number, type: LoopChannelType) {
+  const next = [...(cfg.value?.valueChannels ?? [])];
+  next[i] = { ...next[i], type };
   update('valueChannels', next);
 }
 function removeChannel(i: number) {
@@ -53,6 +58,16 @@ function removeChannel(i: number) {
         <li v-for="(c, i) in cfg.valueChannels" :key="i" class="flex items-center gap-1.5">
           <input :value="c.name" @input="(e) => renameChannel(i, (e.target as HTMLInputElement).value)"
             class="bg-elev text-text-base border border-border-base rounded px-2 py-1 text-xs font-mono flex-1">
+          <select :value="c.type ?? 'json'"
+            @change="(e) => retypeChannel(i, (e.target as HTMLSelectElement).value as LoopChannelType)"
+            class="bg-elev text-text-base border border-border-base rounded px-1 py-1 text-[11px] font-mono"
+            title="Channel wire type">
+            <option value="json">json</option>
+            <option value="string">string</option>
+            <option value="messages">messages</option>
+            <option value="tools">tools</option>
+            <option value="tool-calls">tool-calls</option>
+          </select>
           <button type="button" @click="removeChannel(i)" class="text-text-dim hover:text-error text-xs">×</button>
         </li>
       </ul>
