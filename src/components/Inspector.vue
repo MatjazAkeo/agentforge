@@ -12,6 +12,8 @@ import LoopControllerInspector from './inspectors/LoopControllerInspector.vue';
 import AgentInspector from './inspectors/AgentInspector.vue';
 import TransformInspector from './inspectors/TransformInspector.vue';
 import PromptTemplateInspector from './inspectors/PromptTemplateInspector.vue';
+import ChatInputInspector from './inspectors/ChatInputInspector.vue';
+import ChatOutputInspector from './inspectors/ChatOutputInspector.vue';
 
 const ui = useUiStore();
 const graph = useGraphStore();
@@ -64,6 +66,12 @@ const selectedNode = computed(() => {
       </div>
       <div v-else-if="selectedNode.type === 'prompt-template'">
         <PromptTemplateInspector :nodeId="selectedNode.id" />
+      </div>
+      <div v-else-if="selectedNode.type === 'chat-input'">
+        <ChatInputInspector :nodeId="selectedNode.id" />
+      </div>
+      <div v-else-if="selectedNode.type === 'chat-output'">
+        <ChatOutputInspector :nodeId="selectedNode.id" />
       </div>
       <div v-else class="opacity-50">Inspector for {{ selectedNode.type }} added in a later task.</div>
     </div>

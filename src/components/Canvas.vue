@@ -24,6 +24,8 @@ import LoopControllerNode from './nodes/LoopControllerNode.vue';
 import AgentNode from './nodes/AgentNode.vue';
 import TransformNode from './nodes/TransformNode.vue';
 import PromptTemplateNode from './nodes/PromptTemplateNode.vue';
+import ChatInputNode from './nodes/ChatInputNode.vue';
+import ChatOutputNode from './nodes/ChatOutputNode.vue';
 
 const GRID = 20;
 const HELPER_THRESHOLD = 5; // px in flow coords
@@ -34,7 +36,7 @@ const graph = useGraphStore();
 const ui = useUiStore();
 const { project, viewport, getNodes } = useVueFlow();
 
-const nodeTypes = { input: markRaw(InputNode), output: markRaw(OutputNode), 'llm-call': markRaw(LLMCallNode), tool: markRaw(ToolNode), 'tool-group': markRaw(ToolGroupNode), 'tool-runner': markRaw(ToolRunnerNode), 'loop-controller': markRaw(LoopControllerNode), 'agent': markRaw(AgentNode), 'transform': markRaw(TransformNode), 'prompt-template': markRaw(PromptTemplateNode) } as Record<string, ReturnType<typeof markRaw>>;
+const nodeTypes = { input: markRaw(InputNode), output: markRaw(OutputNode), 'llm-call': markRaw(LLMCallNode), tool: markRaw(ToolNode), 'tool-group': markRaw(ToolGroupNode), 'tool-runner': markRaw(ToolRunnerNode), 'loop-controller': markRaw(LoopControllerNode), 'agent': markRaw(AgentNode), 'transform': markRaw(TransformNode), 'prompt-template': markRaw(PromptTemplateNode), 'chat-input': markRaw(ChatInputNode), 'chat-output': markRaw(ChatOutputNode) } as Record<string, ReturnType<typeof markRaw>>;
 
 const flowNodes = computed<VFNode[]>(() =>
   graph.nodes.map((n) => ({ id: n.id, type: n.type, position: n.position, data: { config: n.config } })),

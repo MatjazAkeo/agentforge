@@ -21,6 +21,8 @@ const ALL_OPTIONS: NodeOption[] = [
   { type: 'agent', label: 'Agent', description: 'LLM ↔ Tool loop encapsulated' },
   { type: 'transform', label: 'Transform', description: 'Parse / extract / reformat data between nodes' },
   { type: 'prompt-template', label: 'Prompt Template', description: 'String template with {{var}} placeholders' },
+  { type: 'chat-input', label: 'Chat Input', description: 'Source from the chat sidebar' },
+  { type: 'chat-output', label: 'Chat Output', description: 'Sink to the chat sidebar' },
 ];
 
 const props = defineProps<{
@@ -83,6 +85,8 @@ function defaultConfig(type: NodeType): Record<string, unknown> {
     };
     case 'transform': return { mode: 'json-parse' };
     case 'prompt-template': return { template: 'Hello {{name}}!' };
+    case 'chat-input': return {};
+    case 'chat-output': return { format: 'markdown' };
     default: return {};
   }
 }
