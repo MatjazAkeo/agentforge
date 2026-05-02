@@ -18,26 +18,23 @@ function update(key: keyof OutputConfig, value: string) {
 </script>
 
 <template>
-  <div class="form">
-    <label v-if="cfg">Format
-      <select :value="cfg.format" @change="(e) => update('format', (e.target as HTMLSelectElement).value)">
+  <div class="flex flex-col gap-2.5">
+    <label v-if="cfg" class="flex flex-col gap-1 text-[11px] opacity-85">
+      Format
+      <select
+        :value="cfg.format"
+        @change="(e) => update('format', (e.target as HTMLSelectElement).value)"
+        class="bg-elev text-text-base border border-border-base rounded px-1.5 py-1 text-xs"
+      >
         <option value="auto">auto</option>
         <option value="text">text</option>
         <option value="json">json</option>
         <option value="markdown">markdown</option>
       </select>
     </label>
-    <section class="value">
-      <div class="label">Value</div>
-      <pre>{{ result?.details?.value ?? '— not yet run —' }}</pre>
+    <section>
+      <div class="opacity-60 text-[10px] uppercase">Value</div>
+      <pre class="bg-panel p-2 rounded text-[11px] whitespace-pre-wrap max-h-[200px] overflow-y-auto m-0">{{ result?.details?.value ?? '— not yet run —' }}</pre>
     </section>
   </div>
 </template>
-
-<style scoped>
-.form { display: flex; flex-direction: column; gap: 10px; }
-label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; opacity: 0.85; }
-select { background: var(--bg-elev); color: var(--text); border: 1px solid var(--border); border-radius: 4px; padding: 4px 6px; font-size: 12px; }
-.value .label { opacity: 0.6; font-size: 10px; text-transform: uppercase; }
-pre { background: var(--bg-panel); padding: 8px; border-radius: 4px; font-size: 11px; white-space: pre-wrap; max-height: 200px; overflow-y: auto; }
-</style>

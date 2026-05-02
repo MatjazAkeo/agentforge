@@ -12,8 +12,8 @@ const testing = ref(false);
 const testResult = ref<string | null>(null);
 
 async function onSave() {
-  await saveApiKey(draft.value);
-  settings.setApiKey(draft.value);
+  await saveApiKey(draft.value.trim());
+  settings.setApiKey(draft.value.trim());
   testResult.value = 'Saved.';
 }
 
@@ -29,7 +29,7 @@ async function onTest() {
   testResult.value = null;
   try {
     const r = await fetch('https://openrouter.ai/api/v1/key', {
-      headers: { Authorization: `Bearer ${draft.value}` },
+      headers: { Authorization: `Bearer ${draft.value.trim()}` },
     });
     testResult.value = r.ok ? `Connected (HTTP ${r.status})` : `Failed (HTTP ${r.status})`;
   } catch (e) {
@@ -41,53 +41,74 @@ async function onTest() {
 </script>
 
 <template>
-  <div class="settings-overlay" @click.self="ui.settingsOpen = false">
-    <div class="settings-panel">
-      <div class="header">
-        <h2>Settings</h2>
-        <button class="close" @click="ui.settingsOpen = false">✕</button>
+  <div
+    class="fixed inset-0 bg-black/50 flex items-center justify-center z-[2000]"
+    @click.self="ui.settingsOpen = false"
+  >
+    <div class="w-[480px] max-w-[90vw] bg-panel border border-border-strong rounded-lg p-4">
+      <div class="flex justify-between items-center mb-3">
+        <h2 class="m-0 text-base">Settings</h2>
+        <button
+          type="button"
+          class="bg-transparent border-0 text-text-dim cursor-pointer text-base"
+          @click="ui.settingsOpen = false"
+        >✕</button>
       </div>
-      <div class="tabs">
-        <button :class="['tab', { active: tab === 'api-key' }]" @click="tab = 'api-key'">API Key</button>
-        <button :class="['tab', { active: tab === 'models' }]" @click="tab = 'models'" disabled>Models</button>
-        <button :class="['tab', { active: tab === 'general' }]" @click="tab = 'general'" disabled>General</button>
+      <div class="flex gap-1.5 mb-4 border-b border-border-base">
+        <button
+          type="button"
+          @click="tab = 'api-key'"
+          :class="[
+            'px-3 py-1.5 bg-transparent border-0 cursor-pointer text-xs border-b-2',
+            tab === 'api-key' ? 'text-text-base border-accent' : 'text-text-dim border-transparent',
+          ]"
+        >API Key</button>
+        <button
+          type="button"
+          disabled
+          class="px-3 py-1.5 bg-transparent border-0 text-text-dim text-xs border-b-2 border-transparent opacity-40 cursor-not-allowed"
+        >Models</button>
+        <button
+          type="button"
+          disabled
+          class="px-3 py-1.5 bg-transparent border-0 text-text-dim text-xs border-b-2 border-transparent opacity-40 cursor-not-allowed"
+        >General</button>
       </div>
-      <div class="body" v-if="tab === 'api-key'">
-        <label>OpenRouter API Key
-          <input v-model="draft" placeholder="sk-or-v1-…" type="password">
+      <div v-if="tab === 'api-key'">
+        <label class="flex flex-col gap-1 text-xs">
+          OpenRouter API Key
+          <input
+            v-model="draft"
+            placeholder="sk-or-v1-…"
+            type="password"
+            class="bg-elev text-text-base border border-border-base rounded px-2 py-1.5 font-ui text-[13px]"
+          >
         </label>
-        <p class="hint">Don't have a key? <a href="https://openrouter.ai/" target="_blank">Sign up at OpenRouter →</a></p>
-        <div class="actions">
-          <button class="btn" :disabled="testing || !draft" @click="onTest">
-            {{ testing ? 'Testing…' : 'Test connection' }}
-          </button>
-          <button class="btn btn-primary" :disabled="!draft" @click="onSave">Save</button>
-          <button class="btn btn-danger" :disabled="!settings.apiKeyConfigured" @click="onClear">Clear</button>
+        <p class="text-[11px] opacity-70 mt-2">
+          Don't have a key? <a class="text-accent" href="https://openrouter.ai/" target="_blank">Sign up at OpenRouter →</a>
+        </p>
+        <div class="flex gap-1.5 mt-2">
+          <button
+            type="button"
+            :disabled="testing || !draft.trim()"
+            @click="onTest"
+            class="bg-elev text-text-base border border-border-strong rounded px-3 py-1.5 cursor-pointer text-xs transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+          >{{ testing ? 'Testing…' : 'Test connection' }}</button>
+          <button
+            type="button"
+            :disabled="!draft.trim()"
+            @click="onSave"
+            class="bg-accent text-white border border-accent rounded px-3 py-1.5 cursor-pointer text-xs transition disabled:bg-elev disabled:text-text-dim disabled:border-border-strong disabled:cursor-not-allowed disabled:opacity-50"
+          >Save</button>
+          <button
+            type="button"
+            :disabled="!settings.apiKeyConfigured"
+            @click="onClear"
+            class="bg-elev text-error border border-border-strong rounded px-3 py-1.5 cursor-pointer text-xs transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+          >Clear</button>
         </div>
-        <p v-if="testResult" class="result">{{ testResult }}</p>
+        <p v-if="testResult" class="mt-2 text-xs opacity-80">{{ testResult }}</p>
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-.settings-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 2000; }
-.settings-panel { width: 480px; max-width: 90vw; background: var(--bg-panel); border: 1px solid var(--border-strong); border-radius: 8px; padding: 16px; }
-.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-.header h2 { margin: 0; font-size: 16px; }
-.close { background: transparent; border: none; color: var(--text-dim); cursor: pointer; font-size: 16px; }
-.tabs { display: flex; gap: 6px; margin-bottom: 16px; border-bottom: 1px solid var(--border); }
-.tab { padding: 6px 12px; background: transparent; border: none; color: var(--text-dim); cursor: pointer; font-size: 12px; }
-.tab.active { color: var(--text); border-bottom: 2px solid var(--accent); }
-.tab:disabled { opacity: 0.4; cursor: not-allowed; }
-label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; }
-input { background: var(--bg-elev); color: var(--text); border: 1px solid var(--border); border-radius: 4px; padding: 6px 8px; font-family: var(--font-ui); font-size: 13px; }
-.hint { font-size: 11px; opacity: 0.7; }
-.hint a { color: var(--accent); }
-.actions { display: flex; gap: 6px; margin-top: 8px; }
-.btn { background: var(--bg-elev); color: var(--text); border: 1px solid var(--border-strong); border-radius: 4px; padding: 6px 12px; cursor: pointer; font-size: 12px; }
-.btn:disabled { opacity: 0.5; cursor: default; }
-.btn-primary { background: var(--accent); color: white; border-color: var(--accent); }
-.btn-danger { color: var(--error); }
-.result { margin-top: 8px; font-size: 12px; opacity: 0.8; }
-</style>

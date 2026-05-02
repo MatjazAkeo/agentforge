@@ -25,19 +25,15 @@ const statusColor = computed(() => {
 </script>
 
 <template>
-  <div class="node-card output-card" :style="{ borderColor: statusColor }">
-    <div class="header">
+  <div
+    class="w-[220px] bg-panel-strong border-2 rounded-lg overflow-hidden"
+    :style="{ borderColor: statusColor }"
+  >
+    <div class="px-2.5 py-2 bg-elev border-b border-border-base">
       <strong>Output</strong>
-      <div class="sub">{{ data.config.format }}</div>
+      <div class="opacity-60 text-[10px]">{{ data.config.format }}</div>
     </div>
-    <div class="body">{{ preview }}</div>
+    <div class="px-2.5 py-2 min-h-[38px] text-[11px] opacity-85">{{ preview }}</div>
     <Handle id="value" type="target" :position="Position.Left" />
   </div>
 </template>
-
-<style scoped>
-.node-card { width: 220px; background: var(--bg-panel-strong); border: 2px solid #888; border-radius: 8px; overflow: hidden; }
-.header { padding: 8px 10px; background: var(--bg-elev); border-bottom: 1px solid var(--border); }
-.sub { opacity: 0.6; font-size: 10px; }
-.body { padding: 8px 10px; min-height: 38px; font-size: 11px; opacity: 0.85; }
-</style>

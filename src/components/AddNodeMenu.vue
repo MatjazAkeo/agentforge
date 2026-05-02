@@ -91,29 +91,35 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown));
 </script>
 
 <template>
-  <div v-if="open" class="add-node-menu" :style="{ left: `${screenPosition.x}px`, top: `${screenPosition.y}px` }" @click.stop>
-    <div class="header">ADD NODE</div>
-    <input v-model="search" placeholder="Search…" class="search" autofocus>
-    <ul class="options">
-      <li v-for="(opt, i) in filtered" :key="opt.type"
-          :class="['option', { focused: i === focusedIndex }]"
-          @click="pick(opt)" @mouseenter="focusedIndex = i">
+  <div
+    v-if="open"
+    class="fixed z-[1000] min-w-[220px] max-w-[280px] p-1.5 bg-panel-strong border border-border-strong rounded-md shadow-[0_6px_18px_rgba(0,0,0,0.5)]"
+    :style="{ left: `${screenPosition.x}px`, top: `${screenPosition.y}px` }"
+    @click.stop
+  >
+    <div class="px-1.5 py-1 opacity-50 text-[10px]">ADD NODE</div>
+    <input
+      v-model="search"
+      placeholder="Search…"
+      autofocus
+      class="block bg-elev text-text-base border border-border-base rounded px-1.5 py-1 text-xs mx-1.5 my-1"
+      style="width: calc(100% - 12px)"
+    >
+    <ul class="list-none mt-1 p-0 max-h-[280px] overflow-y-auto">
+      <li
+        v-for="(opt, i) in filtered"
+        :key="opt.type"
+        @click="pick(opt)"
+        @mouseenter="focusedIndex = i"
+        :class="[
+          'px-2.5 py-1.5 cursor-pointer rounded',
+          i === focusedIndex ? 'bg-accent text-white' : '',
+        ]"
+      >
         <strong>{{ opt.label }}</strong>
-        <div class="desc">{{ opt.description }}</div>
+        <div :class="['text-[11px]', i === focusedIndex ? 'opacity-90' : 'opacity-70']">{{ opt.description }}</div>
       </li>
-      <li v-if="filtered.length === 0" class="empty">No matches</li>
+      <li v-if="filtered.length === 0" class="px-2.5 py-2 opacity-50 text-xs">No matches</li>
     </ul>
   </div>
 </template>
-
-<style scoped>
-.add-node-menu { position: fixed; z-index: 1000; min-width: 220px; max-width: 280px; padding: 6px; background: var(--bg-panel-strong); border: 1px solid var(--border-strong); border-radius: 6px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5); }
-.header { padding: 4px 6px; opacity: 0.5; font-size: 10px; }
-.search { width: calc(100% - 12px); margin: 4px 6px; padding: 4px 6px; background: var(--bg-elev); color: var(--text); border: 1px solid var(--border); border-radius: 4px; font-size: 12px; }
-.options { list-style: none; margin: 4px 0 0; padding: 0; max-height: 280px; overflow-y: auto; }
-.option { padding: 6px 10px; cursor: pointer; border-radius: 3px; }
-.option.focused { background: var(--accent); color: white; }
-.option .desc { font-size: 11px; opacity: 0.7; }
-.option.focused .desc { opacity: 0.9; }
-.empty { padding: 8px 10px; opacity: 0.5; font-size: 12px; }
-</style>

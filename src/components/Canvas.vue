@@ -76,7 +76,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown));
 </script>
 
 <template>
-  <div class="canvas" ref="canvasRef" @contextmenu="onContextMenu">
+  <div ref="canvasRef" class="w-full h-full relative" @contextmenu="onContextMenu">
     <VueFlow
       :nodes="flowNodes"
       :edges="flowEdges"
@@ -91,12 +91,12 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown));
       <Controls />
       <MiniMap />
     </VueFlow>
-    <button class="plus-btn" @click="onPlusClick" title="Add node (or right-click / ⌘K)">+</button>
+    <button
+      type="button"
+      @click="onPlusClick"
+      title="Add node (or right-click / ⌘K)"
+      class="absolute left-4 top-4 w-9 h-9 rounded-full bg-accent text-white border-0 text-lg cursor-pointer shadow-[0_2px_6px_rgba(0,0,0,0.3)] z-10"
+    >+</button>
     <AddNodeMenu :open="menuOpen" :position="menuCanvasPos" :screen-position="menuScreenPos" @close="menuOpen = false" />
   </div>
 </template>
-
-<style scoped>
-.canvas { width: 100%; height: 100%; position: relative; }
-.plus-btn { position: absolute; left: 16px; top: 16px; width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: white; border: none; font-size: 18px; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); z-index: 10; }
-</style>

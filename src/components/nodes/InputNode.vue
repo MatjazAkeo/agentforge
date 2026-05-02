@@ -13,22 +13,14 @@ const preview = computed(() => {
 </script>
 
 <template>
-  <div class="node-card input-card">
-    <div class="header">
+  <div class="w-[220px] bg-panel-strong border-2 border-[#888] rounded-lg overflow-hidden">
+    <div class="px-2.5 py-2 bg-elev border-b border-border-base">
       <strong>Input</strong>
-      <div class="sub">{{ data.config.name }} · {{ data.config.valueType }}</div>
+      <div class="opacity-60 text-[10px]">{{ data.config.name }} · {{ data.config.valueType }}</div>
     </div>
-    <div class="body">
-      <div class="preview">{{ preview }}</div>
+    <div class="px-2.5 py-2 min-h-[38px] text-[11px]">
+      <div class="opacity-85">{{ preview }}</div>
     </div>
     <Handle id="value" type="source" :position="Position.Right" />
   </div>
 </template>
-
-<style scoped>
-.node-card { width: 220px; background: var(--bg-panel-strong); border: 2px solid #888; border-radius: 8px; overflow: hidden; }
-.header { padding: 8px 10px; background: var(--bg-elev); border-bottom: 1px solid var(--border); }
-.sub { opacity: 0.6; font-size: 10px; }
-.body { padding: 8px 10px; min-height: 38px; font-size: 11px; }
-.preview { opacity: 0.85; }
-</style>

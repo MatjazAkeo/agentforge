@@ -15,24 +15,35 @@ function update<K extends keyof InputConfig>(key: K, value: InputConfig[K]) {
 </script>
 
 <template>
-  <div v-if="cfg" class="form">
-    <label>Name <input :value="cfg.name" @input="(e) => update('name', (e.target as HTMLInputElement).value)"></label>
-    <label>Value type
-      <select :value="cfg.valueType" @change="(e) => update('valueType', (e.target as HTMLSelectElement).value as InputConfig['valueType'])">
+  <div v-if="cfg" class="flex flex-col gap-2.5">
+    <label class="flex flex-col gap-1 text-[11px] opacity-85">
+      Name
+      <input
+        :value="cfg.name"
+        @input="(e) => update('name', (e.target as HTMLInputElement).value)"
+        class="bg-elev text-text-base border border-border-base rounded px-1.5 py-1 text-xs font-ui"
+      >
+    </label>
+    <label class="flex flex-col gap-1 text-[11px] opacity-85">
+      Value type
+      <select
+        :value="cfg.valueType"
+        @change="(e) => update('valueType', (e.target as HTMLSelectElement).value as InputConfig['valueType'])"
+        class="bg-elev text-text-base border border-border-base rounded px-1.5 py-1 text-xs font-ui"
+      >
         <option value="text">text</option>
         <option value="number">number</option>
         <option value="json">json</option>
       </select>
     </label>
-    <label>Default value
-      <textarea :value="String(cfg.defaultValue ?? '')" @input="(e) => update('defaultValue', (e.target as HTMLTextAreaElement).value)" rows="3"></textarea>
+    <label class="flex flex-col gap-1 text-[11px] opacity-85">
+      Default value
+      <textarea
+        :value="String(cfg.defaultValue ?? '')"
+        @input="(e) => update('defaultValue', (e.target as HTMLTextAreaElement).value)"
+        rows="3"
+        class="bg-elev text-text-base border border-border-base rounded px-1.5 py-1 text-xs font-ui resize-y"
+      ></textarea>
     </label>
   </div>
 </template>
-
-<style scoped>
-.form { display: flex; flex-direction: column; gap: 10px; }
-label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; opacity: 0.85; }
-input, select, textarea { background: var(--bg-elev); color: var(--text); border: 1px solid var(--border); border-radius: 4px; padding: 4px 6px; font-size: 12px; font-family: var(--font-ui); }
-textarea { resize: vertical; }
-</style>

@@ -1,4 +1,3 @@
-<!-- src/components/Layout.vue -->
 <script setup lang="ts">
 import { useUiStore } from '@/stores/ui';
 import Toolbar from './Toolbar.vue';
@@ -10,26 +9,24 @@ const ui = useUiStore();
 </script>
 
 <template>
-  <div class="layout">
+  <div class="flex flex-col h-full">
     <Toolbar />
-    <div class="layout-row">
-      <aside v-if="!ui.leftSidebarCollapsed" class="left-panel">
+    <div class="flex-1 flex min-h-0">
+      <aside
+        v-if="!ui.leftSidebarCollapsed"
+        class="w-60 border-r border-border-base bg-panel flex flex-col"
+      >
         <LeftTabs />
       </aside>
-      <main class="canvas-area">
+      <main class="flex-1 min-w-0 relative bg-canvas">
         <Canvas />
       </main>
-      <aside v-if="!ui.rightSidebarCollapsed" class="right-panel">
+      <aside
+        v-if="!ui.rightSidebarCollapsed"
+        class="w-72 border-l border-border-base bg-panel flex flex-col overflow-y-auto"
+      >
         <Inspector />
       </aside>
     </div>
   </div>
 </template>
-
-<style scoped>
-.layout { display: flex; flex-direction: column; height: 100%; }
-.layout-row { flex: 1; display: flex; min-height: 0; }
-.left-panel { width: 240px; border-right: 1px solid var(--border); background: var(--bg-panel); display: flex; flex-direction: column; }
-.right-panel { width: 280px; border-left: 1px solid var(--border); background: var(--bg-panel); display: flex; flex-direction: column; overflow-y: auto; }
-.canvas-area { flex: 1; min-width: 0; position: relative; background: var(--bg-canvas); }
-</style>

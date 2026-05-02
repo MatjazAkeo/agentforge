@@ -49,40 +49,77 @@ const responseJson = computed(() =>
 
 <template>
   <div v-if="cfg">
-    <section>
-      <h4 @click="toggle('config')">{{ sectionsOpen.config ? '▼' : '▶' }} Config</h4>
-      <div v-show="sectionsOpen.config" class="form">
-        <label>Model
-          <select :value="cfg.model" @change="(e) => update('model', (e.target as HTMLSelectElement).value)">
+    <!-- Config -->
+    <section class="border-t border-border-base first:border-t-0">
+      <h4
+        @click="toggle('config')"
+        class="m-0 py-2 text-xs cursor-pointer select-none"
+      >{{ sectionsOpen.config ? '▼' : '▶' }} Config</h4>
+      <div v-show="sectionsOpen.config" class="flex flex-col gap-2.5 pt-1 pb-3">
+        <label class="flex flex-col gap-1 text-[11px] opacity-85">
+          Model
+          <select
+            :value="cfg.model"
+            @change="(e) => update('model', (e.target as HTMLSelectElement).value)"
+            class="bg-elev text-text-base border border-border-base rounded px-1.5 py-1 text-xs font-ui"
+          >
             <option v-for="m in modelOptions" :key="m.id" :value="m.id">{{ m.displayName }}</option>
           </select>
         </label>
-        <label>System prompt
-          <textarea :value="cfg.systemPrompt" @input="(e) => update('systemPrompt', (e.target as HTMLTextAreaElement).value)" rows="3"></textarea>
+        <label class="flex flex-col gap-1 text-[11px] opacity-85">
+          System prompt
+          <textarea
+            :value="cfg.systemPrompt"
+            @input="(e) => update('systemPrompt', (e.target as HTMLTextAreaElement).value)"
+            rows="3"
+            class="bg-elev text-text-base border border-border-base rounded px-1.5 py-1 text-xs font-ui resize-y"
+          ></textarea>
         </label>
-        <label>Temperature
-          <input type="number" min="0" max="2" step="0.1" :value="cfg.temperature" @input="(e) => update('temperature', parseFloat((e.target as HTMLInputElement).value))">
+        <label class="flex flex-col gap-1 text-[11px] opacity-85">
+          Temperature
+          <input
+            type="number"
+            min="0"
+            max="2"
+            step="0.1"
+            :value="cfg.temperature"
+            @input="(e) => update('temperature', parseFloat((e.target as HTMLInputElement).value))"
+            class="bg-elev text-text-base border border-border-base rounded px-1.5 py-1 text-xs font-ui"
+          >
         </label>
       </div>
     </section>
 
-    <section>
-      <h4 @click="toggle('conversation')">{{ sectionsOpen.conversation ? '▼' : '▶' }} Conversation</h4>
-      <div v-show="sectionsOpen.conversation" class="conversation">
-        <div v-for="(m, i) in messages" :key="i" class="msg" :data-role="m.role">
-          <div class="role">{{ m.role }}</div>
-          <pre>{{ m.content }}</pre>
+    <!-- Conversation -->
+    <section class="border-t border-border-base">
+      <h4
+        @click="toggle('conversation')"
+        class="m-0 py-2 text-xs cursor-pointer select-none"
+      >{{ sectionsOpen.conversation ? '▼' : '▶' }} Conversation</h4>
+      <div v-show="sectionsOpen.conversation" class="pb-3">
+        <div
+          v-for="(m, i) in messages"
+          :key="i"
+          class="my-1.5 px-2 py-1.5 bg-panel rounded"
+          :data-role="m.role"
+        >
+          <div class="text-[10px] opacity-50 uppercase mb-0.5">{{ m.role }}</div>
+          <pre class="m-0 whitespace-pre-wrap text-[11px]">{{ m.content }}</pre>
         </div>
-        <div v-if="result?.details?.response" class="msg" data-role="assistant">
-          <div class="role">assistant</div>
-          <pre>{{ responseText }}</pre>
+        <div v-if="result?.details?.response" class="my-1.5 px-2 py-1.5 bg-panel rounded">
+          <div class="text-[10px] opacity-50 uppercase mb-0.5">assistant</div>
+          <pre class="m-0 whitespace-pre-wrap text-[11px] text-[#b8d8ff]">{{ responseText }}</pre>
         </div>
       </div>
     </section>
 
-    <section>
-      <h4 @click="toggle('stats')">{{ sectionsOpen.stats ? '▼' : '▶' }} Stats</h4>
-      <div v-show="sectionsOpen.stats" class="stats">
+    <!-- Stats -->
+    <section class="border-t border-border-base">
+      <h4
+        @click="toggle('stats')"
+        class="m-0 py-2 text-xs cursor-pointer select-none"
+      >{{ sectionsOpen.stats ? '▼' : '▶' }} Stats</h4>
+      <div v-show="sectionsOpen.stats" class="grid grid-cols-2 gap-x-2 gap-y-1 pt-1 pb-3 text-[11px]">
         <div>tokens in: <strong>{{ usage?.input ?? '—' }}</strong></div>
         <div>tokens out: <strong>{{ usage?.output ?? '—' }}</strong></div>
         <div>total time: <strong>{{ timing ? `${(timing.totalMs / 1000).toFixed(2)}s` : '—' }}</strong></div>
@@ -90,37 +127,40 @@ const responseJson = computed(() =>
       </div>
     </section>
 
-    <section>
-      <h4 @click="toggle('request')">{{ sectionsOpen.request ? '▼' : '▶' }} Raw request</h4>
-      <pre v-show="sectionsOpen.request" class="raw">{{ requestJson }}</pre>
+    <!-- Raw request -->
+    <section class="border-t border-border-base">
+      <h4
+        @click="toggle('request')"
+        class="m-0 py-2 text-xs cursor-pointer select-none"
+      >{{ sectionsOpen.request ? '▼' : '▶' }} Raw request</h4>
+      <pre
+        v-show="sectionsOpen.request"
+        class="bg-panel px-2 py-1.5 rounded text-[11px] max-h-[200px] overflow-auto whitespace-pre-wrap m-0"
+      >{{ requestJson }}</pre>
     </section>
 
-    <section>
-      <h4 @click="toggle('response')">{{ sectionsOpen.response ? '▼' : '▶' }} Raw response</h4>
-      <pre v-show="sectionsOpen.response" class="raw">{{ responseJson }}</pre>
+    <!-- Raw response -->
+    <section class="border-t border-border-base">
+      <h4
+        @click="toggle('response')"
+        class="m-0 py-2 text-xs cursor-pointer select-none"
+      >{{ sectionsOpen.response ? '▼' : '▶' }} Raw response</h4>
+      <pre
+        v-show="sectionsOpen.response"
+        class="bg-panel px-2 py-1.5 rounded text-[11px] max-h-[200px] overflow-auto whitespace-pre-wrap m-0"
+      >{{ responseJson }}</pre>
     </section>
 
-    <section v-if="result?.errorMessage">
-      <h4 @click="toggle('errors')" class="error-head">{{ sectionsOpen.errors ? '▼' : '▶' }} Error</h4>
-      <pre v-show="sectionsOpen.errors" class="raw error">{{ result.errorMessage }}{{ result.errorStack ? '\n\n' + result.errorStack : '' }}</pre>
+    <!-- Error -->
+    <section v-if="result?.errorMessage" class="border-t border-border-base">
+      <h4
+        @click="toggle('errors')"
+        class="m-0 py-2 text-xs cursor-pointer select-none text-error"
+      >{{ sectionsOpen.errors ? '▼' : '▶' }} Error</h4>
+      <pre
+        v-show="sectionsOpen.errors"
+        class="bg-panel px-2 py-1.5 rounded text-[11px] max-h-[200px] overflow-auto whitespace-pre-wrap m-0 text-[#f5a5a5]"
+      >{{ result.errorMessage }}{{ result.errorStack ? '\n\n' + result.errorStack : '' }}</pre>
     </section>
   </div>
 </template>
-
-<style scoped>
-section { border-top: 1px solid var(--border); }
-section:first-child { border-top: none; }
-h4 { margin: 0; padding: 8px 0; font-size: 12px; cursor: pointer; user-select: none; }
-.form { display: flex; flex-direction: column; gap: 10px; padding: 4px 0 12px; }
-label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; opacity: 0.85; }
-input, select, textarea { background: var(--bg-elev); color: var(--text); border: 1px solid var(--border); border-radius: 4px; padding: 4px 6px; font-size: 12px; font-family: var(--font-ui); }
-.conversation { padding-bottom: 12px; }
-.msg { margin: 6px 0; padding: 6px 8px; background: var(--bg-panel); border-radius: 4px; }
-.msg .role { font-size: 10px; opacity: 0.5; text-transform: uppercase; margin-bottom: 2px; }
-.msg pre { margin: 0; white-space: pre-wrap; font-size: 11px; }
-.msg[data-role="assistant"] pre { color: #b8d8ff; }
-.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 8px; padding: 4px 0 12px; font-size: 11px; }
-.raw { background: var(--bg-panel); padding: 6px 8px; border-radius: 4px; font-size: 11px; max-height: 200px; overflow: auto; white-space: pre-wrap; }
-.raw.error { color: #f5a5a5; }
-.error-head { color: var(--error); }
-</style>

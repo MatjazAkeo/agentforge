@@ -28,59 +28,67 @@ function finish() { emit('done'); }
 </script>
 
 <template>
-  <div class="overlay">
-    <div class="welcome">
-      <div class="icon">🧪</div>
-      <h2>Welcome to Agent Playground</h2>
-      <p class="subtitle">Let's get you set up in under a minute.</p>
-      <div class="steps">
-        <div :class="['dot', { active: step >= 1 }]">1</div>
-        <div :class="['dot', { active: step >= 2 }]">2</div>
-        <div :class="['dot', { active: step >= 3 }]">3</div>
+  <div class="fixed inset-0 bg-canvas flex items-center justify-center z-[3000]">
+    <div class="w-[480px] max-w-[90vw] p-7 bg-panel border border-border-strong rounded-[10px] text-center">
+      <div class="text-4xl mb-2">🧪</div>
+      <h2 class="m-0 mb-1">Welcome to Agent Playground</h2>
+      <p class="opacity-70 text-xs m-0 mb-4">Let's get you set up in under a minute.</p>
+      <div class="flex justify-center gap-3 mb-5">
+        <div :class="['w-7 h-7 rounded-full flex items-center justify-center text-xs', step >= 1 ? 'bg-accent text-white' : 'bg-elev text-text-dim']">1</div>
+        <div :class="['w-7 h-7 rounded-full flex items-center justify-center text-xs', step >= 2 ? 'bg-accent text-white' : 'bg-elev text-text-dim']">2</div>
+        <div :class="['w-7 h-7 rounded-full flex items-center justify-center text-xs', step >= 3 ? 'bg-accent text-white' : 'bg-elev text-text-dim']">3</div>
       </div>
 
-      <section v-if="step === 1">
-        <h3>What is this?</h3>
-        <p>A node-based playground for building, running, and inspecting AI agents. Wire prompts, tools, and LLM calls visually; see exactly what happens at every step.</p>
-        <button class="btn-primary" @click="next">Next →</button>
+      <section v-if="step === 1" class="flex flex-col gap-2.5 items-center">
+        <h3 class="mt-1 mb-0">What is this?</h3>
+        <p class="text-[13px] opacity-85 m-0">
+          A node-based playground for building, running, and inspecting AI agents. Wire prompts, tools, and LLM calls visually; see exactly what happens at every step.
+        </p>
+        <button
+          type="button"
+          @click="next"
+          class="px-3.5 py-1.5 rounded text-xs cursor-pointer border border-accent bg-accent text-white transition"
+        >Next →</button>
       </section>
 
-      <section v-else-if="step === 2">
-        <h3>Add your OpenRouter API key</h3>
-        <p>Free models cost nothing.<br><a href="https://openrouter.ai/" target="_blank">Sign up at OpenRouter (1 minute) →</a></p>
-        <input v-model="key" placeholder="sk-or-v1-…" type="password">
-        <div class="row">
-          <button class="btn" @click="skip">Skip — I'll add later</button>
-          <button class="btn-primary" :disabled="saving || !key.trim()" @click="next">{{ saving ? 'Saving…' : 'Next →' }}</button>
+      <section v-else-if="step === 2" class="flex flex-col gap-2.5 items-center">
+        <h3 class="mt-1 mb-0">Add your OpenRouter API key</h3>
+        <p class="text-[13px] opacity-85 m-0">
+          Free models cost nothing.<br>
+          <a class="text-accent" href="https://openrouter.ai/" target="_blank">Sign up at OpenRouter (1 minute) →</a>
+        </p>
+        <input
+          v-model="key"
+          placeholder="sk-or-v1-…"
+          type="password"
+          class="w-4/5 bg-elev text-text-base border border-border-base rounded px-2.5 py-1.5 text-[13px]"
+        >
+        <div class="flex gap-2">
+          <button
+            type="button"
+            @click="skip"
+            class="px-3.5 py-1.5 rounded text-xs cursor-pointer border border-border-strong bg-elev text-text-base transition"
+          >Skip — I'll add later</button>
+          <button
+            type="button"
+            :disabled="saving || !key.trim()"
+            @click="next"
+            class="px-3.5 py-1.5 rounded text-xs cursor-pointer border border-accent bg-accent text-white transition disabled:bg-elev disabled:text-text-dim disabled:border-border-strong disabled:cursor-not-allowed disabled:opacity-45"
+          >{{ saving ? 'Saving…' : 'Next →' }}</button>
         </div>
       </section>
 
-      <section v-else>
-        <h3>You're all set</h3>
-        <p>Templates and a starter graph come in a later release. For now, click + on the canvas to add your first node.</p>
-        <button class="btn-primary" @click="finish">Get started</button>
+      <section v-else class="flex flex-col gap-2.5 items-center">
+        <h3 class="mt-1 mb-0">You're all set</h3>
+        <p class="text-[13px] opacity-85 m-0">
+          Templates and a starter graph come in a later release. For now, click + on the canvas to add your first node.
+        </p>
+        <button
+          type="button"
+          @click="finish"
+          class="px-3.5 py-1.5 rounded text-xs cursor-pointer border border-accent bg-accent text-white transition"
+        >Get started</button>
       </section>
     </div>
   </div>
 </template>
-
-<style scoped>
-.overlay { position: fixed; inset: 0; background: var(--bg-canvas); display: flex; align-items: center; justify-content: center; z-index: 3000; }
-.welcome { width: 480px; max-width: 90vw; padding: 28px; background: var(--bg-panel); border: 1px solid var(--border-strong); border-radius: 10px; text-align: center; }
-.icon { font-size: 36px; margin-bottom: 8px; }
-h2 { margin: 0 0 4px; }
-.subtitle { opacity: 0.7; font-size: 12px; margin: 0 0 16px; }
-.steps { display: flex; justify-content: center; gap: 12px; margin-bottom: 20px; }
-.dot { width: 28px; height: 28px; border-radius: 50%; background: var(--bg-elev); color: var(--text-dim); display: flex; align-items: center; justify-content: center; font-size: 12px; }
-.dot.active { background: var(--accent); color: white; }
-section { display: flex; flex-direction: column; gap: 10px; align-items: center; }
-section h3 { margin: 4px 0 0; }
-section p { font-size: 13px; opacity: 0.85; margin: 0; }
-input { width: 80%; background: var(--bg-elev); color: var(--text); border: 1px solid var(--border); border-radius: 4px; padding: 6px 10px; font-size: 13px; }
-.row { display: flex; gap: 8px; }
-.btn, .btn-primary { padding: 6px 14px; border-radius: 4px; cursor: pointer; font-size: 12px; border: 1px solid var(--border-strong); background: var(--bg-elev); color: var(--text); transition: opacity 120ms, background-color 120ms, border-color 120ms; }
-.btn-primary { background: var(--accent); color: white; border-color: var(--accent); }
-.btn:disabled, .btn-primary:disabled { cursor: not-allowed; opacity: 0.45; }
-.btn-primary:disabled { background: var(--bg-elev); color: var(--text-dim); border-color: var(--border-strong); }
-a { color: var(--accent); }
-</style>
