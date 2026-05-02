@@ -32,7 +32,7 @@ describe('graphSchema', () => {
     const graph = {
       ...validGraph,
       nodes: [
-        { id: 'a', type: 'input', position: { x: 0, y: 0 }, config: { name: 'q', valueType: 'text', defaultValue: '' } },
+        { id: 'a', type: 'input', position: { x: 0, y: 0 }, config: { name: 'q', defaultValue: '' } },
         { id: 'b', type: 'output', position: { x: 200, y: 0 }, config: { format: 'auto' } },
       ],
       edges: [

@@ -16,12 +16,11 @@ export type NodeType =
 
 export interface InputConfig {
   name: string;
-  valueType: 'text' | 'number' | 'json';
-  defaultValue: unknown;
+  defaultValue: string;
 }
 
 export interface OutputConfig {
-  format: 'auto' | 'text' | 'json' | 'markdown' | 'messages';
+  format: 'auto' | 'text' | 'json' | 'markdown';
 }
 
 export interface LLMCallConfig {

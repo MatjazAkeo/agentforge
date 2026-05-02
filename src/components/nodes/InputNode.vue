@@ -4,7 +4,7 @@ import { computed } from 'vue';
 import { useGraphStore } from '@/stores/graph';
 import { colorForType } from '@/nodes/port-types';
 
-const props = defineProps<{ id: string; data: { config: { name: string; valueType: string; defaultValue: unknown } } }>();
+const props = defineProps<{ id: string; data: { config: { name: string; defaultValue: string } } }>();
 const graph = useGraphStore();
 
 const isEmpty = computed(() => {
@@ -15,8 +15,7 @@ const isEmpty = computed(() => {
 const preview = computed(() => {
   if (isEmpty.value) return '— empty —';
   const v = props.data.config.defaultValue;
-  if (typeof v === 'string') return v.length > 80 ? `${v.slice(0, 80)}…` : v;
-  return String(v);
+  return v.length > 80 ? `${v.slice(0, 80)}…` : v;
 });
 
 function onDelete() {
@@ -26,11 +25,10 @@ function onDelete() {
 
 <template>
   <div class="node-shell group w-[240px] bg-[#25272d] border border-[#16181c] rounded-md shadow-[0_2px_8px_rgba(0,0,0,0.45)] font-ui text-text-base">
-    <div class="relative rounded-t-md flex items-center gap-2 px-3 py-1.5 border-b border-[#16181c]">
+    <div class="relative rounded-t-md flex items-center gap-2 px-3 py-2 border-b border-[#16181c]">
       <span class="w-2 h-2 rounded-full bg-[#5cd97a] flex-shrink-0" title="source" />
       <div class="flex-1 min-w-0">
-        <div class="text-text-base font-medium text-xs leading-tight">Input</div>
-        <div class="text-text-dim text-[10px] font-mono truncate">{{ data.config.name }} · {{ data.config.valueType }}</div>
+        <div class="text-text-base font-medium text-xs leading-tight truncate">Input · text</div>
       </div>
       <button
         type="button"

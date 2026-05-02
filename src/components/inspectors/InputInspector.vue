@@ -25,21 +25,9 @@ function update<K extends keyof InputConfig>(key: K, value: InputConfig[K]) {
       >
     </label>
     <label class="flex flex-col gap-1 text-xs opacity-85">
-      Value type
-      <select
-        :value="cfg.valueType"
-        @change="(e) => update('valueType', (e.target as HTMLSelectElement).value as InputConfig['valueType'])"
-        class="bg-elev text-text-base border border-border-base rounded px-2 py-1.5 text-sm font-ui"
-      >
-        <option value="text">text</option>
-        <option value="number">number</option>
-        <option value="json">json</option>
-      </select>
-    </label>
-    <label class="flex flex-col gap-1 text-xs opacity-85">
       Default value
       <textarea
-        :value="String(cfg.defaultValue ?? '')"
+        :value="cfg.defaultValue ?? ''"
         @input="(e) => update('defaultValue', (e.target as HTMLTextAreaElement).value)"
         rows="3"
         class="bg-elev text-text-base border border-border-base rounded px-2 py-1.5 text-sm font-ui resize-y"

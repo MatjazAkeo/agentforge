@@ -44,7 +44,7 @@ watch(() => props.open, (open) => {
 
 function defaultConfig(type: NodeType): Record<string, unknown> {
   switch (type) {
-    case 'input': return { name: 'input', valueType: 'text', defaultValue: '' };
+    case 'input': return { name: 'input', defaultValue: '' };
     case 'output': return { format: 'auto' };
     case 'llm-call': return {
       model: 'meta-llama/llama-3.3-70b-instruct:free',

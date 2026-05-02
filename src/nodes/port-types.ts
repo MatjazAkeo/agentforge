@@ -1,5 +1,4 @@
 import type { Node } from '@/domain/graph';
-import type { OutputConfig } from '@/domain/node-types';
 
 /**
  * Wire types — only what's structurally distinct:
@@ -26,7 +25,6 @@ export function colorForType(type: DataType | null): string {
 export function getSourcePortType(node: Node, handleId: string): DataType | null {
   switch (node.type) {
     case 'input':
-      // Input.valueType is a UI hint for the form widget; the wire is always string-shaped.
       if (handleId === 'value') return 'string';
       return null;
     case 'llm-call':
@@ -42,12 +40,7 @@ export function getSourcePortType(node: Node, handleId: string): DataType | null
 export function getTargetPortType(node: Node, handleId: string): DataType | null {
   switch (node.type) {
     case 'output':
-      if (handleId === 'value') {
-        // Format drives the accepted type. 'messages' format displays a chat transcript;
-        // every other format renders text-shaped data.
-        const cfg = node.config as OutputConfig;
-        return cfg.format === 'messages' ? 'messages' : 'string';
-      }
+      if (handleId === 'value') return 'string';
       return null;
     case 'llm-call':
       if (handleId === 'userMessage') return 'string';

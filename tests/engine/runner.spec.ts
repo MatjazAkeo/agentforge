@@ -17,7 +17,7 @@ describe('runGraph (Input → Output)', () => {
       schemaVersion: 1, id: 'g', name: 'g',
       createdAt: '', updatedAt: '',
       nodes: [
-        { id: 'a', type: 'input', position: { x: 0, y: 0 }, config: { name: 'q', valueType: 'text', defaultValue: 'hello' } },
+        { id: 'a', type: 'input', position: { x: 0, y: 0 }, config: { name: 'q', defaultValue: 'hello' } },
         { id: 'b', type: 'output', position: { x: 0, y: 0 }, config: { format: 'auto' } },
       ],
       edges: [{ id: 'e', source: 'a', sourceHandle: 'value', target: 'b', targetHandle: 'value' }],

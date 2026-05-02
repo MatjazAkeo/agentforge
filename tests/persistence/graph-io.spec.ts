@@ -10,7 +10,7 @@ describe('graph-io', () => {
     createdAt: '2026-05-01T00:00:00.000Z',
     updatedAt: '2026-05-01T00:00:00.000Z',
     nodes: [
-      { id: '22222222-2222-4222-8222-222222222222', type: 'input', position: { x: 0, y: 0 }, config: { name: 'q', valueType: 'text', defaultValue: '' } },
+      { id: '22222222-2222-4222-8222-222222222222', type: 'input', position: { x: 0, y: 0 }, config: { name: 'q', defaultValue: '' } },
     ],
     edges: [],
     containsCustomCode: false,

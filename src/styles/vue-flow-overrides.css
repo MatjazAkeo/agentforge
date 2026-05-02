@@ -126,5 +126,4 @@
 }
 
 /* Per-port colors are set via inline `:style` on each `<Handle>`, driven by
-   the data type from `src/nodes/port-types.ts`. Keeping it inline lets Input's
-   handle color update reactively when valueType changes. */
+   the data type from `src/nodes/port-types.ts`. */
