@@ -54,10 +54,22 @@ export async function runGraph(args: RunGraphArgs): Promise<Run> {
         throw new Error(`No definition registered for node type "${node.type}"`);
       }
 
+      // Build inputs from upstream outputs. If multiple edges land on the same target
+      // handle, collect their source values into a flat array (Tool Group fan-in).
       const inputs: Record<string, unknown> = {};
+      const seenHandles = new Set<string>();
       for (const edge of incoming.get(id) ?? []) {
         const sourceOutputs = outputsByNode.get(edge.source) ?? {};
-        inputs[edge.targetHandle] = sourceOutputs[edge.sourceHandle];
+        const value = sourceOutputs[edge.sourceHandle];
+        const handle = edge.targetHandle;
+        if (seenHandles.has(handle)) {
+          // Promote to array on second-and-subsequent edge.
+          const existing = inputs[handle];
+          inputs[handle] = Array.isArray(existing) ? [...existing, value] : [existing, value];
+        } else {
+          inputs[handle] = value;
+          seenHandles.add(handle);
+        }
       }
 
       // Reactive reference — mutations here propagate to every component watching this node's status.
