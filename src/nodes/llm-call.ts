@@ -41,6 +41,8 @@ export const llmCallNode: NodeDefinition = {
     let usage = { input: 0, output: 0 };
     let firstTokenAtMs: number | null = null;
 
+    useRunStore().incrementApiCalls();
+
     const text = await streamChatCompletion({
       apiKey: ctx.apiKey,
       request,

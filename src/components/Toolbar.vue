@@ -57,6 +57,7 @@ function onStop() { abortCurrent(); }
       <span v-if="graph.dirty" class="text-accent ml-1" title="Unsaved changes">●</span>
     </div>
     <div v-if="run.current" class="flex gap-3 opacity-85">
+      <span class="tabular-nums">api calls: <strong>{{ run.totalApiCalls }}</strong></span>
       <span class="tabular-nums">in: <strong>{{ run.totalTokensIn }}</strong></span>
       <span class="tabular-nums">out: <strong>{{ run.totalTokensOut }}</strong></span>
       <span class="tabular-nums">⏱ <strong>{{ elapsedDisplay }}</strong></span>

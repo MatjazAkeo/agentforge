@@ -5,6 +5,7 @@ import type { Run, NodeResult, RunStatus } from '@/domain/run';
 
 export const useRunStore = defineStore('run', () => {
   const current = ref<Run | null>(null);
+  const totalApiCalls = ref(0);
   const totalTokensIn = ref(0);
   const totalTokensOut = ref(0);
   const startedAtMs = ref<number | null>(null);
@@ -25,6 +26,7 @@ export const useRunStore = defineStore('run', () => {
 
   function start(run: Run) {
     current.value = run;
+    totalApiCalls.value = 0;
     totalTokensIn.value = 0;
     totalTokensOut.value = 0;
     startedAtMs.value = performance.now();
@@ -48,6 +50,10 @@ export const useRunStore = defineStore('run', () => {
     totalTokensOut.value += output;
   }
 
+  function incrementApiCalls() {
+    totalApiCalls.value += 1;
+  }
+
   function finish(status: RunStatus) {
     if (!current.value) return;
     current.value.status = status;
@@ -58,7 +64,8 @@ export const useRunStore = defineStore('run', () => {
   }
 
   return {
-    current, totalTokensIn, totalTokensOut, elapsedMs, isRunning, livePreviews,
-    start, tick, recordResult, addTokens, finish, setLivePreview, clearLivePreview, clearLivePreviews,
+    current, totalApiCalls, totalTokensIn, totalTokensOut, elapsedMs, isRunning, livePreviews,
+    start, tick, recordResult, addTokens, incrementApiCalls, finish,
+    setLivePreview, clearLivePreview, clearLivePreviews,
   };
 });
