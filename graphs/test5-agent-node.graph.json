@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "33333333-aaaa-4333-aaaa-333333333333",
+  "name": "test5-agent-node",
+  "createdAt": "2026-05-02T14:00:00.000Z",
+  "updatedAt": "2026-05-02T14:00:00.000Z",
+  "containsCustomCode": true,
+  "nodes": [
+    { "id": "in", "type": "input", "position": { "x": 40, "y": 40 },
+      "config": { "name": "userMessage", "defaultValue": "Compute 12 + 7 and 4 × 5 using the tools." } },
+    { "id": "tadd", "type": "tool", "position": { "x": 40, "y": 240 },
+      "config": { "name": "add", "description": "Add two numbers.", "inputSchema": { "type": "object", "properties": { "a": { "type": "number" }, "b": { "type": "number" } }, "required": ["a", "b"] }, "code": "return inputs.a + inputs.b;", "timeoutMs": 30000 } },
+    { "id": "tmul", "type": "tool", "position": { "x": 40, "y": 400 },
+      "config": { "name": "multiply", "description": "Multiply two numbers.", "inputSchema": { "type": "object", "properties": { "a": { "type": "number" }, "b": { "type": "number" } }, "required": ["a", "b"] }, "code": "return inputs.a * inputs.b;", "timeoutMs": 30000 } },
+    { "id": "tg", "type": "tool-group", "position": { "x": 320, "y": 320 }, "config": { "label": "math tools" } },
+    { "id": "ag", "type": "agent", "position": { "x": 640, "y": 80 },
+      "config": { "model": "openai/gpt-oss-120b:free", "systemPrompt": "You are a calculator that always uses the provided tools.", "temperature": 0, "maxTokens": null, "maxIterations": 6, "stopCondition": "no-tool-calls" } },
+    { "id": "out", "type": "output", "position": { "x": 980, "y": 80 }, "config": { "format": "auto" } }
+  ],
+  "edges": [
+    { "id": "e1", "source": "in",   "sourceHandle": "value", "target": "ag",  "targetHandle": "userMessage" },
+    { "id": "e2", "source": "tadd", "sourceHandle": "toolDefinition", "target": "tg", "targetHandle": "tools" },
+    { "id": "e3", "source": "tmul", "sourceHandle": "toolDefinition", "target": "tg", "targetHandle": "tools" },
+    { "id": "e4", "source": "tg",   "sourceHandle": "toolDefinition", "target": "ag", "targetHandle": "tools" },
+    { "id": "e5", "source": "ag",   "sourceHandle": "text", "target": "out", "targetHandle": "value" }
+  ]
+}
