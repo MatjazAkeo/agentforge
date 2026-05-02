@@ -692,3 +692,31 @@ The implementation plan (next step) will sequence work, but the phases are rough
 11. **Cancel, error states, edge cases**
 
 Sequencing detail belongs in the implementation plan, not here.
+
+## 20. Implementation notes (post-Plan 2)
+
+The design spec was written ahead of code. After shipping Plans 1 and 2, the following deviations and concrete decisions are worth recording.
+
+### Plan 1 (Foundation)
+
+- **HTTP transport** — switched from Tauri's `plugin-http` to native browser `fetch`. The plugin had a header-forwarding issue (Authorization stripped or mangled, surfacing as 401 "Missing Authentication header" from OpenRouter). Native `fetch` works because the WKWebView treats OpenRouter as a normal cross-origin endpoint and OpenRouter's CORS allows browser clients.
+- **Reactivity** — the runner mutates state through the Pinia store's reactive Proxy (`runStore.current` after `start()`), not through the original `Run` object passed in. Mutating the original bypasses Vue's `[[Set]]` traps, which silently breaks UI updates (timer keeps ticking, isRunning stays true).
+- **Input node `valueType` dropped** — the original spec had `valueType: 'text' | 'number' | 'json'`. Removed because the wire is always `string` regardless. Numbers and JSON are entered as text and parsed downstream if needed.
+- **Output `format: 'messages'` dropped** — the type system collapsed `text`/`json`/`markdown` into a single `string` wire type. Output accepts only `string`. Messages flow chains LLM-to-LLM via `LLMCall.messages` ports.
+- **Selection ring** — switched from `outline` to layered `box-shadow` (1px accent line + 3px low-opacity halo) to mirror input focus styling and avoid layout shift.
+- **Helper-line snapping** — added during Plan 1 polish. Drag a node near another node's edge/center; release to snap to the alignment.
+- **Snap-to-grid button** — one-shot action (snaps every node to its nearest 20px grid point) rather than a continuous toggle.
+- **Edit menu required on macOS** — without `PredefinedMenuItem::cut/copy/paste/select_all` items in the native menu, NSResponder doesn't route ⌘C/⌘V/⌘X/⌘A to focused text inputs. Plan 1 oscillated several times before settling on "Edit menu always present, no node-level keyboard shortcuts."
+- **Native alerts deferred** — `setTimeout(() => alert(...), 0)` lets the Vue render queue flush before `alert()` blocks the JS thread, so the UI updates (spinner stops, timer freezes) before the modal opens.
+
+### Plan 2 (Tools & Persistent Runs)
+
+- **Wire types** — added `tool-calls` (LLM-emitted invocations, distinct from `tools` which are definitions) and `json` (Tool Runner's `results` output). Total wire types: `string | messages | tools | tool-calls | json`.
+- **Multi-edge fan-in** — runner now collects multiple edges into the same target handle as an array. Used by Tool Group's `tools` input. Single-edge case unchanged.
+- **Tool Group `flatten()`** — handles single payload, flat array, AND array-of-arrays so the runner's fan-in shape pipes cleanly through.
+- **Web Worker sandbox in tests** — neither happy-dom nor jsdom ships a `Worker` implementation. `tests/setup/worker-polyfill.ts` backs `globalThis.Worker` with `node:worker_threads.Worker` and embeds a JS port of `worker.ts` (kept in sync via a header comment). Imported only by the sandbox spec.
+- **Run persistence path** — `<graphPath without .graph.json>.runs/<isoSafeTimestamp>-<idShort>.run.json`. Untitled graphs (no `filePath`) are NOT persisted; user must Save first.
+- **Trust prompt** — single allow/reject decision via async ui-store action. No "remember this" persistence in v1; every Open of a graph with `containsCustomCode: true` re-asks.
+- **Monaco editor** — lazy-mounted in the Tool Inspector. Out-of-the-box Vite handling worked without custom worker config.
+- **Run row context menu** — Reveal in Finder uses `@tauri-apps/plugin-opener`'s `revealItemInDir`. Delete clears `loadedRunPath` if it matches and refreshes the list.
+- **Reactivity through Pinia (recap)** — same lesson as Plan 1: when populating Run state from a saved JSON file (via `loadRun`), call `runStore.start()` then `runStore.finish()` so all watchers fire.
