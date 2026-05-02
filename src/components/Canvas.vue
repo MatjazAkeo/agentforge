@@ -11,6 +11,7 @@ import '@vue-flow/minimap/dist/style.css';
 
 import { useGraphStore } from '@/stores/graph';
 import { useUiStore } from '@/stores/ui';
+import { getSourcePortType, getTargetPortType } from '@/nodes/port-types';
 import AddNodeMenu from './AddNodeMenu.vue';
 import HelperLines from './HelperLines.vue';
 import InputNode from './nodes/InputNode.vue';
@@ -133,7 +134,35 @@ function onNodeDragStop({ node }: { node: VFNode }) {
   snapTargetY.value = null;
 }
 
+/** Validates a connection while it's being dragged. Vue Flow calls this on every move
+ *  over a candidate target so the line snaps only to compatible handles. Rejects:
+ *    - self-loops
+ *    - wrong direction (no source for the source handle, or no target for the target)
+ *    - data-type mismatch */
+function isValidConnection(connection: {
+  source: string;
+  target: string;
+  sourceHandle?: string | null;
+  targetHandle?: string | null;
+}): boolean {
+  if (connection.source === connection.target) return false;
+  const sourceNode = graph.nodes.find((n) => n.id === connection.source);
+  const targetNode = graph.nodes.find((n) => n.id === connection.target);
+  if (!sourceNode || !targetNode) return false;
+  const sourceType = getSourcePortType(sourceNode, connection.sourceHandle ?? '');
+  const targetType = getTargetPortType(targetNode, connection.targetHandle ?? '');
+  if (!sourceType || !targetType) return false;
+  return sourceType === targetType;
+}
+
 function onConnect(params: { source: string; target: string; sourceHandle?: string | null; targetHandle?: string | null }) {
+  // Targets accept only one incoming edge — replace any existing one so the new wire wins.
+  // Sources can fan out to many targets; nothing to clean up there.
+  const existing = graph.edges.find(
+    (e) => e.target === params.target && (e.targetHandle ?? '') === (params.targetHandle ?? ''),
+  );
+  if (existing) graph.removeEdge(existing.id);
+
   graph.addEdge({
     id: crypto.randomUUID(),
     source: params.source,
@@ -164,6 +193,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown));
       :edges="flowEdges"
       :node-types="nodeTypes"
       :fit-view-on-init="true"
+      :is-valid-connection="isValidConnection"
       @node-click="onNodeClick"
       @pane-click="onPaneClick"
       @node-drag="onNodeDrag"

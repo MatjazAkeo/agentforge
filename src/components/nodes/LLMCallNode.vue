@@ -3,6 +3,7 @@ import { Handle, Position } from '@vue-flow/core';
 import { computed } from 'vue';
 import { useRunStore } from '@/stores/run';
 import { useGraphStore } from '@/stores/graph';
+import { colorForType } from '@/nodes/port-types';
 
 const props = defineProps<{ id: string; data: { config: { model: string } } }>();
 const run = useRunStore();
@@ -79,20 +80,20 @@ function onDelete() {
       <!-- Row 1: userMessage in | text out -->
       <div class="relative h-6 flex items-center justify-between px-3 text-[11px]">
         <span class="text-text-dim font-mono text-[10px]">userMessage</span>
-        <Handle id="userMessage" type="target" :position="Position.Left" />
+        <Handle id="userMessage" type="target" :position="Position.Left" :style="{ background: colorForType('string') }" />
         <span class="text-text-dim font-mono text-[10px]">text</span>
-        <Handle id="text" type="source" :position="Position.Right" />
+        <Handle id="text" type="source" :position="Position.Right" :style="{ background: colorForType('string') }" />
       </div>
       <!-- Row 2: messages in | messages out -->
       <div class="relative h-6 flex items-center justify-between px-3 text-[11px]">
         <span class="text-text-dim font-mono text-[10px]">messages</span>
-        <Handle id="messages" type="target" :position="Position.Left" />
+        <Handle id="messages" type="target" :position="Position.Left" :style="{ background: colorForType('messages') }" />
         <span class="text-text-dim font-mono text-[10px]">messages</span>
-        <Handle id="messages" type="source" :position="Position.Right" />
+        <Handle id="messages" type="source" :position="Position.Right" :style="{ background: colorForType('messages') }" />
       </div>
       <!-- Row 3: tools in | (empty right) -->
       <div class="relative h-6 flex items-center px-3 text-[11px]">
-        <Handle id="tools" type="target" :position="Position.Left" />
+        <Handle id="tools" type="target" :position="Position.Left" :style="{ background: colorForType('tools') }" />
         <span class="text-text-dim font-mono text-[10px]">tools</span>
       </div>
     </div>

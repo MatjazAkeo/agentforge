@@ -125,9 +125,6 @@
   box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.25);
 }
 
-/* Data-type colors (handle color = data type, not direction). */
-.vue-flow__handle[data-handleid="value"] { background: #4ad7e2; }            /* generic any */
-.vue-flow__handle[data-handleid="messages"] { background: #b388ff; }         /* ChatMessage[] */
-.vue-flow__handle[data-handleid="userMessage"] { background: #ffaa55; }      /* string */
-.vue-flow__handle[data-handleid="text"] { background: #ffaa55; }             /* string */
-.vue-flow__handle[data-handleid="tools"] { background: #ffd54a; }            /* tool defs */
+/* Per-port colors are set via inline `:style` on each `<Handle>`, driven by
+   the data type from `src/nodes/port-types.ts`. Keeping it inline lets Input's
+   handle color update reactively when valueType changes. */

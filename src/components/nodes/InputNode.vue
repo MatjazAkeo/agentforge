@@ -2,6 +2,7 @@
 import { Handle, Position } from '@vue-flow/core';
 import { computed } from 'vue';
 import { useGraphStore } from '@/stores/graph';
+import { colorForType, type DataType } from '@/nodes/port-types';
 
 const props = defineProps<{ id: string; data: { config: { name: string; valueType: string; defaultValue: unknown } } }>();
 const graph = useGraphStore();
@@ -9,6 +10,14 @@ const graph = useGraphStore();
 const isEmpty = computed(() => {
   const v = props.data.config.defaultValue;
   return v === undefined || v === null || v === '';
+});
+
+const valueDataType = computed<DataType>(() => {
+  switch (props.data.config.valueType) {
+    case 'number': return 'number';
+    case 'json': return 'json';
+    default: return 'string';
+  }
 });
 
 const preview = computed(() => {
@@ -41,7 +50,7 @@ function onDelete() {
 
     <div class="relative h-7 flex items-center justify-end pr-3 text-[11px]">
       <span class="text-text-dim font-mono text-[10px]">value</span>
-      <Handle id="value" type="source" :position="Position.Right" />
+      <Handle id="value" type="source" :position="Position.Right" :style="{ background: colorForType(valueDataType) }" />
     </div>
 
     <div
