@@ -693,9 +693,9 @@ The implementation plan (next step) will sequence work, but the phases are rough
 
 Sequencing detail belongs in the implementation plan, not here.
 
-## 20. Implementation notes (post-Plan 2)
+## 20. Implementation notes (post-Plan 3)
 
-The design spec was written ahead of code. After shipping Plans 1 and 2, the following deviations and concrete decisions are worth recording.
+The design spec was written ahead of code. After shipping Plans 1, 2, and 3, the following deviations and concrete decisions are worth recording.
 
 ### Plan 1 (Foundation)
 
@@ -720,3 +720,17 @@ The design spec was written ahead of code. After shipping Plans 1 and 2, the fol
 - **Monaco editor** — lazy-mounted in the Tool Inspector. Out-of-the-box Vite handling worked without custom worker config.
 - **Run row context menu** — Reveal in Finder uses `@tauri-apps/plugin-opener`'s `revealItemInDir`. Delete clears `loadedRunPath` if it matches and refreshes the list.
 - **Reactivity through Pinia (recap)** — same lesson as Plan 1: when populating Run state from a saved JSON file (via `loadRun`), call `runStore.start()` then `runStore.finish()` so all watchers fire.
+
+### Plan 3 (Loops & Agents)
+
+- **Cycle support** — the runner validates back-edges before each run (`src/engine/loop-validation.ts`); the only nodes that may receive a back-edge are `loop-controller` nodes. The topological order is computed with back-edges removed (`topologicalOrderIgnoringBackEdges` in `src/engine/scheduler.ts`); the loop driver (`src/engine/loop-driver.ts`) re-runs body nodes once per iteration.
+- **Loop driver** — per-controller iteration engine. Computes the body and break-node sets via reachability analysis (forward from the LC + reverse from back-edge sources), runs the body in topological order each iteration, and stores an `IterationRecord` on every body node and the controller. Halt conditions: `continue` falsy, `maxIterations` exceeded, `signal` aborted, or any body-node error.
+- **`continue` truthiness** — empty arrays count as falsy (alongside `null`/`undefined`/`false`/`0`/`''`). This is what makes `LLMCall.toolCalls → LoopController.continue` the natural ReAct halt wire — the model emitting no tool calls in a turn means an empty array, which terminates the loop. No Transform node needed.
+- **Nested loop controllers rejected** — `validateLoopTopology` walks each LC's body and throws if any body node is itself a `loop-controller`. v1 doesn't support nesting; this catches the misconfiguration explicitly.
+- **Error path on body failure** — body-node throws are caught by an outer `try` in `driveLoop`; the controller's `status` flips to `'error'`, the failing body node's partial `IterationRecord` is appended (with `details.error`), and the error rethrows to the runner. The cleanup block that fires Break nodes is skipped on the error path.
+- **`completedIterations` vs. loop counter** — the loop's internal `iteration` variable is `cfg.maxIterations + 1` when it exits via `max-iterations`. The driver tracks `completedIterations` separately for accurate reporting (`ctrl.details.iterationCount`, `LoopDriverResult.iterationCount`).
+- **`json` is a universal target type** — `Canvas.vue:isValidConnection` lets any source type plug into a `json` target port. Loop Controller's channel ports are typed `json` so they accept arbitrary state shapes (string, ChatMessage[], objects). Source-side stays strictly typed.
+- **Agent node = packaged subgraph** — the Agent (`src/nodes/agent.ts`) reuses the same single-turn LLM call (`src/nodes/_internals/llm-once.ts`) and tool batch (`src/nodes/_internals/tool-batch.ts`) helpers as `LLMCall` and `ToolRunner`. Exactly one implementation of each primitive; the Agent is the convenience wrapper, not a parallel codepath.
+- **Agent iteration shape** — the Agent records its own richer per-iteration shape under `ctx.details.iterations` (each entry has `llm` + `tools` sub-records). The shared `IterationTree.vue` consumes the canonical `IterationRecord` shape; the Agent inspector projects its richer shape down to that interface for display.
+- **Inspector iteration UX** — the LLM Call inspector shows an iteration selector when `result.iterations.length > 1`. The Loop Controller and Agent inspectors share `IterationTree.vue`. Each iteration is a collapsible row showing inputs/output JSON.
+- **Known gaps deferred to Plan 4** — Transform node (§6.8) and Chat Input/Chat Output (§6.12) remain unimplemented. Self-critique (Template 5) currently relies on `responseFormat: 'json_object'` and the empty-array-falsy continue trick rather than a Transform that parses `{good: bool}`.

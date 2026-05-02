@@ -8,7 +8,19 @@ Plan 1 (Foundation) — runnable. You can wire `Input → LLM Call → Output` a
 
 Plan 2 (Tools & Persistent Runs) — runnable. Tool/Tool Group/Tool Runner nodes let an LLM call user-defined JS functions in a sandboxed Web Worker; every run is persisted next to the graph and browsable from the Runs tab.
 
-Subsequent plans add: loops & agent encapsulation (Plan 3), chat sidebar & templates (Plan 4).
+Plan 3 (Loops & Agents) — runnable. Loop Controller and Break nodes let you build cycles on the canvas (ReAct, retry, self-critique); each iteration is recorded and inspectable. The Agent node packages the LLM↔Tool loop as a single node for the common case.
+
+Subsequent plans add: chat sidebar & templates (Plan 4).
+
+### Plan 3 features
+
+- **Loop Controller** node — declarative cycle anchor. Configurable channels (named state slots that flow through the loop), `maxIterations` safety cap, and a `continue` boolean input that halts the loop when falsy
+- **Break** node — exit point that fires once after the loop terminates
+- **Agent** node — convenience wrapper for the LLM↔ToolRunner loop; uses the same internal helpers as the raw nodes (no parallel implementation)
+- **Per-iteration recording** — every loop body node gets an `IterationRecord` per pass, viewable in a collapsible iteration tree in the inspectors
+- **LLM Call iteration selector** — when an LLM Call sits inside a loop, the inspector shows a dropdown to pick which iteration to view
+- **Empty-array-as-falsy halt rule** — `LLMCall.toolCalls → LoopController.continue` is the natural ReAct halt wire; an empty array means "no more tool calls", terminating the loop
+- **Example graphs** — `test3-self-critique`, `test4-react-agent` (raw ReAct), `test5-agent-node` (encapsulated)
 
 ### Plan 2 features
 
