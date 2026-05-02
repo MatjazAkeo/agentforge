@@ -10,6 +10,7 @@ import ToolGroupInspector from './inspectors/ToolGroupInspector.vue';
 import ToolRunnerInspector from './inspectors/ToolRunnerInspector.vue';
 import LoopControllerInspector from './inspectors/LoopControllerInspector.vue';
 import BreakInspector from './inspectors/BreakInspector.vue';
+import AgentInspector from './inspectors/AgentInspector.vue';
 
 const ui = useUiStore();
 const graph = useGraphStore();
@@ -56,6 +57,9 @@ const selectedNode = computed(() => {
       </div>
       <div v-else-if="selectedNode.type === 'break'">
         <BreakInspector :nodeId="selectedNode.id" />
+      </div>
+      <div v-else-if="selectedNode.type === 'agent'">
+        <AgentInspector :nodeId="selectedNode.id" />
       </div>
       <div v-else class="opacity-50">Inspector for {{ selectedNode.type }} added in a later task.</div>
     </div>

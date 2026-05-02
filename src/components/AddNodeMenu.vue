@@ -19,6 +19,7 @@ const ALL_OPTIONS: NodeOption[] = [
   { type: 'tool-runner', label: 'Tool Runner', description: 'Execute tool calls emitted by an LLM' },
   { type: 'loop-controller', label: 'Loop Controller', description: 'Cycle anchor for ReAct, retry, refinement loops' },
   { type: 'break', label: 'Break', description: 'Exit point for a Loop Controller' },
+  { type: 'agent', label: 'Agent', description: 'LLM ↔ Tool loop encapsulated' },
 ];
 
 const props = defineProps<{
@@ -72,6 +73,14 @@ function defaultConfig(type: NodeType): Record<string, unknown> {
       valueChannels: [{ name: 'value' }],
     };
     case 'break': return {};
+    case 'agent': return {
+      model: 'meta-llama/llama-3.3-70b-instruct:free',
+      systemPrompt: '',
+      temperature: 0.7,
+      maxTokens: null,
+      maxIterations: 25,
+      stopCondition: 'no-tool-calls',
+    };
     default: return {};
   }
 }
