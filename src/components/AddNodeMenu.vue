@@ -14,6 +14,7 @@ const ALL_OPTIONS: NodeOption[] = [
   { type: 'input', label: 'Input', description: 'Source value into the graph' },
   { type: 'output', label: 'Output', description: 'Display final value' },
   { type: 'llm-call', label: 'LLM Call', description: 'Send a chat completion to OpenRouter' },
+  { type: 'tool', label: 'Tool', description: 'Define a callable function the LLM can use' },
 ];
 
 const props = defineProps<{
@@ -52,6 +53,13 @@ function defaultConfig(type: NodeType): Record<string, unknown> {
       temperature: 0.7,
       maxTokens: null,
       responseFormat: null,
+    };
+    case 'tool': return {
+      name: 'my_tool',
+      description: 'Describe what this tool does',
+      inputSchema: { type: 'object', properties: {} },
+      code: 'return null;',
+      timeoutMs: 30000,
     };
     default: return {};
   }
