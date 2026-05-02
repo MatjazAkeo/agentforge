@@ -4,6 +4,7 @@ import { findBackEdges } from './loop-validation';
 import { topologicalOrder } from './scheduler';
 import { getNodeDefinition } from '@/nodes/registry';
 import type { LoopControllerConfig } from '@/domain/node-types';
+import type { ChatSession } from '@/nodes/registry';
 
 export interface LoopBody {
   /** Node ids that re-run on every iteration. */
@@ -104,6 +105,7 @@ export interface LoopDriverArgs {
   signal: AbortSignal;
   setLivePreview?: (nodeId: string, preview: string) => void;
   clearLivePreview?: (nodeId: string) => void;
+  chatSession?: ChatSession;
 }
 
 export async function driveLoop(args: LoopDriverArgs): Promise<LoopDriverResult> {
@@ -176,7 +178,7 @@ export async function driveLoop(args: LoopDriverArgs): Promise<LoopDriverResult>
       const ctrlStart = new Date().toISOString();
       try {
         ctrlOut = await ctrlDef.run(controllerNode, ctrlInputs, {
-          signal, details: ctrlIterDetails, apiKey,
+          signal, details: ctrlIterDetails, apiKey, chatSession: args.chatSession,
         });
       } catch (e) {
         ctrlResult.status = 'error';
@@ -250,6 +252,7 @@ export async function driveLoop(args: LoopDriverArgs): Promise<LoopDriverResult>
           const out = await def.run(node, inputs, {
             signal, details: iterDetails, apiKey,
             onStreamUpdate: (preview) => args.setLivePreview?.(id, preview),
+            chatSession: args.chatSession,
           });
           bodyOutputsByNode.set(id, out);
           result.output = out;

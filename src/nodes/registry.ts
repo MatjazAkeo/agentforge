@@ -1,9 +1,17 @@
 import type { Node } from '@/domain/graph';
 import type { NodeType } from '@/domain/node-types';
 import type { IterationRecord } from '@/domain/run';
+import type { ChatMessage } from '@/openrouter/types';
 
 export type RunInputs = Record<string, unknown>;
 export type RunOutputs = Record<string, unknown>;
+
+export interface ChatSession {
+  /** The just-submitted user message text. */
+  userMessage: string;
+  /** Full chat history including the latest user message at the end. */
+  history: ChatMessage[];
+}
 
 export interface NodeRunContext {
   signal: AbortSignal;
@@ -15,6 +23,8 @@ export interface NodeRunContext {
    * canonical iteration tree can render it. Optional — single-pass nodes ignore it.
    */
   onIterationComplete?: (record: IterationRecord) => void;
+  /** Set by the runner when the run was triggered by a chat-sidebar submission. */
+  chatSession?: ChatSession;
   apiKey: string;
 }
 

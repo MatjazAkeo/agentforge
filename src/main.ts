@@ -6,6 +6,8 @@ import './styles/vue-flow-overrides.css';
 
 // Force registration of node definitions
 import '@/nodes/agent';
+import '@/nodes/chat-input';
+import '@/nodes/chat-output';
 import '@/nodes/input';
 import '@/nodes/output';
 import '@/nodes/llm-call';

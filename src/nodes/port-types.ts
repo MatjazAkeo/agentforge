@@ -63,6 +63,10 @@ export function getSourcePortType(node: Node, handleId: string): DataType | null
       if (handleId === 'messages') return 'messages';
       if (handleId === 'iterationCount') return 'string';
       return null;
+    case 'chat-input':
+      if (handleId === 'userMessage') return 'string';
+      if (handleId === 'messages') return 'messages';
+      return null;
     default:
       return null;
   }
@@ -118,6 +122,9 @@ export function getTargetPortType(node: Node, handleId: string): DataType | null
       if (handleId === 'userMessage') return 'string';
       if (handleId === 'messages') return 'messages';
       if (handleId === 'tools') return 'tools';
+      return null;
+    case 'chat-output':
+      if (handleId === 'text') return 'string';
       return null;
     default:
       return null;

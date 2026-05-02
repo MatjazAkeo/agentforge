@@ -62,6 +62,14 @@ export interface PromptTemplateConfig {
   template: string;  // contains {{var}} placeholders
 }
 
+export interface ChatInputConfig {
+  // intentionally empty — the chat sidebar provides the runtime session
+}
+
+export interface ChatOutputConfig {
+  format: 'text' | 'markdown';
+}
+
 export interface LoopControllerConfig {
   maxIterations: number;            // default 25
   valueChannels: Array<{ name: string }>;  // declared state channels
@@ -87,6 +95,8 @@ export type NodeConfig =
   | ToolRunnerConfig
   | TransformConfig
   | PromptTemplateConfig
+  | ChatInputConfig
+  | ChatOutputConfig
   | LoopControllerConfig
   | AgentConfig
   | Record<string, unknown>;
