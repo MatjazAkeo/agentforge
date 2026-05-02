@@ -47,6 +47,24 @@ export interface ToolRunnerConfig {
   // No config — behavior fully driven by inputs.
 }
 
+export interface LoopControllerConfig {
+  maxIterations: number;            // default 25
+  valueChannels: Array<{ name: string }>;  // declared state channels
+}
+
+export interface BreakConfig {
+  // intentionally empty — Break is a passthrough
+}
+
+export interface AgentConfig {
+  model: string;
+  systemPrompt: string;
+  temperature: number;
+  maxTokens: number | null;
+  maxIterations: number;            // default 25
+  stopCondition: 'no-tool-calls';   // only option in v1
+}
+
 // Plan 1 defines only these three. Other node-type configs come in later plans
 // but the union type is declared up-front for stability.
 export type NodeConfig =
@@ -56,4 +74,7 @@ export type NodeConfig =
   | ToolConfig
   | ToolGroupConfig
   | ToolRunnerConfig
+  | LoopControllerConfig
+  | BreakConfig
+  | AgentConfig
   | Record<string, unknown>;
