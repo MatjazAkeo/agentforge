@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "id": "41e0a2b0-3f80-4cde-85b9-4da436ac2dbc",
+  "name": "Untitled",
+  "createdAt": "2026-05-02T08:25:37.106Z",
+  "updatedAt": "2026-05-02T08:25:37.106Z",
+  "nodes": [
+    {
+      "id": "edfb4da6-6753-427f-a118-6aa9283a0bdd",
+      "type": "input",
+      "position": {
+        "x": 35,
+        "y": 43
+      },
+      "config": {
+        "name": "input",
+        "defaultValue": "Hi, How are you?"
+      }
+    },
+    {
+      "id": "a3e15cca-f8a4-45cd-9861-21fbe362caf3",
+      "type": "llm-call",
+      "position": {
+        "x": 198.75,
+        "y": 199.75
+      },
+      "config": {
+        "model": "meta-llama/llama-3.3-70b-instruct:free",
+        "systemPrompt": "",
+        "temperature": 0.7,
+        "maxTokens": null,
+        "responseFormat": null
+      }
+    },
+    {
+      "id": "cf899944-4142-4684-a05f-9f2617a97647",
+      "type": "output",
+      "position": {
+        "x": 326.75,
+        "y": 7.25
+      },
+      "config": {
+        "format": "auto"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "605d8999-b6da-4087-9cde-abf4dd969644",
+      "source": "edfb4da6-6753-427f-a118-6aa9283a0bdd",
+      "target": "a3e15cca-f8a4-45cd-9861-21fbe362caf3",
+      "sourceHandle": "value",
+      "targetHandle": "userMessage"
+    },
+    {
+      "id": "20994b69-24ef-4a73-b68c-675c8179e7a9",
+      "source": "a3e15cca-f8a4-45cd-9861-21fbe362caf3",
+      "target": "cf899944-4142-4684-a05f-9f2617a97647",
+      "sourceHandle": "text",
+      "targetHandle": "value"
+    }
+  ],
+  "containsCustomCode": false
+}
