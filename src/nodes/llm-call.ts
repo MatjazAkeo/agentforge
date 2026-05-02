@@ -1,8 +1,8 @@
 import { registerNodeDefinition, type NodeDefinition } from './registry';
 import type { LLMCallConfig } from '@/domain/node-types';
-import { streamChatCompletion } from '@/openrouter/client';
-import type { ChatMessage, ToolCall } from '@/openrouter/types';
+import type { ChatMessage } from '@/openrouter/types';
 import type { ToolDefinitionPayload } from './tool';
+import { llmOnce } from './_internals/llm-once';
 import { useRunStore } from '@/stores/run';
 
 function buildMessages(cfg: LLMCallConfig, inputs: Record<string, unknown>): ChatMessage[] {
@@ -20,6 +20,16 @@ function buildMessages(cfg: LLMCallConfig, inputs: Record<string, unknown>): Cha
   return messages;
 }
 
+function flattenTools(input: unknown): ToolDefinitionPayload[] {
+  if (!input) return [];
+  if (Array.isArray(input)) {
+    const out: ToolDefinitionPayload[] = [];
+    for (const item of input) Array.isArray(item) ? out.push(...item) : out.push(item as ToolDefinitionPayload);
+    return out;
+  }
+  return [input as ToolDefinitionPayload];
+}
+
 export const llmCallNode: NodeDefinition = {
   type: 'llm-call',
   inputPorts: ['messages', 'userMessage', 'tools'],
@@ -27,79 +37,35 @@ export const llmCallNode: NodeDefinition = {
   async run(node, inputs, ctx) {
     const cfg = node.config as LLMCallConfig;
     const messages = buildMessages(cfg, inputs);
-
-    const toolsInput = inputs.tools as ToolDefinitionPayload[] | ToolDefinitionPayload[][] | ToolDefinitionPayload | undefined;
-
-    // Flatten potential array-of-arrays from multi-edge fan-in via Tool Group
-    const flatTools: ToolDefinitionPayload[] = [];
-    if (Array.isArray(toolsInput)) {
-      for (const item of toolsInput) {
-        if (Array.isArray(item)) flatTools.push(...item);
-        else flatTools.push(item as ToolDefinitionPayload);
-      }
-    } else if (toolsInput) {
-      flatTools.push(toolsInput as ToolDefinitionPayload);
-    }
-
-    const requestTools = flatTools.length > 0
-      ? flatTools.map((t) => ({
-          type: 'function' as const,
-          function: { name: t.name, description: t.description, parameters: t.inputSchema },
-        }))
-      : undefined;
-
-    const request = {
-      model: cfg.model,
-      messages,
-      temperature: cfg.temperature,
-      max_tokens: cfg.maxTokens ?? undefined,
-      response_format: cfg.responseFormat === 'json_object' ? { type: 'json_object' as const } : undefined,
-      tools: requestTools,
-      // Hint to providers that honor it (OpenAI-compatible). Many free providers
-      // ignore this and emit one call per turn regardless — that's a model-side decision.
-      parallel_tool_calls: requestTools ? true : undefined,
-    };
-    ctx.details.request = request;
-
-    const t0 = performance.now();
-    let assembled = '';
-    let usage = { input: 0, output: 0 };
-    let firstTokenAtMs: number | null = null;
-    let capturedToolCalls: ToolCall[] = [];
-
+    const tools = flattenTools(inputs.tools);
     useRunStore().incrementApiCalls();
 
-    const text = await streamChatCompletion({
-      apiKey: ctx.apiKey,
-      request,
-      signal: ctx.signal,
-      onContentDelta: (chunk) => {
-        if (firstTokenAtMs === null) firstTokenAtMs = performance.now() - t0;
-        assembled += chunk;
-        const preview = assembled.length > 80 ? `…${assembled.slice(-80)}` : assembled;
-        ctx.onStreamUpdate?.(preview);
+    const out = await llmOnce({
+      apiKey: ctx.apiKey, signal: ctx.signal,
+      model: cfg.model, temperature: cfg.temperature, maxTokens: cfg.maxTokens, responseFormat: cfg.responseFormat,
+      messages, tools,
+      onContentDelta: (d) => {
+        const preview = ((ctx.details.responseTextSoFar as string | undefined) ?? '') + d;
+        ctx.details.responseTextSoFar = preview;
+        ctx.onStreamUpdate?.(preview.length > 80 ? `…${preview.slice(-80)}` : preview);
       },
-      onUsage: (u) => {
-        usage = { input: u.input, output: u.output };
-        useRunStore().addTokens(u.input, u.output);
-      },
-      onToolCalls: (calls) => {
-        capturedToolCalls = calls;
-      },
+      onUsage: (u) => useRunStore().addTokens(u.input, u.output),
     });
 
-    const totalMs = performance.now() - t0;
-    ctx.details.response = { text };
-    ctx.details.usage = usage;
-    ctx.details.timing = { totalMs, firstTokenMs: firstTokenAtMs };
-    ctx.details.toolCalls = capturedToolCalls;
+    ctx.details.request = out.request;
+    ctx.details.response = out.response;
+    ctx.details.usage = out.usage;
+    ctx.details.timing = out.timing;
+    ctx.details.toolCalls = out.toolCalls;
 
-    // Preserve tool_calls on the assistant turn — required by the OpenAI/OpenRouter
-    // spec so the subsequent `tool` messages (which carry tool_call_id) are valid.
-    const assistantMessage: ChatMessage = { role: 'assistant', content: text };
-    if (capturedToolCalls.length > 0) assistantMessage.tool_calls = capturedToolCalls;
-    const finalMessages: ChatMessage[] = [...messages, assistantMessage];
-    return { text, toolCalls: capturedToolCalls, messages: finalMessages, usage };
+    const assistantMessage: ChatMessage = { role: 'assistant', content: out.text };
+    if (out.toolCalls.length > 0) assistantMessage.tool_calls = out.toolCalls;
+    return {
+      text: out.text,
+      toolCalls: out.toolCalls,
+      messages: [...messages, assistantMessage],
+      usage: out.usage,
+    };
   },
 };
 
