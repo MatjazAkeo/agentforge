@@ -2,7 +2,7 @@
 import { computed, ref, onMounted, onUnmounted, markRaw } from 'vue';
 import { VueFlow, useVueFlow, type Node as VFNode, type Edge as VFEdge } from '@vue-flow/core';
 import { Background } from '@vue-flow/background';
-import { Controls } from '@vue-flow/controls';
+import { Controls, ControlButton } from '@vue-flow/controls';
 import { MiniMap } from '@vue-flow/minimap';
 import '@vue-flow/core/dist/style.css';
 import '@vue-flow/core/dist/theme-default.css';
@@ -82,13 +82,29 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown));
       :edges="flowEdges"
       :node-types="nodeTypes"
       :fit-view-on-init="true"
+      :snap-to-grid="ui.snapToGrid"
+      :snap-grid="[20, 20]"
       @node-click="onNodeClick"
       @pane-click="onPaneClick"
       @node-drag-stop="onNodeDragStop"
       @connect="onConnect"
     >
-      <Background />
-      <Controls />
+      <Background :gap="20" />
+      <Controls>
+        <ControlButton
+          @click="ui.snapToGrid = !ui.snapToGrid"
+          :title="ui.snapToGrid ? 'Disable snap to grid' : 'Snap nodes to grid'"
+          :class="ui.snapToGrid ? 'snap-active' : ''"
+        >
+          <!-- 4-dot grid glyph -->
+          <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+            <circle cx="4" cy="4" r="1.4" />
+            <circle cx="12" cy="4" r="1.4" />
+            <circle cx="4" cy="12" r="1.4" />
+            <circle cx="12" cy="12" r="1.4" />
+          </svg>
+        </ControlButton>
+      </Controls>
       <MiniMap />
     </VueFlow>
     <button

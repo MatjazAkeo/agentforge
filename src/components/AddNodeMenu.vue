@@ -105,7 +105,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown));
       class="block bg-elev text-text-base border border-border-base rounded px-1.5 py-1 text-xs mx-1.5 my-1"
       style="width: calc(100% - 12px)"
     >
-    <ul class="list-none mt-1 p-0 max-h-[280px] overflow-y-auto">
+    <ul class="list-none mt-2.5 p-0 max-h-[280px] overflow-y-auto">
       <li
         v-for="(opt, i) in filtered"
         :key="opt.type"

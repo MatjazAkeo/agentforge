@@ -2,6 +2,7 @@ import { createApp } from 'vue';
 import { createPinia } from 'pinia';
 import App from './App.vue';
 import './styles/tokens.css';
+import './styles/vue-flow-overrides.css';
 
 // Force registration of node definitions
 import '@/nodes/input';

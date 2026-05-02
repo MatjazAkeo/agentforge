@@ -53,29 +53,29 @@ const responseJson = computed(() =>
     <section class="border-t border-border-base first:border-t-0">
       <h4
         @click="toggle('config')"
-        class="m-0 py-2 text-xs cursor-pointer select-none"
+        class="m-0 py-2.5 text-sm cursor-pointer select-none"
       >{{ sectionsOpen.config ? '▼' : '▶' }} Config</h4>
       <div v-show="sectionsOpen.config" class="flex flex-col gap-2.5 pt-1 pb-3">
-        <label class="flex flex-col gap-1 text-[11px] opacity-85">
+        <label class="flex flex-col gap-1 text-xs opacity-85">
           Model
           <select
             :value="cfg.model"
             @change="(e) => update('model', (e.target as HTMLSelectElement).value)"
-            class="bg-elev text-text-base border border-border-base rounded px-1.5 py-1 text-xs font-ui"
+            class="bg-elev text-text-base border border-border-base rounded px-2 py-1.5 text-sm font-ui"
           >
             <option v-for="m in modelOptions" :key="m.id" :value="m.id">{{ m.displayName }}</option>
           </select>
         </label>
-        <label class="flex flex-col gap-1 text-[11px] opacity-85">
+        <label class="flex flex-col gap-1 text-xs opacity-85">
           System prompt
           <textarea
             :value="cfg.systemPrompt"
             @input="(e) => update('systemPrompt', (e.target as HTMLTextAreaElement).value)"
             rows="3"
-            class="bg-elev text-text-base border border-border-base rounded px-1.5 py-1 text-xs font-ui resize-y"
+            class="bg-elev text-text-base border border-border-base rounded px-2 py-1.5 text-sm font-ui resize-y"
           ></textarea>
         </label>
-        <label class="flex flex-col gap-1 text-[11px] opacity-85">
+        <label class="flex flex-col gap-1 text-xs opacity-85">
           Temperature
           <input
             type="number"
@@ -84,7 +84,7 @@ const responseJson = computed(() =>
             step="0.1"
             :value="cfg.temperature"
             @input="(e) => update('temperature', parseFloat((e.target as HTMLInputElement).value))"
-            class="bg-elev text-text-base border border-border-base rounded px-1.5 py-1 text-xs font-ui"
+            class="bg-elev text-text-base border border-border-base rounded px-2 py-1.5 text-sm font-ui"
           >
         </label>
       </div>
@@ -94,7 +94,7 @@ const responseJson = computed(() =>
     <section class="border-t border-border-base">
       <h4
         @click="toggle('conversation')"
-        class="m-0 py-2 text-xs cursor-pointer select-none"
+        class="m-0 py-2.5 text-sm cursor-pointer select-none"
       >{{ sectionsOpen.conversation ? '▼' : '▶' }} Conversation</h4>
       <div v-show="sectionsOpen.conversation" class="pb-3">
         <div
@@ -103,12 +103,12 @@ const responseJson = computed(() =>
           class="my-1.5 px-2 py-1.5 bg-panel rounded"
           :data-role="m.role"
         >
-          <div class="text-[10px] opacity-50 uppercase mb-0.5">{{ m.role }}</div>
-          <pre class="m-0 whitespace-pre-wrap text-[11px]">{{ m.content }}</pre>
+          <div class="text-[11px] opacity-50 uppercase mb-1">{{ m.role }}</div>
+          <pre class="m-0 whitespace-pre-wrap text-xs">{{ m.content }}</pre>
         </div>
         <div v-if="result?.details?.response" class="my-1.5 px-2 py-1.5 bg-panel rounded">
-          <div class="text-[10px] opacity-50 uppercase mb-0.5">assistant</div>
-          <pre class="m-0 whitespace-pre-wrap text-[11px] text-[#b8d8ff]">{{ responseText }}</pre>
+          <div class="text-[11px] opacity-50 uppercase mb-1">assistant</div>
+          <pre class="m-0 whitespace-pre-wrap text-xs text-[#b8d8ff]">{{ responseText }}</pre>
         </div>
       </div>
     </section>
@@ -117,9 +117,9 @@ const responseJson = computed(() =>
     <section class="border-t border-border-base">
       <h4
         @click="toggle('stats')"
-        class="m-0 py-2 text-xs cursor-pointer select-none"
+        class="m-0 py-2.5 text-sm cursor-pointer select-none"
       >{{ sectionsOpen.stats ? '▼' : '▶' }} Stats</h4>
-      <div v-show="sectionsOpen.stats" class="grid grid-cols-2 gap-x-2 gap-y-1 pt-1 pb-3 text-[11px]">
+      <div v-show="sectionsOpen.stats" class="grid grid-cols-2 gap-x-2 gap-y-1.5 pt-1 pb-3 text-xs">
         <div>tokens in: <strong>{{ usage?.input ?? '—' }}</strong></div>
         <div>tokens out: <strong>{{ usage?.output ?? '—' }}</strong></div>
         <div>total time: <strong>{{ timing ? `${(timing.totalMs / 1000).toFixed(2)}s` : '—' }}</strong></div>
@@ -131,11 +131,11 @@ const responseJson = computed(() =>
     <section class="border-t border-border-base">
       <h4
         @click="toggle('request')"
-        class="m-0 py-2 text-xs cursor-pointer select-none"
+        class="m-0 py-2.5 text-sm cursor-pointer select-none"
       >{{ sectionsOpen.request ? '▼' : '▶' }} Raw request</h4>
       <pre
         v-show="sectionsOpen.request"
-        class="bg-panel px-2 py-1.5 rounded text-[11px] max-h-[200px] overflow-auto whitespace-pre-wrap m-0"
+        class="bg-panel px-2 py-1.5 rounded text-xs max-h-[200px] overflow-auto whitespace-pre-wrap m-0"
       >{{ requestJson }}</pre>
     </section>
 
@@ -143,11 +143,11 @@ const responseJson = computed(() =>
     <section class="border-t border-border-base">
       <h4
         @click="toggle('response')"
-        class="m-0 py-2 text-xs cursor-pointer select-none"
+        class="m-0 py-2.5 text-sm cursor-pointer select-none"
       >{{ sectionsOpen.response ? '▼' : '▶' }} Raw response</h4>
       <pre
         v-show="sectionsOpen.response"
-        class="bg-panel px-2 py-1.5 rounded text-[11px] max-h-[200px] overflow-auto whitespace-pre-wrap m-0"
+        class="bg-panel px-2 py-1.5 rounded text-xs max-h-[200px] overflow-auto whitespace-pre-wrap m-0"
       >{{ responseJson }}</pre>
     </section>
 
@@ -155,11 +155,11 @@ const responseJson = computed(() =>
     <section v-if="result?.errorMessage" class="border-t border-border-base">
       <h4
         @click="toggle('errors')"
-        class="m-0 py-2 text-xs cursor-pointer select-none text-error"
+        class="m-0 py-2.5 text-sm cursor-pointer select-none text-error"
       >{{ sectionsOpen.errors ? '▼' : '▶' }} Error</h4>
       <pre
         v-show="sectionsOpen.errors"
-        class="bg-panel px-2 py-1.5 rounded text-[11px] max-h-[200px] overflow-auto whitespace-pre-wrap m-0 text-[#f5a5a5]"
+        class="bg-panel px-2 py-1.5 rounded text-xs max-h-[200px] overflow-auto whitespace-pre-wrap m-0 text-[#f5a5a5]"
       >{{ result.errorMessage }}{{ result.errorStack ? '\n\n' + result.errorStack : '' }}</pre>
     </section>
   </div>

@@ -1,0 +1,73 @@
+/* Dark-mode overrides for Vue Flow's built-in Controls and MiniMap.
+   Vue Flow ships with light styling; these globals theme it for our app. */
+
+/* Controls panel container */
+.vue-flow__controls {
+  background: var(--bg-panel-strong);
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+/* Individual control buttons */
+.vue-flow__controls-button {
+  background: var(--bg-elev);
+  color: var(--text);
+  border: none;
+  border-bottom: 1px solid var(--border);
+  width: 28px;
+  height: 28px;
+  padding: 4px;
+  cursor: pointer;
+}
+
+.vue-flow__controls-button:last-child {
+  border-bottom: none;
+}
+
+.vue-flow__controls-button:hover {
+  background: var(--bg-panel);
+}
+
+/* Default Vue Flow control icons (zoom in/out, fit, lock) ship as inline SVG
+   filled with currentColor — make them readable on dark background. */
+.vue-flow__controls-button svg {
+  fill: currentColor;
+  color: var(--text);
+}
+
+/* Active state for the snap-to-grid toggle button */
+.vue-flow__controls-button.snap-active {
+  background: var(--accent);
+  color: white;
+}
+.vue-flow__controls-button.snap-active svg {
+  fill: white;
+  color: white;
+}
+.vue-flow__controls-button.snap-active:hover {
+  background: var(--accent);
+  filter: brightness(1.08);
+}
+
+/* MiniMap */
+.vue-flow__minimap {
+  background-color: var(--bg-panel-strong);
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+}
+
+.vue-flow__minimap-mask {
+  fill: rgba(0, 0, 0, 0.45);
+}
+
+.vue-flow__minimap-node {
+  fill: var(--bg-elev);
+  stroke: var(--border-strong);
+}
+
+/* Background grid dots — slightly more visible on dark canvas */
+.vue-flow__background pattern circle {
+  fill: rgba(255, 255, 255, 0.08);
+}

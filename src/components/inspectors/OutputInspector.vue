@@ -19,12 +19,12 @@ function update(key: keyof OutputConfig, value: string) {
 
 <template>
   <div class="flex flex-col gap-2.5">
-    <label v-if="cfg" class="flex flex-col gap-1 text-[11px] opacity-85">
+    <label v-if="cfg" class="flex flex-col gap-1 text-xs opacity-85">
       Format
       <select
         :value="cfg.format"
         @change="(e) => update('format', (e.target as HTMLSelectElement).value)"
-        class="bg-elev text-text-base border border-border-base rounded px-1.5 py-1 text-xs"
+        class="bg-elev text-text-base border border-border-base rounded px-2 py-1.5 text-sm"
       >
         <option value="auto">auto</option>
         <option value="text">text</option>
@@ -33,8 +33,8 @@ function update(key: keyof OutputConfig, value: string) {
       </select>
     </label>
     <section>
-      <div class="opacity-60 text-[10px] uppercase">Value</div>
-      <pre class="bg-panel p-2 rounded text-[11px] whitespace-pre-wrap max-h-[200px] overflow-y-auto m-0">{{ result?.details?.value ?? '— not yet run —' }}</pre>
+      <div class="opacity-60 text-[11px] uppercase">Value</div>
+      <pre class="bg-panel p-2 rounded text-xs whitespace-pre-wrap max-h-[200px] overflow-y-auto m-0">{{ result?.details?.value ?? '— not yet run —' }}</pre>
     </section>
   </div>
 </template>

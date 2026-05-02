@@ -16,33 +16,33 @@ function update<K extends keyof InputConfig>(key: K, value: InputConfig[K]) {
 
 <template>
   <div v-if="cfg" class="flex flex-col gap-2.5">
-    <label class="flex flex-col gap-1 text-[11px] opacity-85">
+    <label class="flex flex-col gap-1 text-xs opacity-85">
       Name
       <input
         :value="cfg.name"
         @input="(e) => update('name', (e.target as HTMLInputElement).value)"
-        class="bg-elev text-text-base border border-border-base rounded px-1.5 py-1 text-xs font-ui"
+        class="bg-elev text-text-base border border-border-base rounded px-2 py-1.5 text-sm font-ui"
       >
     </label>
-    <label class="flex flex-col gap-1 text-[11px] opacity-85">
+    <label class="flex flex-col gap-1 text-xs opacity-85">
       Value type
       <select
         :value="cfg.valueType"
         @change="(e) => update('valueType', (e.target as HTMLSelectElement).value as InputConfig['valueType'])"
-        class="bg-elev text-text-base border border-border-base rounded px-1.5 py-1 text-xs font-ui"
+        class="bg-elev text-text-base border border-border-base rounded px-2 py-1.5 text-sm font-ui"
       >
         <option value="text">text</option>
         <option value="number">number</option>
         <option value="json">json</option>
       </select>
     </label>
-    <label class="flex flex-col gap-1 text-[11px] opacity-85">
+    <label class="flex flex-col gap-1 text-xs opacity-85">
       Default value
       <textarea
         :value="String(cfg.defaultValue ?? '')"
         @input="(e) => update('defaultValue', (e.target as HTMLTextAreaElement).value)"
         rows="3"
-        class="bg-elev text-text-base border border-border-base rounded px-1.5 py-1 text-xs font-ui resize-y"
+        class="bg-elev text-text-base border border-border-base rounded px-2 py-1.5 text-sm font-ui resize-y"
       ></textarea>
     </label>
   </div>

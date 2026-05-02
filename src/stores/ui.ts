@@ -8,9 +8,10 @@ export const useUiStore = defineStore('ui', () => {
   const leftActiveTab = ref<'chat' | 'runs'>('runs');
   const selectedNodeId = ref<string | null>(null);
   const settingsOpen = ref(false);
+  const snapToGrid = ref(false);
 
   return {
     leftSidebarCollapsed, rightSidebarCollapsed, leftActiveTab,
-    selectedNodeId, settingsOpen,
+    selectedNodeId, settingsOpen, snapToGrid,
   };
 });
