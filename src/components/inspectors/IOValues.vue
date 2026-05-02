@@ -34,14 +34,25 @@ function format(value: unknown): string {
 }
 
 const hasAny = computed(() => inputEntries.value.length > 0 || outputEntries.value.length > 0);
+
+// When this node ran inside a loop, result.input/output reflect ONLY the last iteration.
+// Surface that explicitly so the user knows to consult the iteration tree for full history.
+const iterCount = computed(() => result.value?.iterations?.length ?? 0);
 </script>
 
 <template>
   <section class="border-t border-border-base">
     <h4
       @click="open = !open"
-      class="m-0 py-2.5 text-sm cursor-pointer select-none"
-    >{{ open ? '▼' : '▶' }} I/O values</h4>
+      class="m-0 py-2.5 text-sm cursor-pointer select-none flex items-center gap-2"
+    >
+      <span>{{ open ? '▼' : '▶' }} I/O values</span>
+      <span
+        v-if="iterCount > 1"
+        class="text-[10px] opacity-60 font-normal normal-case"
+        :title="`This node ran ${iterCount} times inside a loop. Showing last iteration; full per-iteration history is in the Iterations section.`"
+      >· latest of {{ iterCount }}</span>
+    </h4>
 
     <div v-show="open" class="pb-3 flex flex-col gap-2.5">
       <div v-if="!hasAny" class="text-xs opacity-50 italic">— no run yet —</div>

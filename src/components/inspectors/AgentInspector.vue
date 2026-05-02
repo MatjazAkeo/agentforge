@@ -23,16 +23,10 @@ function update<K extends keyof AgentConfig>(key: K, value: AgentConfig[K]) {
   graph.updateNodeConfig(props.nodeId, { [key]: value });
 }
 
-const iterations = computed(() => {
-  const arr = result.value?.details?.iterations as Array<{ iteration: number; llm: { usage: { input: number; output: number }; timing: { totalMs: number; firstTokenMs: number | null } }; tools: Array<unknown> }> | undefined;
-  if (!arr) return [];
-  return arr.map((r) => ({
-    iteration: r.iteration,
-    startedAt: '',
-    inputs: { 'tool-calls': r.tools.length },
-    output: { tokens: r.llm.usage.input + r.llm.usage.output, ms: Math.round(r.llm.timing.totalMs) },
-  }));
-});
+// IterationRecord[] is populated by agent.ts via ctx.onIterationComplete — same shape
+// as Loop Controller body nodes, so the shared IterationTree renders real per-iteration
+// inputs (messages going in) and outputs (assistant text + toolCalls + toolResults).
+const iterations = computed(() => result.value?.iterations ?? []);
 </script>
 
 <template>

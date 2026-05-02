@@ -1,5 +1,6 @@
 import type { Node } from '@/domain/graph';
 import type { NodeType } from '@/domain/node-types';
+import type { IterationRecord } from '@/domain/run';
 
 export type RunInputs = Record<string, unknown>;
 export type RunOutputs = Record<string, unknown>;
@@ -8,6 +9,12 @@ export interface NodeRunContext {
   signal: AbortSignal;
   details: Record<string, unknown>;
   onStreamUpdate?: (preview: string) => void;
+  /**
+   * Called by nodes that run an internal multi-step process (e.g. Agent's LLM↔tool loop).
+   * The runner appends each record to `result.iterations[]`, so the inspector's
+   * canonical iteration tree can render it. Optional — single-pass nodes ignore it.
+   */
+  onIterationComplete?: (record: IterationRecord) => void;
   apiKey: string;
 }
 

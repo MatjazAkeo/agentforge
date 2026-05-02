@@ -119,6 +119,10 @@ export async function runGraph(args: RunGraphArgs): Promise<Run> {
           signal: controller.signal,
           details: result.details,
           onStreamUpdate: (preview: string) => runStore.setLivePreview(id, preview),
+          onIterationComplete: (record: import('@/domain/run').IterationRecord) => {
+            if (!result.iterations) result.iterations = [];
+            result.iterations.push(record);
+          },
           apiKey: args.apiKey,
         };
         const outputs = await def.run(node, inputs, ctx);

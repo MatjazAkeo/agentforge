@@ -54,6 +54,11 @@ export const agentNode: NodeDefinition = {
       if (ctx.signal.aborted) throw new Error('aborted');
       runStore.incrementApiCalls();
 
+      const iterStart = new Date().toISOString();
+      // Snapshot the messages going into this turn so the IterationRecord shows the
+      // ACTUAL conversation state, not a synthesized projection.
+      const messagesIn = messages.slice();
+
       const llm = await llmOnce({
         apiKey: ctx.apiKey, signal: ctx.signal,
         model: cfg.model, temperature: cfg.temperature, maxTokens: cfg.maxTokens,
@@ -67,25 +72,43 @@ export const agentNode: NodeDefinition = {
       messages = [...messages, assistantMsg];
 
       if (llm.toolCalls.length === 0) {
-        iterations.push({
+        const richRecord: AgentIteration = {
           iteration: i,
           llm: { request: llm.request, response: llm.response, usage: llm.usage, timing: llm.timing },
           toolCalls: [], tools: [],
-        });
+        };
+        iterations.push(richRecord);
         ctx.details.iterations = iterations;
         ctx.details.stopReason = 'final-answer';
+        ctx.onIterationComplete?.({
+          iteration: i,
+          startedAt: iterStart,
+          endedAt: new Date().toISOString(),
+          inputs: { messages: messagesIn, tools: tools.map((t) => t.name) },
+          output: { text: llm.text, toolCalls: [] },
+          details: { llm: richRecord.llm, tools: [] },
+        });
         return { text: lastText, messages, iterationCount: i };
       }
 
       const batch = await runToolBatch({ toolCalls: llm.toolCalls, tools, signal: ctx.signal });
       messages = [...messages, ...batch.toolMessages];
-      iterations.push({
+      const richRecord: AgentIteration = {
         iteration: i,
         llm: { request: llm.request, response: llm.response, usage: llm.usage, timing: llm.timing },
         toolCalls: llm.toolCalls,
         tools: batch.results,
-      });
+      };
+      iterations.push(richRecord);
       ctx.details.iterations = iterations;
+      ctx.onIterationComplete?.({
+        iteration: i,
+        startedAt: iterStart,
+        endedAt: new Date().toISOString(),
+        inputs: { messages: messagesIn, tools: tools.map((t) => t.name) },
+        output: { text: llm.text, toolCalls: llm.toolCalls, toolResults: batch.results },
+        details: { llm: richRecord.llm, tools: batch.results },
+      });
     }
 
     ctx.details.stopReason = 'max-iterations';
