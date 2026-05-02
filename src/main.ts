@@ -13,6 +13,7 @@ import '@/nodes/loop-controller';
 import '@/nodes/tool';
 import '@/nodes/tool-group';
 import '@/nodes/tool-runner';
+import '@/nodes/transform';
 
 // Tauri's plugin-http leaks an "Unhandled Promise Rejection: The resource id X
 // is invalid" when a request is aborted mid-flight. The error fires from an

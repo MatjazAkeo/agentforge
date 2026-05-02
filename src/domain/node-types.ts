@@ -46,6 +46,18 @@ export interface ToolRunnerConfig {
   // No config — behavior fully driven by inputs.
 }
 
+export interface TransformConfig {
+  mode: 'json-parse' | 'json-stringify' | 'json-path' | 'regex-extract' | 'template';
+  /** json-path: dot-and-bracket path expression. Example: 'a.b[0].c' or 'messages[-1].content'. */
+  path?: string;
+  /** regex-extract: source pattern; flags applied automatically (g not used — single match). */
+  pattern?: string;
+  /** regex-extract: which capture group to return. 0 = whole match. */
+  group?: number;
+  /** template: a string with {{value}} placeholders rendered with the input value. */
+  template?: string;
+}
+
 export interface LoopControllerConfig {
   maxIterations: number;            // default 25
   valueChannels: Array<{ name: string }>;  // declared state channels
@@ -69,6 +81,7 @@ export type NodeConfig =
   | ToolConfig
   | ToolGroupConfig
   | ToolRunnerConfig
+  | TransformConfig
   | LoopControllerConfig
   | AgentConfig
   | Record<string, unknown>;

@@ -43,6 +43,9 @@ export function getSourcePortType(node: Node, handleId: string): DataType | null
       if (handleId === 'messages') return 'messages';
       if (handleId === 'results') return 'json';
       return null;
+    case 'transform':
+      if (handleId === 'result') return 'json';
+      return null;
     case 'loop-controller': {
       const cfg = node.config as { valueChannels?: Array<{ name: string }> };
       if (handleId === 'iteration') return 'string';
@@ -80,6 +83,9 @@ export function getTargetPortType(node: Node, handleId: string): DataType | null
       if (handleId === 'toolCalls') return 'tool-calls';
       if (handleId === 'tools') return 'tools';
       if (handleId === 'messages') return 'messages';
+      return null;
+    case 'transform':
+      if (handleId === 'value') return 'json';
       return null;
     case 'loop-controller': {
       const cfg = node.config as { valueChannels?: Array<{ name: string }> };
