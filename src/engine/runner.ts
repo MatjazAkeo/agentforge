@@ -6,6 +6,7 @@ import { useRunStore } from '@/stores/run';
 import { newRunAbortController } from './abort';
 import { useGraphStore } from '@/stores/graph';
 import { writeRun } from '@/persistence/runs-dir';
+import { useRunsStore } from '@/stores/runs';
 
 export interface RunGraphArgs {
   graph: Graph;
@@ -115,6 +116,7 @@ export async function runGraph(args: RunGraphArgs): Promise<Run> {
   if (graphStore.filePath) {
     try {
       await writeRun(graphStore.filePath, run);
+      await useRunsStore().refresh();
     } catch (e) {
       console.error('Failed to save run:', e);
     }

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useUiStore } from '@/stores/ui';
+import RunsList from './runs/RunsList.vue';
 
 const ui = useUiStore();
 </script>
@@ -28,13 +29,11 @@ const ui = useUiStore();
         ]"
       >Runs</button>
     </div>
-    <div class="flex-1 overflow-y-auto p-3.5">
-      <div v-if="ui.leftActiveTab === 'chat'" class="flex items-center justify-center h-full opacity-50">
+    <div class="flex-1 overflow-y-auto">
+      <div v-if="ui.leftActiveTab === 'chat'" class="flex items-center justify-center h-full opacity-50 p-3.5">
         Not a chat graph
       </div>
-      <div v-else class="flex items-center justify-center h-full opacity-50">
-        No runs yet
-      </div>
+      <RunsList v-else />
     </div>
   </div>
 </template>
