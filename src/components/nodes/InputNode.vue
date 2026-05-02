@@ -10,6 +10,16 @@ const graph = useGraphStore();
 const run = useRunStore();
 const status = computed(() => run.current?.nodeResults[props.id]?.status ?? 'idle');
 
+const borderColor = computed(() => {
+  switch (status.value) {
+    case 'done': return 'var(--success)';
+    case 'error': return 'var(--error)';
+    case 'running':
+    case 'streaming': return 'var(--accent)';
+    default: return '#16181c';
+  }
+});
+
 const isEmpty = computed(() => {
   const v = props.data.config.defaultValue;
   return v === undefined || v === null || v === '';
@@ -28,7 +38,8 @@ function onDelete() {
 
 <template>
   <div
-    class="node-shell group w-[240px] bg-[#25272d] border border-[#16181c] rounded-md shadow-[0_2px_8px_rgba(0,0,0,0.45)] font-ui text-text-base"
+    class="node-shell group w-[240px] bg-[#25272d] border rounded-md shadow-[0_2px_8px_rgba(0,0,0,0.45)] font-ui text-text-base"
+    :style="{ borderColor }"
     :data-status="status"
   >
     <div class="relative rounded-t-md flex items-center gap-2 px-3 py-1.5 border-b border-[#16181c]">
