@@ -75,9 +75,12 @@ describe('runGraph with Loop Controller', () => {
     expect(result.status).toBe('completed');
     expect(result.nodeResults.inc.iterations?.length).toBe(3);
     expect(result.nodeResults.lc.details.stopReason).toBe('continue-false');
-    // Output reads lc.output-n directly (no Break needed). After the loop ends,
-    // lc's last-iteration output-n holds the channel value entering that iteration (2).
-    expect(result.nodeResults.out.details.value).toBe(2);
+    // After halt the LC ticks one more time so output-n reflects the body's
+    // FINAL write via input-n (the value 3 — iter 3 produced result=3, continue=false).
+    // Without the tick the user would see iteration 3's *input* (2), discarding the
+    // final body work — the bug that prevented test4's final assistant text from
+    // reaching Output.
+    expect(result.nodeResults.out.details.value).toBe(3);
   });
 
   it('completes (soft halt) when continue is always truthy and maxIterations is reached', async () => {

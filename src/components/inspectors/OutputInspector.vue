@@ -17,6 +17,12 @@ const result = computed(() => run.current?.nodeResults[props.nodeId]);
 function update(key: keyof OutputConfig, value: string) {
   graph.updateNodeConfig(props.nodeId, { [key]: value });
 }
+
+function formatValue(v: unknown): string {
+  if (v === undefined || v === null) return '— not yet run —';
+  if (typeof v === 'string') return v;
+  try { return JSON.stringify(v, null, 2); } catch { return String(v); }
+}
 </script>
 
 <template>
@@ -36,7 +42,7 @@ function update(key: keyof OutputConfig, value: string) {
     </label>
     <section>
       <div class="opacity-60 text-[11px] uppercase">Value</div>
-      <pre class="bg-panel p-2 rounded text-xs whitespace-pre-wrap max-h-[200px] overflow-y-auto m-0">{{ result?.details?.value ?? '— not yet run —' }}</pre>
+      <pre class="bg-panel p-2 rounded text-xs whitespace-pre-wrap max-h-[200px] overflow-y-auto m-0">{{ formatValue(result?.details?.value) }}</pre>
     </section>
 
     <IOValues :node-id="nodeId" />

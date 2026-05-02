@@ -322,6 +322,19 @@ export async function driveLoop(args: LoopDriverArgs): Promise<LoopDriverResult>
     throw e;
   }
 
+  // Final channel tick: surface the body's last-pass values on `output-<name>`
+  // so post-loop nodes see the FINAL state (the value the body just wrote via
+  // `input-<name>`), not the value the LC emitted at the START of the last
+  // iteration. Without this, e.g. the LLM's final text from iter N would be
+  // discarded because no iter N+1 ever runs to surface it.
+  if (completedIterations > 0) {
+    for (const [k, v] of Object.entries(cycledChannelValues)) {
+      const name = k.slice('input-'.length);
+      controllerOutputs[`output-${name}`] = v;
+    }
+    outputsByNode.set(controllerId, controllerOutputs);
+  }
+
   // Mark controller done and stash stop reason.
   // This block is only reached on success paths (continue-false, max-iterations, aborted).
   // M7: error path is handled by the outer catch block above and re-throws before reaching here.
@@ -331,6 +344,8 @@ export async function driveLoop(args: LoopDriverArgs): Promise<LoopDriverResult>
   ctrl.details.stopReason = stopReason;
   // C2: use completedIterations for accurate reporting (not the loop counter `iteration`)
   ctrl.details.iterationCount = completedIterations;
+  // Update the top-level output snapshot with the post-tick values too.
+  ctrl.output = JSON.parse(JSON.stringify(controllerOutputs));
   // I3: record endedAt on success paths.
   ctrl.endedAt = new Date().toISOString();
 
