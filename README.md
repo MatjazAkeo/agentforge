@@ -10,7 +10,15 @@ Plan 2 (Tools & Persistent Runs) — runnable. Tool/Tool Group/Tool Runner nodes
 
 Plan 3 (Loops & Agents) — runnable. Loop Controller and Break nodes let you build cycles on the canvas (ReAct, retry, self-critique); each iteration is recorded and inspectable. The Agent node packages the LLM↔Tool loop as a single node for the common case.
 
-Subsequent plans add: chat sidebar & templates (Plan 4).
+Plan 4 (Chat & Templates) — runnable. Transform and Prompt Template nodes plus Chat Input + Chat Output complete the v1 node set; the left sidebar becomes a real chat interface when the graph is chat-active. Six bundled starter graphs are accessible via the Templates button.
+
+### Plan 4 features
+
+- **Transform** node — `json-parse`, `json-stringify`, `json-path`, `regex-extract`, `template` modes
+- **Prompt Template** node — string template with `{{var}}` placeholders; one input port per discovered variable
+- **Chat Input** + **Chat Output** nodes — bind to the chat sidebar
+- **Chat sidebar** — when the open graph has exactly one Chat Input + one Chat Output, the left sidebar swaps to a real chat thread; each submission triggers a Run
+- **Bundled templates** — six starter graphs accessible via the Templates toolbar button: Hello Model, Two-Model Comparison, Self-Critique Loop (with conditional halt), RAG-lite, Raw ReAct Chat, Encapsulated Agent Chat
 
 ### Plan 3 features
 
