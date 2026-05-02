@@ -57,7 +57,7 @@
       "source": "a3e15cca-f8a4-45cd-9861-21fbe362caf3",
       "target": "cf899944-4142-4684-a05f-9f2617a97647",
       "sourceHandle": "text",
-      "targetHandle": "value"
+      "targetHandle": "text"
     }
   ],
   "containsCustomCode": false

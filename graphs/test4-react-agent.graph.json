@@ -223,7 +223,7 @@
       "source": "lc",
       "sourceHandle": "output-messages",
       "target": "out",
-      "targetHandle": "value"
+      "targetHandle": "text"
     }
   ]
 }

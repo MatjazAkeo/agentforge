@@ -63,7 +63,7 @@ export function getSourcePortType(node: Node, handleId: string): DataType | null
     case 'agent':
       if (handleId === 'text') return 'string';
       if (handleId === 'messages') return 'messages';
-      if (handleId === 'iterationCount') return 'number';
+      if (handleId === 'iteration') return 'number';
       return null;
     case 'chat-input':
       if (handleId === 'text') return 'string';
@@ -78,7 +78,7 @@ export function getSourcePortType(node: Node, handleId: string): DataType | null
 export function getTargetPortType(node: Node, handleId: string): DataType | null {
   switch (node.type) {
     case 'output':
-      if (handleId === 'value') return 'string';
+      if (handleId === 'text') return 'string';
       return null;
     case 'llm-call':
       if (handleId === 'text') return 'string';

@@ -146,7 +146,7 @@
       "source": "ag",
       "sourceHandle": "text",
       "target": "out",
-      "targetHandle": "value"
+      "targetHandle": "text"
     }
   ]
 }

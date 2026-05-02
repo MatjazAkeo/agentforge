@@ -4,6 +4,7 @@ import { useGraphStore } from '@/stores/graph';
 import type { TransformConfig } from '@/domain/node-types';
 import IOValues from './IOValues.vue';
 import PortLegend from './PortLegend.vue';
+import MonacoEditor from '@/components/MonacoEditor.vue';
 
 const props = defineProps<{ nodeId: string }>();
 const graph = useGraphStore();
@@ -30,6 +31,7 @@ function update<K extends keyof TransformConfig>(key: K, value: TransformConfig[
         <option value="json-path">json-path</option>
         <option value="regex-extract">regex-extract</option>
         <option value="template">template</option>
+        <option value="custom">custom (JS)</option>
       </select>
     </label>
 
@@ -76,6 +78,21 @@ function update<K extends keyof TransformConfig>(key: K, value: TransformConfig[
         class="bg-elev text-text-base border border-border-base rounded px-2 py-1.5 text-sm font-mono resize-y"
       ></textarea>
       <div class="text-[11px] opacity-60">Use <code class="font-mono">&#123;&#123;value&#125;&#125;</code> to refer to the input.</div>
+    </label>
+
+    <label v-if="cfg.mode === 'custom'" class="flex flex-col gap-1 text-xs opacity-85">
+      Code
+      <div class="rounded border border-border-base overflow-hidden">
+        <MonacoEditor
+          :model-value="cfg.code ?? ''"
+          @update:model-value="(v: string) => update('code', v)"
+          language="javascript"
+          height="200px"
+        />
+      </div>
+      <div class="text-[11px] opacity-60">
+        Function body. Receives <code class="font-mono">value</code> (the input). Use <code class="font-mono">return</code> to emit the result. Synchronous only — no <code class="font-mono">await</code>, no I/O.
+      </div>
     </label>
 
     <IOValues :node-id="nodeId" />

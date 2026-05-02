@@ -27,9 +27,16 @@ export const useGraphStore = defineStore('graph', () => {
 
   function recomputeContainsCustomCode() {
     graph.value.containsCustomCode = graph.value.nodes.some((n) => {
-      if (n.type !== 'tool') return false;
-      const code = (n.config as { code?: string }).code;
-      return typeof code === 'string' && code.trim().length > 0;
+      if (n.type === 'tool') {
+        const code = (n.config as { code?: string }).code;
+        return typeof code === 'string' && code.trim().length > 0;
+      }
+      // Transform's `custom` mode evaluates user JS at runtime — same trust model.
+      if (n.type === 'transform') {
+        const cfg = n.config as { mode?: string; code?: string };
+        return cfg.mode === 'custom' && typeof cfg.code === 'string' && cfg.code.trim().length > 0;
+      }
+      return false;
     });
   }
 

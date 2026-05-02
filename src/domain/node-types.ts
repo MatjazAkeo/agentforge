@@ -47,7 +47,7 @@ export interface ToolRunnerConfig {
 }
 
 export interface TransformConfig {
-  mode: 'json-parse' | 'json-stringify' | 'json-path' | 'regex-extract' | 'template';
+  mode: 'json-parse' | 'json-stringify' | 'json-path' | 'regex-extract' | 'template' | 'custom';
   /** json-path: dot-and-bracket path expression. Example: 'a.b[0].c' or 'messages[-1].content'. */
   path?: string;
   /** regex-extract: source pattern; flags applied automatically (g not used — single match). */
@@ -56,6 +56,9 @@ export interface TransformConfig {
   group?: number;
   /** template: a string with {{value}} placeholders rendered with the input value. */
   template?: string;
+  /** custom: a JS function body that receives `value` and returns the result.
+   *  Synchronous — no await, no fetch, no I/O. */
+  code?: string;
 }
 
 export interface PromptTemplateConfig {

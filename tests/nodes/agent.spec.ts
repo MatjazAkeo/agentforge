@@ -32,7 +32,7 @@ describe('agentNode', () => {
     });
     const out = await agentNode.run(makeAgent(), { text: 'hi' }, ctx());
     expect(out.text).toBe('final');
-    expect(out.iterationCount).toBe(1);
+    expect(out.iteration).toBe(1);
   });
 
   it('loops while toolCalls are emitted, stops when they stop', async () => {
@@ -45,7 +45,7 @@ describe('agentNode', () => {
     vi.spyOn(llmOnceModule, 'llmOnce').mockImplementation(async () => responses.shift()!);
     const tools = [{ name: 'noop', description: '', inputSchema: { type: 'object' }, code: 'return null;', timeoutMs: 1000 }];
     const out = await agentNode.run(makeAgent(), { text: 'go', tools }, ctx());
-    expect(out.iterationCount).toBe(2);
+    expect(out.iteration).toBe(2);
     expect(out.text).toBe('done');
   });
 

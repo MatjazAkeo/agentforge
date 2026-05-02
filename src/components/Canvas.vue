@@ -34,31 +34,7 @@ const NODE_DEFAULT_H = 80;
 
 const graph = useGraphStore();
 const ui = useUiStore();
-const { project, viewport, getNodes, removeNodes, removeEdges } = useVueFlow();
-
-// Vue Flow's internal node/edge store can drift from our Pinia store on removals
-// (the `:nodes` / `:edges` props are reactive, but Vue Flow keeps internal state
-// for selection / drag / focus that can resurrect a removed node on the next
-// reactive flush). Force-sync removals through Vue Flow's official API: when a
-// node id disappears from our store, tell Vue Flow to remove it too.
-watch(
-  () => graph.nodes.map((n) => n.id),
-  (newIds, oldIds) => {
-    if (!oldIds) return;
-    const removed = oldIds.filter((id) => !newIds.includes(id));
-    if (removed.length > 0) removeNodes(removed);
-  },
-  { flush: 'post' },
-);
-watch(
-  () => graph.edges.map((e) => e.id),
-  (newIds, oldIds) => {
-    if (!oldIds) return;
-    const removed = oldIds.filter((id) => !newIds.includes(id));
-    if (removed.length > 0) removeEdges(removed);
-  },
-  { flush: 'post' },
-);
+const { project, viewport, getNodes, setNodes, setEdges } = useVueFlow();
 
 const nodeTypes = { input: markRaw(InputNode), output: markRaw(OutputNode), 'llm-call': markRaw(LLMCallNode), tool: markRaw(ToolNode), 'tool-group': markRaw(ToolGroupNode), 'tool-runner': markRaw(ToolRunnerNode), 'loop-controller': markRaw(LoopControllerNode), 'agent': markRaw(AgentNode), 'transform': markRaw(TransformNode), 'prompt-template': markRaw(PromptTemplateNode), 'chat-input': markRaw(ChatInputNode), 'chat-output': markRaw(ChatOutputNode) } as Record<string, ReturnType<typeof markRaw>>;
 
@@ -68,6 +44,14 @@ const flowNodes = computed<VFNode[]>(() =>
 const flowEdges = computed<VFEdge[]>(() =>
   graph.edges.map((e) => ({ id: e.id, source: e.source, target: e.target, sourceHandle: e.sourceHandle, targetHandle: e.targetHandle })),
 );
+
+// Imperative sync: our Pinia store is the single source of truth. We push the
+// full canonical state to Vue Flow on every change via setNodes/setEdges
+// (replace, not diff). This avoids the prop-reactor reconciliation issue where
+// Vue Flow's internal store could resurrect deleted nodes when a subsequent
+// add caused a re-init of its node graph.
+watch(flowNodes, (n) => setNodes(n), { immediate: true, flush: 'post' });
+watch(flowEdges, (e) => setEdges(e), { immediate: true, flush: 'post' });
 
 const menuOpen = ref(false);
 const menuScreenPos = ref({ x: 0, y: 0 });
@@ -258,8 +242,6 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown, true));
 <template>
   <div ref="canvasRef" class="w-full h-full relative" @contextmenu="onContextMenu">
     <VueFlow
-      :nodes="flowNodes"
-      :edges="flowEdges"
       :node-types="nodeTypes"
       :fit-view-on-init="true"
       :is-valid-connection="isValidConnection"

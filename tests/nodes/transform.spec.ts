@@ -107,6 +107,54 @@ describe('transformNode', () => {
     expect(out.result).toBeNull();
   });
 
+  it('custom: runs a JS function body and returns its return value', async () => {
+    const out = await transformNode.run(
+      makeNode({ mode: 'custom', code: 'return value * 2;' }),
+      { value: 21 },
+      ctx(),
+    );
+    expect(out.result).toBe(42);
+  });
+
+  it('custom: receives complex inputs as `value`', async () => {
+    const out = await transformNode.run(
+      makeNode({ mode: 'custom', code: 'return value.items.map(x => x.name).join(",");' }),
+      { value: { items: [{ name: 'a' }, { name: 'b' }, { name: 'c' }] } },
+      ctx(),
+    );
+    expect(out.result).toBe('a,b,c');
+  });
+
+  it('custom: surfaces parse errors with a clear prefix', async () => {
+    await expect(
+      transformNode.run(
+        makeNode({ mode: 'custom', code: 'this is not valid JS @#$%' }),
+        { value: null },
+        ctx(),
+      )
+    ).rejects.toThrow(/Transform custom: parse error/);
+  });
+
+  it('custom: surfaces runtime errors with a clear prefix', async () => {
+    await expect(
+      transformNode.run(
+        makeNode({ mode: 'custom', code: 'return value.nope.deep;' }),
+        { value: null },
+        ctx(),
+      )
+    ).rejects.toThrow(/Transform custom: runtime error/);
+  });
+
+  it('custom: throws when no code is configured', async () => {
+    await expect(
+      transformNode.run(
+        makeNode({ mode: 'custom' }),
+        { value: 1 },
+        ctx(),
+      )
+    ).rejects.toThrow(/no code/);
+  });
+
   it('template: renders {{value}} with the input', async () => {
     const out = await transformNode.run(
       makeNode({ mode: 'template', template: 'Hello {{value}}!' }),

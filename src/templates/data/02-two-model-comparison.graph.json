@@ -91,14 +91,14 @@
       "source": "llm1",
       "sourceHandle": "text",
       "target": "out1",
-      "targetHandle": "value"
+      "targetHandle": "text"
     },
     {
       "id": "e4",
       "source": "llm2",
       "sourceHandle": "text",
       "target": "out2",
-      "targetHandle": "value"
+      "targetHandle": "text"
     }
   ]
 }

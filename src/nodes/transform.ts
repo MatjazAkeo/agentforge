@@ -72,6 +72,24 @@ export const transformNode: NodeDefinition = {
         const tpl = cfg.template ?? '';
         return { result: renderTemplate(tpl, { value }) };
       }
+      case 'custom': {
+        const code = cfg.code ?? '';
+        if (!code.trim()) throw new Error('Transform custom: no code configured');
+        // User-authored JS function body. Same trust model as Tool nodes —
+        // graphs containing custom code prompt the user before opening.
+        // Synchronous only; this is pure data shaping, no I/O.
+        let fn: (value: unknown) => unknown;
+        try {
+          fn = new Function('value', code) as (value: unknown) => unknown;
+        } catch (e) {
+          throw new Error(`Transform custom: parse error — ${(e as Error).message}`);
+        }
+        try {
+          return { result: fn(value) };
+        } catch (e) {
+          throw new Error(`Transform custom: runtime error — ${(e as Error).message}`);
+        }
+      }
       default: {
         throw new Error(`Transform: unknown mode "${(cfg as { mode: string }).mode}"`);
       }

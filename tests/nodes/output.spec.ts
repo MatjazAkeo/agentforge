@@ -9,7 +9,7 @@ describe('output node', () => {
       config: { format: 'auto' },
     };
     const ctx = { signal: new AbortController().signal, details: {} as Record<string, unknown>, apiKey: '' };
-    await outputNode.run(node, { value: 'hello' }, ctx);
+    await outputNode.run(node, { text: 'hello' }, ctx);
     expect(ctx.details.value).toBe('hello');
   });
 
@@ -19,7 +19,7 @@ describe('output node', () => {
       config: { format: 'auto' },
     };
     const ctx = { signal: new AbortController().signal, details: {}, apiKey: '' };
-    const result = await outputNode.run(node, { value: 'x' }, ctx);
+    const result = await outputNode.run(node, { text: 'x' }, ctx);
     expect(result).toEqual({});
   });
 });

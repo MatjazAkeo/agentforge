@@ -22,7 +22,7 @@ describe('runGraph (Input → Output)', () => {
         { id: 'a', type: 'input', position: { x: 0, y: 0 }, config: { name: 'q', defaultValue: 'hello' } },
         { id: 'b', type: 'output', position: { x: 0, y: 0 }, config: { format: 'auto' } },
       ],
-      edges: [{ id: 'e', source: 'a', sourceHandle: 'text', target: 'b', targetHandle: 'value' }],
+      edges: [{ id: 'e', source: 'a', sourceHandle: 'text', target: 'b', targetHandle: 'text' }],
       containsCustomCode: false,
     };
 
@@ -67,7 +67,7 @@ describe('runGraph with Loop Controller', () => {
         { id: 'e2', source: 'lc', sourceHandle: 'output-n', target: 'inc', targetHandle: 'value' },
         { id: 'e3', source: 'inc', sourceHandle: 'result', target: 'lc', targetHandle: 'input-n' },
         { id: 'e4', source: 'inc', sourceHandle: 'continue', target: 'lc', targetHandle: 'continue' },
-        { id: 'e5', source: 'lc', sourceHandle: 'output-n', target: 'out', targetHandle: 'value' },
+        { id: 'e5', source: 'lc', sourceHandle: 'output-n', target: 'out', targetHandle: 'text' },
       ],
     };
 
@@ -108,7 +108,7 @@ describe('runGraph with Loop Controller', () => {
         { id: 'e2', source: 'lc', sourceHandle: 'output-n', target: 'inc', targetHandle: 'value' },
         { id: 'e3', source: 'inc', sourceHandle: 'result', target: 'lc', targetHandle: 'input-n' },
         { id: 'e4', source: 'inc', sourceHandle: 'continue', target: 'lc', targetHandle: 'continue' },
-        { id: 'e5', source: 'lc', sourceHandle: 'output-n', target: 'out', targetHandle: 'value' },
+        { id: 'e5', source: 'lc', sourceHandle: 'output-n', target: 'out', targetHandle: 'text' },
       ],
     };
 
@@ -141,7 +141,7 @@ describe('runGraph with Loop Controller', () => {
         { id: 'e2', source: 'lc', sourceHandle: 'output-n', target: 'inc', targetHandle: 'value' },
         { id: 'e3', source: 'inc', sourceHandle: 'result', target: 'lc', targetHandle: 'input-n' },
         { id: 'e4', source: 'inc', sourceHandle: 'continue', target: 'lc', targetHandle: 'continue' },
-        { id: 'e5', source: 'lc', sourceHandle: 'output-n', target: 'out', targetHandle: 'value' },
+        { id: 'e5', source: 'lc', sourceHandle: 'output-n', target: 'out', targetHandle: 'text' },
       ],
     };
 

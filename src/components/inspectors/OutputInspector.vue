@@ -49,7 +49,7 @@ function formatValue(v: unknown): string {
 
     <PortLegend
       :inputs="[
-        { id: 'value', type: 'string', description: 'Final value to display. Connect any string-typed source.' },
+        { id: 'text', type: 'string', description: 'Final value to display. Connect any source — non-string values are JSON-stringified.' },
       ]"
     />
   </div>

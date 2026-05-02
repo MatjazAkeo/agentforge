@@ -41,7 +41,7 @@ function buildInitialMessages(cfg: AgentConfig, inputs: Record<string, unknown>)
 export const agentNode: NodeDefinition = {
   type: 'agent',
   inputPorts: ['messages', 'text', 'tools'],
-  outputPorts: ['text', 'messages', 'iterationCount'],
+  outputPorts: ['text', 'messages', 'iteration'],
   async run(node, inputs, ctx) {
     const cfg = node.config as AgentConfig;
     const tools = flattenTools(inputs.tools);
@@ -88,7 +88,7 @@ export const agentNode: NodeDefinition = {
           output: { text: llm.text, toolCalls: [] },
           details: { llm: richRecord.llm, tools: [] },
         });
-        return { text: lastText, messages, iterationCount: i };
+        return { text: lastText, messages, iteration: i };
       }
 
       const batch = await runToolBatch({ toolCalls: llm.toolCalls, tools, signal: ctx.signal });

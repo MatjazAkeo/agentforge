@@ -58,7 +58,7 @@
       "source": "llm",
       "sourceHandle": "text",
       "target": "out",
-      "targetHandle": "value"
+      "targetHandle": "text"
     }
   ]
 }
