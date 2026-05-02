@@ -1,4 +1,3 @@
-<!-- src/components/Toolbar.vue -->
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useGraphStore } from '@/stores/graph';
@@ -43,34 +42,35 @@ function onStop() { abortCurrent(); }
 </script>
 
 <template>
-  <header class="toolbar">
-    <div class="left">
+  <header class="flex items-center gap-3 px-3 py-2 bg-panel border-b border-border-base">
+    <div class="flex items-center gap-1">
       <strong>{{ displayName }}</strong>
-      <span v-if="graph.dirty" class="dirty-dot" title="Unsaved changes">●</span>
+      <span v-if="graph.dirty" class="text-accent ml-1" title="Unsaved changes">●</span>
     </div>
-    <div class="stats" v-if="run.current">
-      <span class="stat">in: <strong>{{ run.totalTokensIn }}</strong></span>
-      <span class="stat">out: <strong>{{ run.totalTokensOut }}</strong></span>
-      <span class="stat">⏱ <strong>{{ elapsedDisplay }}</strong></span>
+    <div v-if="run.current" class="flex gap-3 opacity-85 text-xs">
+      <span class="tabular-nums">in: <strong>{{ run.totalTokensIn }}</strong></span>
+      <span class="tabular-nums">out: <strong>{{ run.totalTokensOut }}</strong></span>
+      <span class="tabular-nums">⏱ <strong>{{ elapsedDisplay }}</strong></span>
     </div>
-    <div class="right">
-      <button class="btn btn-run" @click="onRun" :disabled="run.isRunning">▶ Run</button>
-      <button class="btn" @click="onStop" :disabled="!run.isRunning">■ Stop</button>
-      <button class="btn btn-icon" @click="openSettings" title="Settings">⚙</button>
+    <div class="ml-auto flex gap-1.5">
+      <button
+        type="button"
+        @click="onRun"
+        :disabled="run.isRunning"
+        class="px-2.5 py-1 rounded text-xs font-semibold border border-success bg-success text-[#0a1f0a] cursor-pointer disabled:bg-elev disabled:border-border-strong disabled:text-text-base disabled:cursor-default disabled:opacity-50"
+      >▶ Run</button>
+      <button
+        type="button"
+        @click="onStop"
+        :disabled="!run.isRunning"
+        class="px-2.5 py-1 rounded text-xs border border-border-strong bg-elev text-text-base cursor-pointer disabled:opacity-50 disabled:cursor-default"
+      >■ Stop</button>
+      <button
+        type="button"
+        @click="openSettings"
+        title="Settings"
+        class="px-2 py-1 rounded text-xs border border-border-strong bg-elev text-text-base cursor-pointer"
+      >⚙</button>
     </div>
   </header>
 </template>
-
-<style scoped>
-.toolbar { display: flex; align-items: center; gap: 12px; padding: 8px 12px; background: var(--bg-panel); border-bottom: 1px solid var(--border); }
-.left { display: flex; align-items: center; gap: 4px; }
-.stats { display: flex; gap: 12px; opacity: 0.85; font-size: 12px; }
-.stat { font-variant-numeric: tabular-nums; }
-.right { margin-left: auto; display: flex; gap: 6px; }
-.btn { background: var(--bg-elev); color: var(--text); border: 1px solid var(--border-strong); border-radius: 4px; padding: 4px 10px; cursor: pointer; font-size: 12px; }
-.btn:disabled { opacity: 0.5; cursor: default; }
-.btn-run { background: var(--success); border-color: var(--success); color: #0a1f0a; font-weight: 600; }
-.btn-run:disabled { background: var(--bg-elev); color: var(--text); }
-.btn-icon { padding: 4px 8px; }
-.dirty-dot { color: var(--accent); margin-left: 4px; }
-</style>

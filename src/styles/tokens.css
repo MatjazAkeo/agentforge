@@ -1,3 +1,8 @@
+@import "tailwindcss";
+
+/* Legacy CSS variables — kept for scoped styles in unmigrated components.
+   Tailwind utilities (below) read from these. Migrate components one at a time
+   from `var(--*)` lookups to Tailwind classes; both work side by side. */
 :root {
   --bg-canvas: #1e1e1e;
   --bg-panel: #232323;
@@ -15,6 +20,28 @@
   --font-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
+/* Tailwind v4 CSS-first config: custom theme tokens generate utility classes
+   (bg-canvas, text-text, border-border-strong, etc.). Values reference the
+   legacy vars so a single source of truth feeds both. */
+@theme {
+  --color-canvas: var(--bg-canvas);
+  --color-panel: var(--bg-panel);
+  --color-panel-strong: var(--bg-panel-strong);
+  --color-elev: var(--bg-elev);
+  --color-border-base: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-text-base: var(--text);
+  --color-text-dim: var(--text-dim);
+  --color-accent: var(--accent);
+  --color-success: var(--success);
+  --color-warn: var(--warn);
+  --color-error: var(--error);
+  --color-loop: var(--loop);
+
+  --font-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* Reset & global defaults — apply once at the root. */
 html, body, #app {
   margin: 0;
   padding: 0;
