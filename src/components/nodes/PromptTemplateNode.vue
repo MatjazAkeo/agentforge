@@ -41,7 +41,7 @@ function onDelete() { graph.removeNode(props.id); }
 
     <!-- Dynamic input rows, one per placeholder -->
     <div v-if="placeholders.length === 0" class="px-3 py-2 text-[11px] text-text-dim italic opacity-60">
-      No {{ '{{vars}}' }} in template — output is the template literal.
+      No placeholders in template — output is the literal template.
     </div>
     <div
       v-for="name in placeholders"

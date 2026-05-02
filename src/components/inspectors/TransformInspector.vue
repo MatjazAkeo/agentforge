@@ -75,7 +75,7 @@ function update<K extends keyof TransformConfig>(key: K, value: TransformConfig[
         placeholder="Hello {{value}}!"
         class="bg-elev text-text-base border border-border-base rounded px-2 py-1.5 text-sm font-mono resize-y"
       ></textarea>
-      <div class="text-[11px] opacity-60">Use <code class="font-mono">{{ '{{' }}value{{ '}}' }}</code> to refer to the input.</div>
+      <div class="text-[11px] opacity-60">Use <code class="font-mono">&#123;&#123;value&#125;&#125;</code> to refer to the input.</div>
     </label>
 
     <IOValues :node-id="nodeId" />

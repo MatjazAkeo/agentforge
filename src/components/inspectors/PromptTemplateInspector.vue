@@ -32,7 +32,7 @@ function update(key: keyof PromptTemplateConfig, value: string) {
         />
       </div>
       <div class="text-[11px] opacity-60">
-        Use <code class="font-mono">{{ '{{name}}' }}</code> to declare an input port. Each unique
+        Use <code class="font-mono">&#123;&#123;name&#125;&#125;</code> to declare an input port. Each unique
         placeholder becomes a target handle on the card.
       </div>
     </label>
