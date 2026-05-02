@@ -25,6 +25,14 @@ export const useGraphStore = defineStore('graph', () => {
   const nodes = computed(() => graph.value.nodes);
   const edges = computed(() => graph.value.edges);
 
+  function recomputeContainsCustomCode() {
+    graph.value.containsCustomCode = graph.value.nodes.some((n) => {
+      if (n.type !== 'tool') return false;
+      const code = (n.config as { code?: string }).code;
+      return typeof code === 'string' && code.trim().length > 0;
+    });
+  }
+
   function reset() {
     graph.value = newEmptyGraph();
     filePath.value = null;
@@ -35,6 +43,7 @@ export const useGraphStore = defineStore('graph', () => {
     graph.value = g;
     filePath.value = path;
     dirty.value = false;
+    recomputeContainsCustomCode();
   }
 
   function markSaved(path: string) {
@@ -45,12 +54,14 @@ export const useGraphStore = defineStore('graph', () => {
   function addNode(node: Node) {
     graph.value.nodes.push(node);
     dirty.value = true;
+    recomputeContainsCustomCode();
   }
 
   function removeNode(id: string) {
     graph.value.nodes = graph.value.nodes.filter((n) => n.id !== id);
     graph.value.edges = graph.value.edges.filter((e) => e.source !== id && e.target !== id);
     dirty.value = true;
+    recomputeContainsCustomCode();
   }
 
   function addEdge(edge: Edge) {
@@ -68,6 +79,7 @@ export const useGraphStore = defineStore('graph', () => {
     if (n) {
       n.config = { ...n.config, ...config };
       dirty.value = true;
+      recomputeContainsCustomCode();
     }
   }
 
