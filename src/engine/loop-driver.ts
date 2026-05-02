@@ -196,6 +196,11 @@ export async function driveLoop(args: LoopDriverArgs): Promise<LoopDriverResult>
         output: JSON.parse(JSON.stringify(ctrlOut)),
         details: ctrlIterDetails,
       });
+      // Surface latest-iteration I/O on the top-level NodeResult so the IOValues
+      // panel renders something. The "latest of N" badge in IOValues marks this
+      // as a per-iteration shadow when `iterations.length > 1`.
+      ctrlResult.input = JSON.parse(JSON.stringify(ctrlInputs));
+      ctrlResult.output = JSON.parse(JSON.stringify(ctrlOut));
       controllerOutputs = ctrlOut;
       outputsByNode.set(controllerId, ctrlOut);
 

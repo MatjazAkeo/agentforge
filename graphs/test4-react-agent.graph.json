@@ -21,6 +21,7 @@
     { "id": "out", "type": "output", "position": { "x": 1620, "y": 60 }, "config": { "format": "auto" } }
   ],
   "edges": [
+    { "id": "e00", "source": "in",   "sourceHandle": "value", "target": "llm", "targetHandle": "userMessage" },
     { "id": "e01", "source": "in",   "sourceHandle": "value", "target": "lc", "targetHandle": "default-messages" },
     { "id": "e02", "source": "tadd", "sourceHandle": "toolDefinition", "target": "tg", "targetHandle": "tools" },
     { "id": "e03", "source": "tmul", "sourceHandle": "toolDefinition", "target": "tg", "targetHandle": "tools" },
