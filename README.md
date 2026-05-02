@@ -6,7 +6,19 @@ A node-based AI agent playground for building, running, and inspecting AI agents
 
 Plan 1 (Foundation) — runnable. You can wire `Input → LLM Call → Output` and stream a response from a free OpenRouter model.
 
-Subsequent plans add: tools (Plan 2), loops & agent encapsulation (Plan 3), chat sidebar & templates (Plan 4).
+Plan 2 (Tools & Persistent Runs) — runnable. Tool/Tool Group/Tool Runner nodes let an LLM call user-defined JS functions in a sandboxed Web Worker; every run is persisted next to the graph and browsable from the Runs tab.
+
+Subsequent plans add: loops & agent encapsulation (Plan 3), chat sidebar & templates (Plan 4).
+
+### Plan 2 features
+
+- **Tool / Tool Group / Tool Runner** nodes — define a tool, bundle tools into a group, and run the LLM-requested calls
+- **Web Worker sandbox** for user JS code — no DOM, no network, hard timeout
+- **Trust prompt** when opening a graph that contains custom code (default: deny)
+- **Persistent run history** — every run is saved as `<graph>.runs/<timestamp>.run.json` next to the graph file
+- **Runs tab** with rich-preview rows; click any row to load that run's full state back into the canvas
+- **Right-click a run** to Reveal in Finder or Delete
+- **Monaco editor** in the Tool inspector for code, JSON schema, and description fields
 
 ## Setup
 
@@ -31,6 +43,22 @@ On first launch, paste your OpenRouter API key into the welcome screen. The key 
 4. Set the Input's default value to a question (click the Input node, edit in the right Inspector)
 5. Click **▶ Run** in the toolbar
 6. Watch the LLM Call node stream a response live; click any node to see full request/response/timing details in the Inspector
+
+### Building a tool-using agent
+
+1. Open an existing graph, or save a new one first — runs only persist for graphs that have a path on disk
+2. Add an **Input**, an **LLM Call**, a **Tool**, a **Tool Group**, a **Tool Runner**, a second **LLM Call**, and an **Output**
+3. Wire:
+   - `Input.value → LLMCall1.userMessage`
+   - `Tool.toolDefinition → ToolGroup.tools`
+   - `ToolGroup.toolDefinition → LLMCall1.tools` and `→ ToolRunner.tools`
+   - `LLMCall1.toolCalls → ToolRunner.toolCalls`
+   - `LLMCall1.messages → ToolRunner.messages`
+   - `ToolRunner.messages → LLMCall2.messages`
+   - `LLMCall2.text → Output.value`
+4. Click the Tool node and edit it: name (e.g. `add`), description, JSON schema for inputs, and the code body — for example: `return inputs.a + inputs.b;`
+5. Click **▶ Run**. The first LLM Call decides to invoke the tool, the Tool Runner executes it in the sandbox, and the second LLM Call uses the result to produce the final answer in Output
+6. Open the **Runs** tab in the left panel — your run is there. Click any past row to reload its full state into the canvas
 
 ## File menu
 
