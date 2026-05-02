@@ -18,6 +18,7 @@ const ALL_OPTIONS: NodeOption[] = [
   { type: 'tool-group', label: 'Tool Group', description: 'Aggregate multiple tools into a single edge' },
   { type: 'tool-runner', label: 'Tool Runner', description: 'Execute tool calls emitted by an LLM' },
   { type: 'loop-controller', label: 'Loop Controller', description: 'Cycle anchor for ReAct, retry, refinement loops' },
+  { type: 'break', label: 'Break', description: 'Exit point for a Loop Controller' },
 ];
 
 const props = defineProps<{
@@ -70,6 +71,7 @@ function defaultConfig(type: NodeType): Record<string, unknown> {
       maxIterations: 25,
       valueChannels: [{ name: 'value' }],
     };
+    case 'break': return {};
     default: return {};
   }
 }
