@@ -15,6 +15,17 @@ const cfg = computed(() => (node.value?.config ?? null) as TransformConfig | nul
 function update<K extends keyof TransformConfig>(key: K, value: TransformConfig[K]) {
   graph.updateNodeConfig(props.nodeId, { [key]: value });
 }
+
+function onModeChange(next: TransformConfig['mode']) {
+  // When switching TO custom, seed `code` with the identity transform if empty,
+  // so the editor opens to a runnable starting point instead of an empty buffer
+  // that immediately errors out at run time.
+  const patch: Partial<TransformConfig> = { mode: next };
+  if (next === 'custom' && !cfg.value?.code?.trim()) {
+    patch.code = 'return value;';
+  }
+  graph.updateNodeConfig(props.nodeId, patch);
+}
 </script>
 
 <template>
@@ -23,7 +34,7 @@ function update<K extends keyof TransformConfig>(key: K, value: TransformConfig[
       Mode
       <select
         :value="cfg.mode"
-        @change="(e) => update('mode', (e.target as HTMLSelectElement).value as TransformConfig['mode'])"
+        @change="(e) => onModeChange((e.target as HTMLSelectElement).value as TransformConfig['mode'])"
         class="bg-elev text-text-base border border-border-base rounded px-2 py-1.5 text-sm font-ui"
       >
         <option value="json-parse">json-parse</option>
