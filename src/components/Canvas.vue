@@ -27,7 +27,7 @@ const NODE_DEFAULT_H = 80;
 
 const graph = useGraphStore();
 const ui = useUiStore();
-const { project, viewport, getNodes } = useVueFlow();
+const { project, viewport, getNodes, getSelectedNodes } = useVueFlow();
 
 const nodeTypes = { input: markRaw(InputNode), output: markRaw(OutputNode), 'llm-call': markRaw(LLMCallNode) } as Record<string, ReturnType<typeof markRaw>>;
 
@@ -60,9 +60,22 @@ function isTypingInField(target: EventTarget | null): boolean {
   return el.isContentEditable === true;
 }
 
+/** Returns the node Vue Flow currently considers selected (visual selection),
+ *  falling back to our store's selectedNodeId. Vue Flow is the source of truth. */
+function currentlySelectedNode(): Node | null {
+  const vfSelected = getSelectedNodes.value;
+  if (vfSelected.length > 0) {
+    const id = vfSelected[0].id;
+    return graph.nodes.find((n) => n.id === id) ?? null;
+  }
+  if (ui.selectedNodeId) {
+    return graph.nodes.find((n) => n.id === ui.selectedNodeId) ?? null;
+  }
+  return null;
+}
+
 function copySelected() {
-  if (!ui.selectedNodeId) return;
-  const node = graph.nodes.find((n) => n.id === ui.selectedNodeId);
+  const node = currentlySelectedNode();
   if (!node) return;
   clipboard.value = {
     type: node.type,
@@ -72,10 +85,7 @@ function copySelected() {
 
 function pasteFromClipboard() {
   if (!clipboard.value) return;
-  // Anchor: position of the currently selected node (if any), else viewport center in flow coords.
-  const anchor = ui.selectedNodeId
-    ? graph.nodes.find((n) => n.id === ui.selectedNodeId)?.position
-    : null;
+  const anchor = currentlySelectedNode()?.position ?? null;
   const fallback = canvasRef.value
     ? project({ x: canvasRef.value.clientWidth / 2, y: canvasRef.value.clientHeight / 2 })
     : { x: 100, y: 100 };
@@ -85,6 +95,21 @@ function pasteFromClipboard() {
     type: clipboard.value.type,
     position: { x: base.x + 30, y: base.y + 30 },
     config: structuredClone(clipboard.value.config) as Node['config'],
+  };
+  graph.addNode(newNode);
+  ui.selectedNodeId = newNode.id;
+}
+
+/** Duplicate = copy + paste in one action. Bound to ⌘D so it survives the
+ *  macOS Edit menu's ⌘C/⌘V interception of plain copy/paste. */
+function duplicateSelected() {
+  const node = currentlySelectedNode();
+  if (!node) return;
+  const newNode: Node = {
+    id: crypto.randomUUID(),
+    type: node.type,
+    position: { x: node.position.x + 30, y: node.position.y + 30 },
+    config: structuredClone(node.config) as Node['config'],
   };
   graph.addNode(newNode);
   ui.selectedNodeId = newNode.id;
@@ -112,13 +137,21 @@ function onKeydown(e: KeyboardEvent) {
   if (isTypingInField(e.target)) return;
 
   const mod = e.metaKey || e.ctrlKey;
-  if (mod && e.key === 'k') {
+  const k = e.key.toLowerCase();
+  if (mod && k === 'k') {
     e.preventDefault();
     openMenuAt(window.innerWidth / 2 - 120, 100);
-  } else if (mod && e.key === 'c') {
+  } else if (mod && k === 'd') {
+    // ⌘D / Ctrl+D — duplicate the selected node in place (works around the
+    // macOS Edit-menu's predefined ⌘C/⌘V interception).
+    e.preventDefault();
+    duplicateSelected();
+  } else if (mod && k === 'c') {
+    // May not fire on macOS if the Edit menu's Copy item is consuming ⌘C —
+    // ⌘D is the reliable shortcut. Kept as a fallback.
     e.preventDefault();
     copySelected();
-  } else if (mod && e.key === 'v') {
+  } else if (mod && k === 'v') {
     e.preventDefault();
     pasteFromClipboard();
   }
@@ -234,8 +267,9 @@ function snapAllNodesToGrid() {
   }
 }
 
-onMounted(() => window.addEventListener('keydown', onKeydown));
-onUnmounted(() => window.removeEventListener('keydown', onKeydown));
+// Capture phase so this runs before Vue Flow's internal keydown handlers.
+onMounted(() => window.addEventListener('keydown', onKeydown, true));
+onUnmounted(() => window.removeEventListener('keydown', onKeydown, true));
 </script>
 
 <template>
