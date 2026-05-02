@@ -1,6 +1,8 @@
 import type { Graph } from '@/domain/graph';
 import type { Run, NodeResult } from '@/domain/run';
-import { topologicalOrder, incomingEdges } from './scheduler';
+import { topologicalOrderIgnoringBackEdges, incomingEdges } from './scheduler';
+import { validateLoopTopology } from './loop-validation';
+import { driveLoop, computeLoopBody } from './loop-driver';
 import { getNodeDefinition } from '@/nodes/registry';
 import { useRunStore } from '@/stores/run';
 import { newRunAbortController } from './abort';
@@ -41,7 +43,19 @@ export async function runGraph(args: RunGraphArgs): Promise<Run> {
   // original `initial` reference bypass that Proxy and don't trigger reactivity.
   const run = runStore.current as Run;
 
-  const order = topologicalOrder(args.graph);
+  validateLoopTopology(args.graph);
+  const order = topologicalOrderIgnoringBackEdges(args.graph);
+
+  // Track break + body node ids to skip during the main pass — they're fired by driveLoop.
+  const skip = new Set<string>();
+  for (const node of args.graph.nodes) {
+    if (node.type === 'loop-controller') {
+      const body = computeLoopBody(args.graph, node.id);
+      for (const b of body.bodyNodeIds) skip.add(b);
+      for (const b of body.breakNodeIds) skip.add(b);
+    }
+  }
+
   const incoming = incomingEdges(args.graph);
   const outputsByNode = new Map<string, Record<string, unknown>>();
 
@@ -51,7 +65,24 @@ export async function runGraph(args: RunGraphArgs): Promise<Run> {
         run.status = 'aborted';
         break;
       }
+      if (skip.has(id)) continue; // fired by driveLoop or after it
       const node = args.graph.nodes.find((n) => n.id === id)!;
+
+      if (node.type === 'loop-controller') {
+        const driverOut = await driveLoop({
+          graph: args.graph, run, controllerId: id, outputsByNode,
+          apiKey: args.apiKey, signal: controller.signal,
+          setLivePreview: (nid, p) => runStore.setLivePreview(nid, p),
+          clearLivePreview: (nid) => runStore.clearLivePreview(nid),
+        });
+        // Make break outputs available to downstream nodes in the main pass.
+        for (const [bid, out] of Object.entries(driverOut.breakOutputs)) outputsByNode.set(bid, out);
+        if (driverOut.stopReason === 'max-iterations') {
+          throw new Error(`Loop Controller "${id}" exceeded maxIterations`);
+        }
+        continue;
+      }
+
       const def = getNodeDefinition(node.type);
       if (!def) {
         throw new Error(`No definition registered for node type "${node.type}"`);
