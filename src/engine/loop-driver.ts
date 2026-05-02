@@ -217,7 +217,13 @@ export async function driveLoop(args: LoopDriverArgs): Promise<LoopDriverResult>
         const def = getNodeDefinition(node.type);
         if (!def) throw new Error(`No definition registered for node type "${node.type}"`);
 
-        const incoming = body.internalEdges.filter((e) => e.target === id);
+        // Pull in EVERY incoming edge — internal-to-loop AND from-outside-the-loop —
+        // so a body node like `llm` still gets its `tools` (from a Tool Group outside
+        // the loop) and its `userMessage` (from the Input outside the loop) on each
+        // iteration, not just the channel value from the LC.
+        const incoming = graph.edges.filter(
+          (e) => e.target === id && !body.backEdges.some((b) => b.id === e.id),
+        );
         const inputs: Record<string, unknown> = {};
         for (const edge of incoming) {
           const src = edge.source === controllerId

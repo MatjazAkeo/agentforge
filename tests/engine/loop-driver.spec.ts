@@ -98,6 +98,69 @@ describe('driveLoop integration', () => {
     expect(run.nodeResults.inc.iterations?.length).toBe(3);
     expect(run.nodeResults.inc.iterations?.[2].output).toEqual({ result: 3, continue: false });
   });
+
+  it('feeds body nodes their out-of-loop inputs every iteration', async () => {
+    // Regression: a body node wired to a node OUTSIDE the loop (e.g. a Tool Group
+    // feeding `llm.tools`) used to have those edges dropped from `internalEdges`,
+    // so the body node ran without those inputs every iteration. The bug surfaced
+    // in test4 — the LLM body node never received `tools` or `userMessage`.
+    let observedTools: unknown = 'NOT_SET';
+    let observedConst: unknown = 'NOT_SET';
+    registerNodeDefinition({
+      type: 'transform',
+      inputPorts: ['value', 'tools', 'k'],
+      outputPorts: ['result', 'continue'],
+      async run(_node, inputs) {
+        observedTools = inputs.tools;
+        observedConst = inputs.k;
+        return { result: Number(inputs.value) + 1, continue: Number(inputs.value) < 1 };
+      },
+    });
+
+    const graph = g(
+      [
+        n('seed', 'input'),
+        n('toolsrc', 'input'),  // outside-the-loop source feeding `tools`
+        n('ksrc', 'input'),     // outside-the-loop source feeding `k`
+        { id: 'lc', type: 'loop-controller', position: { x: 0, y: 0 },
+          config: { maxIterations: 5, valueChannels: [{ name: 'n' }] } },
+        n('inc', 'transform'),
+      ],
+      [
+        e('e1', 'seed', 'lc', 'value', 'default-n'),
+        e('e2', 'lc', 'inc', 'output-n', 'value'),
+        e('e3', 'toolsrc', 'inc', 'value', 'tools'),  // outside → body
+        e('e4', 'ksrc', 'inc', 'value', 'k'),          // outside → body
+        e('e5', 'inc', 'lc', 'result', 'input-n'),
+        e('e6', 'inc', 'lc', 'continue', 'continue'),
+      ],
+    );
+
+    const run: Run = {
+      schemaVersion: 1, id: 'r', graphId: 'g',
+      graphSnapshot: graph,
+      startedAt: '', endedAt: null, status: 'running',
+      inputs: {}, errors: [],
+      nodeResults: {
+        seed: emptyResult('seed'), toolsrc: emptyResult('toolsrc'),
+        ksrc: emptyResult('ksrc'), lc: emptyResult('lc'), inc: emptyResult('inc'),
+      },
+    };
+    const outputsByNode = new Map<string, Record<string, unknown>>([
+      ['seed', { value: 0 }],
+      ['toolsrc', { value: 'TOOLS_DATA' }],
+      ['ksrc', { value: 42 }],
+    ]);
+
+    await driveLoop({
+      graph, run, controllerId: 'lc', outputsByNode,
+      apiKey: '', signal: new AbortController().signal,
+    });
+
+    // Every iteration must have seen the outside-in inputs, not just the channel.
+    expect(observedTools).toBe('TOOLS_DATA');
+    expect(observedConst).toBe(42);
+  });
 });
 
 describe('driveLoop abort', () => {
