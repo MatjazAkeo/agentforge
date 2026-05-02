@@ -1,4 +1,5 @@
 import type { Graph } from '@/domain/graph';
+import { findBackEdges } from './loop-validation';
 
 /**
  * Returns a topological ordering of node ids. Throws if the graph contains a cycle.
@@ -46,4 +47,15 @@ export function incomingEdges(graph: Graph): Map<string, Graph['edges']> {
   for (const n of graph.nodes) m.set(n.id, []);
   for (const e of graph.edges) m.get(e.target)?.push(e);
   return m;
+}
+
+/**
+ * Same as topologicalOrder, but tolerates back-edges that target Loop Controllers
+ * — those edges are removed from the graph for ordering purposes. The runner uses
+ * this order; the loop-driver re-runs body nodes for additional iterations.
+ */
+export function topologicalOrderIgnoringBackEdges(graph: Graph): string[] {
+  const back = new Set(findBackEdges(graph).map((e) => e.id));
+  const filteredEdges = graph.edges.filter((e) => !back.has(e.id));
+  return topologicalOrder({ ...graph, edges: filteredEdges });
 }
