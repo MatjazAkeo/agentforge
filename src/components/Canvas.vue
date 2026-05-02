@@ -12,6 +12,8 @@ import '@vue-flow/minimap/dist/style.css';
 import { useGraphStore } from '@/stores/graph';
 import { useUiStore } from '@/stores/ui';
 import { getSourcePortType, getTargetPortType } from '@/nodes/port-types';
+import type { Node } from '@/domain/graph';
+import type { NodeType } from '@/domain/node-types';
 import AddNodeMenu from './AddNodeMenu.vue';
 import HelperLines from './HelperLines.vue';
 import InputNode from './nodes/InputNode.vue';
@@ -48,6 +50,46 @@ const helperHy = ref<number | null>(null);
 const snapTargetX = ref<number | null>(null);
 const snapTargetY = ref<number | null>(null);
 
+// In-app clipboard for copy/paste — stores a node's type+config snapshot, no edges.
+const clipboard = ref<{ type: NodeType; config: Record<string, unknown> } | null>(null);
+
+function isTypingInField(target: EventTarget | null): boolean {
+  const el = target as HTMLElement | null;
+  if (!el) return false;
+  if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') return true;
+  return el.isContentEditable === true;
+}
+
+function copySelected() {
+  if (!ui.selectedNodeId) return;
+  const node = graph.nodes.find((n) => n.id === ui.selectedNodeId);
+  if (!node) return;
+  clipboard.value = {
+    type: node.type,
+    config: structuredClone(node.config) as Record<string, unknown>,
+  };
+}
+
+function pasteFromClipboard() {
+  if (!clipboard.value) return;
+  // Anchor: position of the currently selected node (if any), else viewport center in flow coords.
+  const anchor = ui.selectedNodeId
+    ? graph.nodes.find((n) => n.id === ui.selectedNodeId)?.position
+    : null;
+  const fallback = canvasRef.value
+    ? project({ x: canvasRef.value.clientWidth / 2, y: canvasRef.value.clientHeight / 2 })
+    : { x: 100, y: 100 };
+  const base = anchor ?? fallback;
+  const newNode: Node = {
+    id: crypto.randomUUID(),
+    type: clipboard.value.type,
+    position: { x: base.x + 30, y: base.y + 30 },
+    config: structuredClone(clipboard.value.config) as Node['config'],
+  };
+  graph.addNode(newNode);
+  ui.selectedNodeId = newNode.id;
+}
+
 function openMenuAt(screenX: number, screenY: number) {
   menuScreenPos.value = { x: screenX, y: screenY };
   if (canvasRef.value) {
@@ -66,9 +108,19 @@ function onContextMenu(e: MouseEvent) {
   openMenuAt(e.clientX, e.clientY);
 }
 function onKeydown(e: KeyboardEvent) {
-  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+  // Don't hijack shortcuts while the user is typing in a form control.
+  if (isTypingInField(e.target)) return;
+
+  const mod = e.metaKey || e.ctrlKey;
+  if (mod && e.key === 'k') {
     e.preventDefault();
     openMenuAt(window.innerWidth / 2 - 120, 100);
+  } else if (mod && e.key === 'c') {
+    e.preventDefault();
+    copySelected();
+  } else if (mod && e.key === 'v') {
+    e.preventDefault();
+    pasteFromClipboard();
   }
 }
 

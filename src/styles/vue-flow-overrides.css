@@ -58,9 +58,9 @@
   stroke: var(--border-strong);
 }
 
-/* Background grid dots — slightly more visible on dark canvas */
+/* Background grid dots — visible but quiet on the dark canvas */
 .vue-flow__background pattern circle {
-  fill: rgba(255, 255, 255, 0.08);
+  fill: rgba(255, 255, 255, 0.18);
 }
 
 /* ────────────────────────────────────────────────────────────────────────
@@ -84,11 +84,13 @@
   padding: 0 !important;
 }
 
-/* Selected ring on the inner shell — outline doesn't take layout space so the card stays put. */
+/* Selected ring on the inner shell — soft, layout-stable. Mirrors the input
+   focus style (1px accent line + low-opacity halo). */
 .vue-flow__node.selected .node-shell {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
-  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px rgba(74, 144, 226, 0.55),
+    0 0 0 3px rgba(74, 144, 226, 0.15),
+    0 2px 8px rgba(0, 0, 0, 0.45);
 }
 
 /* ────────────────────────────────────────────────────────────────────────
