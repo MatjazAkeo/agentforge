@@ -21,7 +21,7 @@ export interface InputConfig {
 }
 
 export interface OutputConfig {
-  format: 'auto' | 'text' | 'json' | 'markdown';
+  format: 'auto' | 'text' | 'json' | 'markdown' | 'messages';
 }
 
 export interface LLMCallConfig {

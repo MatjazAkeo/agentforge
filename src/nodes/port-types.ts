@@ -1,16 +1,19 @@
 import type { Node } from '@/domain/graph';
-import type { InputConfig } from '@/domain/node-types';
+import type { OutputConfig } from '@/domain/node-types';
 
 /**
- * Port data types. No `any` — every port declares exactly what it produces or accepts.
- * Connection rule: source.type === target.type.
+ * Wire types — only what's structurally distinct:
+ *   - `string`   — any text-shaped data (covers former text / number / json / markdown variants;
+ *                  display formatting is a receiver concern, not a wire concern)
+ *   - `messages` — ChatMessage[] (conversation history)
+ *   - `tools`    — Tool definition list (Plan 2)
+ *
+ * Connection rule: source.type === target.type. No `any`, no implicit coercion.
  */
-export type DataType = 'string' | 'number' | 'json' | 'messages' | 'tools';
+export type DataType = 'string' | 'messages' | 'tools';
 
 const TYPE_COLORS: Record<DataType, string> = {
   string: '#ffaa55',
-  number: '#5cd97a',
-  json: '#4ad7e2',
   messages: '#b388ff',
   tools: '#ffd54a',
 };
@@ -19,19 +22,12 @@ export function colorForType(type: DataType | null): string {
   return type ? TYPE_COLORS[type] : '#888';
 }
 
-function inputValueType(cfg: InputConfig): DataType {
-  switch (cfg.valueType) {
-    case 'text': return 'string';
-    case 'number': return 'number';
-    case 'json': return 'json';
-  }
-}
-
 /** Returns the data type produced by a source-side handle on this node, or null if no such source port. */
 export function getSourcePortType(node: Node, handleId: string): DataType | null {
   switch (node.type) {
     case 'input':
-      if (handleId === 'value') return inputValueType(node.config as InputConfig);
+      // Input.valueType is a UI hint for the form widget; the wire is always string-shaped.
+      if (handleId === 'value') return 'string';
       return null;
     case 'llm-call':
       if (handleId === 'text') return 'string';
@@ -46,8 +42,12 @@ export function getSourcePortType(node: Node, handleId: string): DataType | null
 export function getTargetPortType(node: Node, handleId: string): DataType | null {
   switch (node.type) {
     case 'output':
-      // v1: Output accepts strings only. Plan 2's Transform node converts other types.
-      if (handleId === 'value') return 'string';
+      if (handleId === 'value') {
+        // Format drives the accepted type. 'messages' format displays a chat transcript;
+        // every other format renders text-shaped data.
+        const cfg = node.config as OutputConfig;
+        return cfg.format === 'messages' ? 'messages' : 'string';
+      }
       return null;
     case 'llm-call':
       if (handleId === 'userMessage') return 'string';

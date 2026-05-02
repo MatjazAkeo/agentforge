@@ -3,13 +3,17 @@ import { Handle, Position } from '@vue-flow/core';
 import { computed } from 'vue';
 import { useRunStore } from '@/stores/run';
 import { useGraphStore } from '@/stores/graph';
-import { colorForType } from '@/nodes/port-types';
+import { colorForType, type DataType } from '@/nodes/port-types';
 
 const props = defineProps<{ id: string; data: { config: { format: string } } }>();
 const run = useRunStore();
 const graph = useGraphStore();
 
 const result = computed(() => run.current?.nodeResults[props.id]);
+
+const valueDataType = computed<DataType>(() =>
+  props.data.config.format === 'messages' ? 'messages' : 'string',
+);
 
 const hasValue = computed(() => {
   const v = result.value?.details?.value;
@@ -58,7 +62,7 @@ function onDelete() {
     </div>
 
     <div class="relative h-7 flex items-center pl-3 text-[11px]">
-      <Handle id="value" type="target" :position="Position.Left" :style="{ background: colorForType('string') }" />
+      <Handle id="value" type="target" :position="Position.Left" :style="{ background: colorForType(valueDataType) }" />
       <span class="text-text-dim font-mono text-[10px]">value</span>
     </div>
 

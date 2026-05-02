@@ -30,6 +30,7 @@ function update(key: keyof OutputConfig, value: string) {
         <option value="text">text</option>
         <option value="json">json</option>
         <option value="markdown">markdown</option>
+        <option value="messages">messages (chat)</option>
       </select>
     </label>
     <section>
