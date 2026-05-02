@@ -165,6 +165,9 @@ function isValidConnection(connection: {
   const sourceType = getSourcePortType(sourceNode, connection.sourceHandle ?? '');
   const targetType = getTargetPortType(targetNode, connection.targetHandle ?? '');
   if (!sourceType || !targetType) return false;
+  // `json` is the universal target type — anything plugs in. (Loop Controller's
+  // channel ports are typed json so that arbitrary state shapes can flow through.)
+  if (targetType === 'json') return true;
   return sourceType === targetType;
 }
 
