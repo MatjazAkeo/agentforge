@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, watch } from 'vue';
 import { useGraphStore } from './graph';
+import { useRunStore } from './run';
 import { listRunFiles, readRun } from '@/persistence/runs-dir';
 import type { Run } from '@/domain/run';
 
@@ -97,8 +98,22 @@ export const useRunsStore = defineStore('runs', () => {
     return s.length > n ? `${s.slice(0, n)}…` : s;
   }
 
+  async function loadRun(path: string) {
+    try {
+      const r = await readRun(path);
+      const runStore = useRunStore();
+      // Replace the active run state with this snapshot.
+      runStore.start(r);
+      // Mark as terminal immediately — historical runs are not in flight.
+      runStore.finish(r.status);
+      loadedRunPath.value = path;
+    } catch (e) {
+      console.error('Failed to load run:', e);
+    }
+  }
+
   // Auto-refresh when the open graph changes.
   watch(() => graph.filePath, () => { void refresh(); }, { immediate: true });
 
-  return { list, loading, loadedRunPath, refresh };
+  return { list, loading, loadedRunPath, refresh, loadRun };
 });

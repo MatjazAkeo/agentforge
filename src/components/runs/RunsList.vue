@@ -5,8 +5,7 @@ import RunRow from './RunRow.vue';
 const runs = useRunsStore();
 
 function onRowClick(path: string) {
-  // Loading runs into the canvas is wired up in Task 17 — for now just remember the selection
-  runs.loadedRunPath = path;
+  void runs.loadRun(path);
 }
 </script>
 
