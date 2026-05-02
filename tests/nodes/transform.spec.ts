@@ -79,6 +79,34 @@ describe('transformNode', () => {
     expect(out.result).toBeNull();
   });
 
+  it('regex-extract: coerces non-string input via String() — boolean false matches "false"', async () => {
+    // Self-critique pattern: json-path "good" emits a boolean; the next Transform
+    // uses regex-extract "false" to negate it (matches → truthy continue, no
+    // match → falsy halt).
+    const matchFalse = await transformNode.run(
+      makeNode({ mode: 'regex-extract', pattern: 'false' }),
+      { value: false },
+      ctx(),
+    );
+    expect(matchFalse.result).toBe('false');
+
+    const matchTrue = await transformNode.run(
+      makeNode({ mode: 'regex-extract', pattern: 'false' }),
+      { value: true },
+      ctx(),
+    );
+    expect(matchTrue.result).toBeNull();
+  });
+
+  it('regex-extract: null/undefined input never matches', async () => {
+    const out = await transformNode.run(
+      makeNode({ mode: 'regex-extract', pattern: '.+' }),
+      { value: null },
+      ctx(),
+    );
+    expect(out.result).toBeNull();
+  });
+
   it('template: renders {{value}} with the input', async () => {
     const out = await transformNode.run(
       makeNode({ mode: 'template', template: 'Hello {{value}}!' }),

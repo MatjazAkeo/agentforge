@@ -50,12 +50,20 @@ export const transformNode: NodeDefinition = {
         return { result: readJsonPath(value, path) };
       }
       case 'regex-extract': {
-        if (typeof value !== 'string') {
-          throw new Error('Transform regex-extract: input is not a string');
-        }
         if (!cfg.pattern) throw new Error('Transform regex-extract: no pattern configured');
+        // Coerce to string so booleans/numbers/objects can flow in. This is what
+        // makes the self-critique pattern work: a boolean from `json-path "good"`
+        // arrives as `false`, which String() turns into "false" — the regex can
+        // then match it. null/undefined become "" so they never match anything
+        // (returning null, the falsy halt-signal in continue wires).
+        const str =
+          typeof value === 'string'
+            ? value
+            : value === null || value === undefined
+              ? ''
+              : String(value);
         const re = new RegExp(cfg.pattern);
-        const match = value.match(re);
+        const match = str.match(re);
         if (!match) return { result: null };
         const group = cfg.group ?? 0;
         return { result: match[group] ?? null };
