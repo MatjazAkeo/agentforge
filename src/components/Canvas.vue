@@ -19,6 +19,7 @@ import OutputNode from './nodes/OutputNode.vue';
 import LLMCallNode from './nodes/LLMCallNode.vue';
 import ToolNode from './nodes/ToolNode.vue';
 import ToolGroupNode from './nodes/ToolGroupNode.vue';
+import ToolRunnerNode from './nodes/ToolRunnerNode.vue';
 
 const GRID = 20;
 const HELPER_THRESHOLD = 5; // px in flow coords
@@ -29,7 +30,7 @@ const graph = useGraphStore();
 const ui = useUiStore();
 const { project, viewport, getNodes } = useVueFlow();
 
-const nodeTypes = { input: markRaw(InputNode), output: markRaw(OutputNode), 'llm-call': markRaw(LLMCallNode), tool: markRaw(ToolNode), 'tool-group': markRaw(ToolGroupNode) } as Record<string, ReturnType<typeof markRaw>>;
+const nodeTypes = { input: markRaw(InputNode), output: markRaw(OutputNode), 'llm-call': markRaw(LLMCallNode), tool: markRaw(ToolNode), 'tool-group': markRaw(ToolGroupNode), 'tool-runner': markRaw(ToolRunnerNode) } as Record<string, ReturnType<typeof markRaw>>;
 
 const flowNodes = computed<VFNode[]>(() =>
   graph.nodes.map((n) => ({ id: n.id, type: n.type, position: n.position, data: { config: n.config } })),
