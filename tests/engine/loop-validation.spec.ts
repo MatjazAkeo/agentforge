@@ -27,10 +27,36 @@ describe('findBackEdges', () => {
     expect(back.map((x) => x.id)).toEqual(['3']);
   });
 
-  it('treats a self-loop as a back-edge', () => {
+  it('returns no back-edges for a self-loop on a non-LC node (validateLoopTopology rejects)', () => {
+    // Under the SCC model, a cycle without a Loop Controller is invalid; findBackEdges
+    // returns nothing because there is no anchor to associate the back-edge with.
+    // validateLoopTopology surfaces the error.
     const graph = g([n('a')], [e('1', 'a', 'a')]);
+    expect(findBackEdges(graph)).toEqual([]);
+    expect(() => validateLoopTopology(graph)).toThrow(/Loop Controller/i);
+  });
+
+  it('treats a self-loop on a Loop Controller as a back-edge', () => {
+    const graph = g([n('lc', 'loop-controller')], [e('1', 'lc', 'lc')]);
     const back = findBackEdges(graph);
     expect(back.map((x) => x.id)).toEqual(['1']);
+  });
+
+  it('returns back-edges with order-independence — labels the edge into the LC even when DFS would visit the LC last', () => {
+    // Reproduces the bug fixed by switching to SCC-based detection: when an extra
+    // forward edge ('in' → 'body' before 'in' → 'lc') changes DFS visit order,
+    // the back-edge classification must not flip from `body → lc` to `lc → body`.
+    const graph = g(
+      [n('in', 'input'), n('lc', 'loop-controller'), n('body')],
+      [
+        e('e0', 'in', 'body'),     // visits body first
+        e('e1', 'in', 'lc'),
+        e('e2', 'lc', 'body'),     // would be the "back-edge" under naive DFS
+        e('e3', 'body', 'lc'),     // the actual cycle-closing edge
+      ],
+    );
+    expect(findBackEdges(graph).map((x) => x.id)).toEqual(['e3']);
+    expect(() => validateLoopTopology(graph)).not.toThrow();
   });
 
   it('handles disjoint components — only the cyclic one yields back-edges', () => {
