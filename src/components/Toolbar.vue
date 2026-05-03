@@ -4,6 +4,7 @@ import { useGraphStore } from '@/stores/graph';
 import { useRunStore } from '@/stores/run';
 import { useUiStore } from '@/stores/ui';
 import { useSettingsStore } from '@/stores/settings';
+import { useUpdateStore } from '@/stores/update';
 import { runGraph } from '@/engine/runner';
 import { abortCurrent } from '@/engine/abort';
 import TemplatePickerModal from './TemplatePickerModal.vue';
@@ -13,6 +14,7 @@ const graph = useGraphStore();
 const run = useRunStore();
 const ui = useUiStore();
 const settings = useSettingsStore();
+const updateStore = useUpdateStore();
 
 const templatesOpen = ref(false);
 
@@ -73,6 +75,15 @@ function onStop() { abortCurrent(); }
       <span class="tabular-nums">⏱ <strong>{{ elapsedDisplay }}</strong></span>
     </div>
     <div class="ml-auto flex gap-1.5">
+      <button
+        v-if="updateStore.update"
+        type="button"
+        @click="updateStore.openModal()"
+        title="Update available — click for details"
+        class="px-3 py-1.5 rounded border border-accent bg-accent/15 text-accent cursor-pointer hover:bg-accent/25 font-semibold"
+      >
+        <span class="inline-block w-1.5 h-1.5 rounded-full bg-accent mr-1.5 align-middle animate-pulse" />Update
+      </button>
       <button
         type="button"
         @click="templatesOpen = true"

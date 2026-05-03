@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3] — 2026-05-03
+
+### Fixed
+
+- **Auto-update no longer fails with "Cannot read private member from an object whose class did not declare it."** The Tauri updater's `Update` class uses ES `#privateFields`; storing it in a regular `ref()` caused Vue to wrap it in a reactive Proxy and break private-field identity checks at call time. Updater state now lives in a Pinia store using `shallowRef`, which preserves the prototype.
+
+### Changed
+
+- Update prompt is now a centered modal with a blurred backdrop, replacing the corner toast. Same shell as the Templates picker.
+- Added an **Update** button to the toolbar (next to Templates) that pulses softly when an update is available. Dismissing the modal keeps the button so you can come back to it.
+
 ## [0.1.2] — 2026-05-03
 
 ### Fixed
@@ -73,6 +84,7 @@ Six bundled starter graphs accessible from the toolbar:
 - In-app auto-updater verified by minisign-style signatures (independent of macOS Gatekeeper / Windows SmartScreen).
 - Bundled installers: `.dmg`, `.deb`, `.AppImage`, `-setup.exe`, `.msi`.
 
-[Unreleased]: https://github.com/MatjazAkeo/agentforge/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/MatjazAkeo/agentforge/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.1.3
 [0.1.2]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.1.2
 [0.1.0]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.1.0
