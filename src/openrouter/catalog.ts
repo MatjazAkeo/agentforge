@@ -71,7 +71,7 @@ export function isFree(meta: OpenRouterModelMeta): boolean {
 export interface OpenRouterEndpoint {
   name?: string;
   provider_name?: string;
-  /** Uptime fraction over the last 30 min, range 0..1. */
+  /** Uptime percentage over the last 30 min, range 0..100 (e.g. 99.9). */
   uptime_last_30m?: number;
   status?: number;
 }

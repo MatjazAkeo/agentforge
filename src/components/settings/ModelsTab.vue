@@ -98,14 +98,15 @@ function onAdd(meta: OpenRouterModelMeta) {
 function uptimeChip(modelId: string): string | null {
   const u = uptimes.value[modelId];
   if (u === null || u === undefined) return null;
-  return `${(u * 100).toFixed(1)}% uptime`;
+  // OpenRouter returns uptime_last_30m as a percentage (e.g. 99.901), not a fraction.
+  return `${u.toFixed(1)}% uptime`;
 }
 
 function uptimeColor(modelId: string): string {
   const u = uptimes.value[modelId];
   if (u === null || u === undefined) return 'text-text-dim';
-  if (u >= 0.99) return 'text-success';
-  if (u >= 0.95) return 'text-warn';
+  if (u >= 99) return 'text-success';
+  if (u >= 95) return 'text-warn';
   return 'text-error';
 }
 
