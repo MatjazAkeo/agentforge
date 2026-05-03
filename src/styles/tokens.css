@@ -132,42 +132,100 @@ textarea:focus-visible {
 }
 
 /* ---------- Stylish checkboxes ----------
-   Replaces the OS native checkbox with a flat token-themed box that shows
-   a checkmark when checked. Inherits accent color, switches with theme. */
+   Heftier than the default — 18px box, soft shadow, visible scale + glow on
+   check, bold white tick. The before pseudo provides an inner highlight that
+   pops when the box fills with accent. */
 input[type='checkbox'] {
   appearance: none;
   -webkit-appearance: none;
-  width: 14px;
-  height: 14px;
-  border: 1px solid var(--border-strong);
-  border-radius: 3px;
+  position: relative;
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 5px;
   background: var(--bg-elev);
   display: inline-grid;
   place-content: center;
   cursor: pointer;
-  transition: background-color 80ms ease, border-color 80ms ease;
   vertical-align: middle;
+  flex-shrink: 0;
+  transition:
+    background-color 160ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 160ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 100ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 160ms ease;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 1px 2px rgba(0, 0, 0, 0.18);
 }
+
+:root[data-theme='light'] input[type='checkbox'] {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
 input[type='checkbox']:hover:not(:disabled) {
   border-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(74, 144, 226, 0.25);
 }
+
+input[type='checkbox']:active:not(:disabled) {
+  transform: translateY(0) scale(0.92);
+}
+
 input[type='checkbox']:checked {
-  background: var(--accent);
+  background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 70%, white));
   border-color: var(--accent);
+  box-shadow:
+    0 0 0 1px var(--accent),
+    0 4px 14px color-mix(in srgb, var(--accent) 45%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
+
+/* Inner ring that flashes to size on check — adds a "pop" without a keyframe. */
+input[type='checkbox']::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 5px;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.35), transparent 60%);
+  opacity: 0;
+  transform: scale(0.4);
+  transition: opacity 220ms ease, transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
+}
+input[type='checkbox']:checked::before {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Bold white checkmark drawn with two pseudo-element edges. */
 input[type='checkbox']:checked::after {
   content: '';
-  width: 8px;
-  height: 8px;
+  width: 11px;
+  height: 11px;
   background-color: white;
   clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.25));
+  animation: chk-pop 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+
+@keyframes chk-pop {
+  0%   { transform: scale(0.2); opacity: 0; }
+  60%  { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
 input[type='checkbox']:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
 }
+
 input[type='checkbox']:focus-visible {
-  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.35);
+  outline: none;
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent),
+    0 4px 14px color-mix(in srgb, var(--accent) 45%, transparent);
 }
 
 /* Normalize <select> chrome so dropdowns line up with text inputs.

@@ -31,7 +31,8 @@ async function loadUptimeForConfigured() {
       try {
         const eps = await fetchModelEndpoints(m.id);
         uptimes.value = { ...uptimes.value, [m.id]: bestUptime(eps) };
-      } catch {
+      } catch (err) {
+        console.warn(`Uptime fetch failed for ${m.id}:`, err);
         uptimes.value = { ...uptimes.value, [m.id]: null };
       }
     }),

@@ -90,7 +90,10 @@ const endpointsCache = new Map<string, OpenRouterEndpoint[]>();
 export async function fetchModelEndpoints(modelId: string): Promise<OpenRouterEndpoint[]> {
   const hit = endpointsCache.get(modelId);
   if (hit) return hit;
-  const r = await fetch(`${BASE}/models/${encodeURIComponent(modelId)}/endpoints`);
+  // OpenRouter's URL pattern is /models/{author}/{slug}/endpoints — the `/` is
+  // structural, not part of the slug. Don't encodeURIComponent the whole id, or
+  // `/` becomes %2F and the request 404s.
+  const r = await fetch(`${BASE}/models/${modelId}/endpoints`);
   if (!r.ok) throw new Error(`endpoints HTTP ${r.status}`);
   const body = (await r.json()) as EndpointsResponse;
   const eps = body.data?.endpoints ?? [];
