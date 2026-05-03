@@ -8,6 +8,7 @@ export const useRunStore = defineStore('run', () => {
   const totalApiCalls = ref(0);
   const totalTokensIn = ref(0);
   const totalTokensOut = ref(0);
+  const totalCostUsd = ref(0);
   const startedAtMs = ref<number | null>(null);
   const elapsedMs = ref(0);
   const livePreviews = ref<Record<string, string>>({});
@@ -29,6 +30,7 @@ export const useRunStore = defineStore('run', () => {
     totalApiCalls.value = 0;
     totalTokensIn.value = 0;
     totalTokensOut.value = 0;
+    totalCostUsd.value = 0;
     startedAtMs.value = performance.now();
     elapsedMs.value = 0;
     clearLivePreviews();
@@ -50,6 +52,10 @@ export const useRunStore = defineStore('run', () => {
     totalTokensOut.value += output;
   }
 
+  function addCost(usd: number) {
+    if (Number.isFinite(usd) && usd > 0) totalCostUsd.value += usd;
+  }
+
   function incrementApiCalls() {
     totalApiCalls.value += 1;
   }
@@ -67,8 +73,8 @@ export const useRunStore = defineStore('run', () => {
   }
 
   return {
-    current, totalApiCalls, totalTokensIn, totalTokensOut, elapsedMs, isRunning, livePreviews,
-    start, tick, recordResult, addTokens, incrementApiCalls, finish,
+    current, totalApiCalls, totalTokensIn, totalTokensOut, totalCostUsd, elapsedMs, isRunning, livePreviews,
+    start, tick, recordResult, addTokens, addCost, incrementApiCalls, finish,
     setLivePreview, clearLivePreview, clearLivePreviews,
   };
 });

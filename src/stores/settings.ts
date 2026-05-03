@@ -2,6 +2,7 @@
 import { defineStore } from 'pinia';
 import { ref, watch } from 'vue';
 import { DEFAULT_MODELS } from '@/config/default-models';
+import { fetchOpenRouterCredits } from '@/openrouter/credits';
 
 export interface ModelEntry {
   id: string;
@@ -62,10 +63,24 @@ export const useSettingsStore = defineStore('settings', () => {
   const theme = ref<ThemePref>(initial.theme);
   const defaultModel = ref<string | null>(initial.defaultModel);
   const autoLoadHelloModel = ref<boolean>(initial.autoLoadHelloModel);
+  const credits = ref<number | null>(null);    // remaining USD on OpenRouter; null = not yet fetched
 
   function setApiKey(key: string | null) {
     apiKey.value = key;
     apiKeyConfigured.value = key !== null && key.length > 0;
+  }
+
+  async function refreshCredits() {
+    if (!apiKey.value) {
+      credits.value = null;
+      return;
+    }
+    try {
+      credits.value = await fetchOpenRouterCredits(apiKey.value);
+    } catch (e) {
+      // Don't clobber a previously known balance on a transient network failure.
+      console.warn('Credit refresh failed:', e);
+    }
   }
 
   function persist() {
@@ -97,7 +112,7 @@ export const useSettingsStore = defineStore('settings', () => {
   }
 
   return {
-    apiKey, apiKeyConfigured, models, theme, defaultModel, autoLoadHelloModel,
-    setApiKey, addModel, removeModel, updateModelNotes,
+    apiKey, apiKeyConfigured, models, theme, defaultModel, autoLoadHelloModel, credits,
+    setApiKey, addModel, removeModel, updateModelNotes, refreshCredits,
   };
 });

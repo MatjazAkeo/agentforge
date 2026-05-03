@@ -54,6 +54,9 @@ async function bootstrap() {
   }
   showOnboarding.value = !settings.apiKeyConfigured;
 
+  // Fire-and-forget — populate the toolbar credit chip without blocking the UI.
+  if (settings.apiKeyConfigured) void settings.refreshCredits();
+
   // Auto-load the "Hello Model" template by default for a never-empty canvas
   // — unless the user has disabled this in General settings.
   if (settings.autoLoadHelloModel) {

@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.4] — 2026-05-03
+
+### Added
+
+- **OpenRouter balance chip in the toolbar.** Shows USD remaining (`total_credits − total_usage`) fetched from `/api/v1/credits`. Refreshes on app launch, after every Run, and on click. Always visible when an API key is configured — even at $0.00.
+- **Per-run cost in the metrics strip.** When a run uses any paid model, a `cost: $X.XXXX` chip joins api calls / in / out / ⏱. Computed locally from the cached catalog's per-token pricing — no extra round-trip per call. Hidden for free-only runs to avoid noise. Adaptive precision: 4 decimals under $1, 2 decimals at or above.
+
+### Changed
+
+- Toolbar buttons standardized to a single 36px height. The Settings gear is now a 1:1 square. Credits chip sits between Stop and Settings.
+
 ## [0.1.3] — 2026-05-03
 
 ### Fixed
@@ -84,7 +95,8 @@ Six bundled starter graphs accessible from the toolbar:
 - In-app auto-updater verified by minisign-style signatures (independent of macOS Gatekeeper / Windows SmartScreen).
 - Bundled installers: `.dmg`, `.deb`, `.AppImage`, `-setup.exe`, `.msi`.
 
-[Unreleased]: https://github.com/MatjazAkeo/agentforge/compare/v0.1.3...HEAD
+[Unreleased]: https://github.com/MatjazAkeo/agentforge/compare/v0.1.4...HEAD
+[0.1.4]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.1.4
 [0.1.3]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.1.3
 [0.1.2]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.1.2
 [0.1.0]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.1.0

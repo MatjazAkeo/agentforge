@@ -4,6 +4,8 @@ import type { ChatMessage } from '@/openrouter/types';
 import type { ToolDefinitionPayload } from './tool';
 import { llmOnce } from './_internals/llm-once';
 import { useRunStore } from '@/stores/run';
+import { useSettingsStore } from '@/stores/settings';
+import { estimateCallCostUsd } from '@/openrouter/credits';
 
 function buildMessages(cfg: LLMCallConfig, inputs: Record<string, unknown>): ChatMessage[] {
   const upstream = inputs.messages;
@@ -49,7 +51,12 @@ export const llmCallNode: NodeDefinition = {
         ctx.details.responseTextSoFar = preview;
         ctx.onStreamUpdate?.(preview.length > 80 ? `…${preview.slice(-80)}` : preview);
       },
-      onUsage: (u) => useRunStore().addTokens(u.input, u.output),
+      onUsage: (u) => {
+        const runStore = useRunStore();
+        runStore.addTokens(u.input, u.output);
+        const model = useSettingsStore().models.find((m) => m.id === cfg.model);
+        runStore.addCost(estimateCallCostUsd(model, u.input, u.output));
+      },
     });
 
     ctx.details.request = out.request;

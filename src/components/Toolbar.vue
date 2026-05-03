@@ -37,6 +37,18 @@ const elapsedDisplay = computed(() => {
   return `${(ms / 1000).toFixed(1)}s`;
 });
 
+const costDisplay = computed(() => {
+  const c = run.totalCostUsd;
+  if (c >= 1) return `$${c.toFixed(2)}`;
+  return `$${c.toFixed(4)}`;
+});
+
+const creditsDisplay = computed(() => {
+  const v = settings.credits;
+  if (v === null || v === undefined) return '— credits';
+  return `$${v.toFixed(2)}`;
+});
+
 function openSettings() { ui.settingsOpen = true; }
 
 async function onRun() {
@@ -58,6 +70,8 @@ async function onRun() {
     console.error('Run failed:', err);
     setTimeout(() => alert(`Run failed: ${(err as Error).message ?? String(err)}`), 0);
   }
+  // Refresh balance regardless of run outcome — even partial spend should reflect.
+  void settings.refreshCredits();
 }
 function onStop() { abortCurrent(); }
 </script>
@@ -73,28 +87,29 @@ function onStop() { abortCurrent(); }
       <span class="tabular-nums">in: <strong>{{ run.totalTokensIn }}</strong></span>
       <span class="tabular-nums">out: <strong>{{ run.totalTokensOut }}</strong></span>
       <span class="tabular-nums">⏱ <strong>{{ elapsedDisplay }}</strong></span>
+      <span v-if="run.totalCostUsd > 0" class="tabular-nums">cost: <strong>{{ costDisplay }}</strong></span>
     </div>
-    <div class="ml-auto flex gap-1.5">
+    <div class="ml-auto flex gap-1.5 items-center">
       <button
         v-if="updateStore.update"
         type="button"
         @click="updateStore.openModal()"
         title="Update available — click for details"
-        class="px-3 py-1.5 rounded border border-accent bg-accent/15 text-accent cursor-pointer hover:bg-accent/25 font-semibold"
+        class="h-9 inline-flex items-center px-3 rounded border border-accent bg-accent/15 text-accent cursor-pointer hover:bg-accent/25 font-semibold"
       >
         <span class="inline-block w-1.5 h-1.5 rounded-full bg-accent mr-1.5 align-middle animate-pulse" />Update
       </button>
       <button
         type="button"
         @click="templatesOpen = true"
-        class="px-3 py-1.5 rounded border border-border-strong bg-elev text-text-base cursor-pointer disabled:opacity-50 disabled:cursor-default"
+        class="h-9 inline-flex items-center px-3 rounded border border-border-strong bg-elev text-text-base cursor-pointer disabled:opacity-50 disabled:cursor-default"
       >Templates</button>
       <TemplatePickerModal :open="templatesOpen" @close="templatesOpen = false" @pick="onPickTemplate" />
       <button
         type="button"
         @click="onRun"
         :disabled="run.isRunning"
-        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded font-semibold border border-success bg-success text-[#0a1f0a] cursor-pointer disabled:bg-elev disabled:border-border-strong disabled:text-text-base disabled:cursor-default disabled:opacity-90"
+        class="h-9 inline-flex items-center gap-1.5 px-3 rounded font-semibold border border-success bg-success text-[#0a1f0a] cursor-pointer disabled:bg-elev disabled:border-border-strong disabled:text-text-base disabled:cursor-default disabled:opacity-90"
       >
         <span v-if="run.isRunning" class="inline-block w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
         <span>{{ run.isRunning ? 'Running…' : '▶ Run' }}</span>
@@ -103,13 +118,20 @@ function onStop() { abortCurrent(); }
         type="button"
         @click="onStop"
         :disabled="!run.isRunning"
-        class="px-3 py-1.5 rounded border border-border-strong bg-elev text-text-base cursor-pointer disabled:opacity-50 disabled:cursor-default"
+        class="h-9 inline-flex items-center px-3 rounded border border-border-strong bg-elev text-text-base cursor-pointer disabled:opacity-50 disabled:cursor-default"
       >■ Stop</button>
+      <span
+        v-if="settings.apiKeyConfigured"
+        class="h-9 inline-flex items-center tabular-nums text-xs text-text-dim px-3 rounded border border-border-base bg-elev cursor-pointer select-none"
+        :title="settings.credits === null ? 'Click to refresh' : 'OpenRouter credits remaining — click to refresh'"
+        @click="settings.refreshCredits()"
+        role="button"
+      >{{ creditsDisplay }}</span>
       <button
         type="button"
         @click="openSettings"
         title="Settings"
-        class="px-2.5 py-1 rounded border border-border-strong bg-elev text-text-base cursor-pointer text-lg leading-none"
+        class="h-9 w-9 inline-flex items-center justify-center rounded border border-border-strong bg-elev text-text-base cursor-pointer text-lg leading-none"
       >⚙</button>
     </div>
   </header>

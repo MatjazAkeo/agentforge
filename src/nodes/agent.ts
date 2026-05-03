@@ -5,6 +5,8 @@ import type { ToolDefinitionPayload } from './tool';
 import { llmOnce } from './_internals/llm-once';
 import { runToolBatch } from './_internals/tool-batch';
 import { useRunStore } from '@/stores/run';
+import { useSettingsStore } from '@/stores/settings';
+import { estimateCallCostUsd } from '@/openrouter/credits';
 
 interface AgentIteration {
   iteration: number;
@@ -63,7 +65,11 @@ export const agentNode: NodeDefinition = {
         apiKey: ctx.apiKey, signal: ctx.signal,
         model: cfg.model, temperature: cfg.temperature, maxTokens: cfg.maxTokens,
         responseFormat: null, messages, tools,
-        onUsage: (u) => runStore.addTokens(u.input, u.output),
+        onUsage: (u) => {
+          runStore.addTokens(u.input, u.output);
+          const model = useSettingsStore().models.find((m) => m.id === cfg.model);
+          runStore.addCost(estimateCallCostUsd(model, u.input, u.output));
+        },
         onContentDelta: (d) => ctx.onStreamUpdate?.(d),
       });
       lastText = llm.text;
