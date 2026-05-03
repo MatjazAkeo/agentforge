@@ -1,0 +1,201 @@
+@import "tailwindcss";
+
+/* Legacy CSS variables — kept for scoped styles in unmigrated components.
+   Tailwind utilities (below) read from these. Migrate components one at a time
+   from `var(--*)` lookups to Tailwind classes; both work side by side.
+
+   Theme switching: the General settings tab toggles `data-theme` on <html>.
+   Defaults are dark; the .light overrides below kick in for the light scheme.
+   The `system` preference resolves at app boot via App.vue's bootstrap. */
+:root,
+:root[data-theme='dark'] {
+  --bg-canvas: #1e1e1e;
+  --bg-panel: #232323;
+  --bg-panel-strong: #2a2a2a;
+  --bg-elev: #333;
+  --bg-node: #25272d;            /* node card body */
+  --bg-node-inset: #16181c;      /* darker zones inside nodes (footers, channel groups) */
+  --border: #444;
+  --border-strong: #555;
+  --text: #e6e6e6;
+  --text-dim: rgba(230, 230, 230, 0.65);
+  --accent: #4a90e2;
+  --success: #4caf50;
+  --warn: #ffb84a;
+  --error: #e94545;
+  --loop: #ff9d4a;
+  --font-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+:root[data-theme='light'] {
+  --bg-canvas: #f5f5f5;
+  --bg-panel: #ffffff;
+  --bg-panel-strong: #fafafa;
+  --bg-elev: #ececec;
+  --bg-node: #ffffff;
+  --bg-node-inset: #ececec;
+  --border: #d0d0d0;
+  --border-strong: #b8b8b8;
+  --text: #1f1f1f;
+  --text-dim: rgba(31, 31, 31, 0.6);
+  --accent: #2563eb;
+  --success: #16a34a;
+  --warn: #d97706;
+  --error: #dc2626;
+  --loop: #ea580c;
+}
+
+/* Tailwind v4 CSS-first config: custom theme tokens generate utility classes
+   (bg-canvas, text-text, border-border-strong, etc.). Values reference the
+   legacy vars so a single source of truth feeds both. */
+@theme {
+  --color-canvas: var(--bg-canvas);
+  --color-panel: var(--bg-panel);
+  --color-panel-strong: var(--bg-panel-strong);
+  --color-elev: var(--bg-elev);
+  --color-node: var(--bg-node);
+  --color-node-inset: var(--bg-node-inset);
+  --color-border-base: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-text-base: var(--text);
+  --color-text-dim: var(--text-dim);
+  --color-accent: var(--accent);
+  --color-success: var(--success);
+  --color-warn: var(--warn);
+  --color-error: var(--error);
+  --color-loop: var(--loop);
+
+  --font-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* Reset & global defaults — apply once at the root. */
+html, body, #app {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--bg-canvas);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 13px;
+}
+
+/* Subtle dark-mode focus styling — replaces the bright browser default. */
+input,
+select,
+textarea,
+button {
+  outline: none;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  border-color: rgba(74, 144, 226, 0.55);
+  box-shadow: 0 0 0 1px rgba(74, 144, 226, 0.22);
+}
+
+/* ---------- Vue Flow minimap, controls, and canvas background ----------
+   These widgets ship with their own dark theme; tint them via overrides so
+   they match the active --bg-* tokens in both light and dark mode. */
+.vue-flow__minimap {
+  background-color: var(--bg-panel) !important;
+  border: 1px solid var(--border) !important;
+}
+.vue-flow__minimap-mask {
+  fill: rgba(0, 0, 0, 0.18) !important;
+}
+:root[data-theme='light'] .vue-flow__minimap-mask {
+  fill: rgba(0, 0, 0, 0.08) !important;
+}
+.vue-flow__minimap-node {
+  fill: var(--bg-elev) !important;
+  stroke: var(--border-strong) !important;
+}
+.vue-flow__controls {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25) !important;
+}
+.vue-flow__controls-button {
+  background: var(--bg-panel) !important;
+  border-bottom: 1px solid var(--border) !important;
+  color: var(--text) !important;
+  fill: var(--text) !important;
+}
+.vue-flow__controls-button:hover {
+  background: var(--bg-elev) !important;
+}
+.vue-flow__background {
+  background-color: var(--bg-canvas);
+}
+/* Vue Flow's default dot-pattern color is white-ish; soften it for light mode. */
+:root[data-theme='light'] .vue-flow__background pattern circle {
+  fill: rgba(0, 0, 0, 0.18) !important;
+}
+
+/* ---------- iOS-style toggle checkbox ----------
+   Adapted from the standard "tgl-ios" pattern. The bare checkbox itself is
+   the track; an ::after pseudo is the thumb that slides on check. No
+   per-element wrappers needed — every <input type="checkbox"> in the app
+   picks this up. */
+input[type='checkbox'] {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  width: 36px;
+  height: 20px;
+  border-radius: 9999px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  vertical-align: middle;
+  flex-shrink: 0;
+  transition: background-color 280ms ease, border-color 280ms ease;
+  margin: 0;
+}
+
+input[type='checkbox']::after {
+  content: '';
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fbfbfb;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.10),
+    0 2px 4px rgba(0, 0, 0, 0.18);
+  transition: left 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+input[type='checkbox']:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+input[type='checkbox']:checked::after {
+  left: calc(100% - 17px);
+}
+
+input[type='checkbox']:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+input[type='checkbox']:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+/* Normalize <select> chrome so dropdowns line up with text inputs.
+   Adds a custom caret since `appearance: none` removes the OS one.
+   `!important` on padding-right beats Tailwind's `px-2`/`px-2.5` utilities so
+   the caret never collides with the option label. */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%23999' d='M0 0l5 6 5-6z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 10px 6px;
+  padding-right: 24px !important;
+}
