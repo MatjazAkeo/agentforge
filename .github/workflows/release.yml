@@ -1,0 +1,82 @@
+# Build AgentForge installers + signed update bundles for macOS, Linux, Windows
+# and attach them to a draft GitHub Release. Triggered by pushing a tag like
+# `v0.2.0` or by manual dispatch from the Actions tab.
+#
+# Required GitHub secrets (Settings → Secrets and variables → Actions):
+#   TAURI_SIGNING_PRIVATE_KEY            generated locally via `npm run tauri signer generate`
+#   TAURI_SIGNING_PRIVATE_KEY_PASSWORD   the passphrase you chose when generating
+#
+# After a tagged release lands, edit the draft (set release notes), then publish.
+# The published release exposes `latest.json` at:
+#   https://github.com/MatjazAkeo/agentforge/releases/latest/download/latest.json
+# which is the URL the in-app updater hits on bootstrap.
+
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+jobs:
+  publish-tauri:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: 'macos-latest'        # Apple silicon + Intel via universal target
+            args: '--target universal-apple-darwin'
+          - platform: 'ubuntu-22.04'
+            args: ''
+          - platform: 'windows-latest'
+            args: ''
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          # Universal mac target needs both architectures available on the runner
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - name: Install Linux build deps
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf
+
+      - name: Install npm deps
+        run: npm ci
+
+      - name: Build + bundle + draft release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'AgentForge ${{ github.ref_name }}'
+          releaseBody: |
+            See the [changelog](https://github.com/MatjazAkeo/agentforge/blob/main/CHANGELOG.md) for full details.
+
+            macOS users: the app is unsigned (no Apple Developer account). On first launch you may need to right-click the app → Open, then confirm the Gatekeeper prompt.
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.args }}

@@ -18,6 +18,9 @@
     "fs:allow-read-dir",
     "fs:allow-remove",
     "fs:allow-exists",
+    "updater:default",
+    "process:allow-restart",
+    "process:default",
     {
       "identifier": "http:default",
       "allow": [

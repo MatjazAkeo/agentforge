@@ -17,6 +17,7 @@ import Layout from './components/Layout.vue';
 import Settings from './components/Settings.vue';
 import OnboardingWelcome from './components/OnboardingWelcome.vue';
 import TrustPromptModal from './components/TrustPromptModal.vue';
+import UpdateBanner from './components/UpdateBanner.vue';
 
 const graph = useGraphStore();
 const settings = useSettingsStore();
@@ -157,5 +158,6 @@ onUnmounted(() => unlisten?.());
     <Layout />
     <Settings v-if="ui.settingsOpen" />
     <TrustPromptModal />
+    <UpdateBanner />
   </template>
 </template>
