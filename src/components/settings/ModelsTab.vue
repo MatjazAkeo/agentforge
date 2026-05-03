@@ -95,10 +95,17 @@ function onAdd(meta: OpenRouterModelMeta) {
   void loadUptimeForConfigured();
 }
 
+/**
+ * Returns the uptime chip label for a model, or null if the model hasn't been
+ * fetched yet (still loading). Returns "uptime n/a" when the fetch completed
+ * but no provider reported `uptime_last_30m` — common for newly-listed free
+ * proxies. OpenRouter returns the value as a percentage (e.g. 99.901), not a
+ * fraction.
+ */
 function uptimeChip(modelId: string): string | null {
+  if (!(modelId in uptimes.value)) return null; // still loading — no chip
   const u = uptimes.value[modelId];
-  if (u === null || u === undefined) return null;
-  // OpenRouter returns uptime_last_30m as a percentage (e.g. 99.901), not a fraction.
+  if (u === null) return 'uptime n/a';
   return `${u.toFixed(1)}% uptime`;
 }
 
