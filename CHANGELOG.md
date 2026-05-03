@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] — 2026-05-03
+
+### Fixed
+
+- **API key now persists across app launches.** v0.1.0 declared the `keyring` crate without enabling any platform backend feature; keyring 3.x ships with no backend by default, so reads and writes silently went to an in-memory mock that died with the process. Enabled `apple-native`, `windows-native`, and `sync-secret-service` features so the macOS Security framework, Windows Credential Manager, and Linux Secret Service are actually used.
+
 ## [0.1.0] — 2026-05-03
 
 Initial public release.

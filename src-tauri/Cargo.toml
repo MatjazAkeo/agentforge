@@ -1,6 +1,6 @@
 [package]
 name = "agentforge"
-version = "0.1.0"
+version = "0.1.1"
 description = "Visual node-based AI agent playground"
 authors = ["MatjazAkeo"]
 edition = "2021"
@@ -27,5 +27,5 @@ tauri-plugin-updater = "2"
 tauri-plugin-process = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-keyring = "3"
+keyring = { version = "3", features = ["apple-native", "windows-native", "sync-secret-service"] }
 

@@ -36,6 +36,17 @@ npm run tauri dev
 
 On first launch the welcome screen prompts for your OpenRouter key. The key is stored in your OS keychain — never on disk in graph files.
 
+### macOS first launch (unsigned app)
+
+The app isn't signed with an Apple Developer certificate, so macOS Gatekeeper blocks it the first time. Modern macOS no longer offers a right-click "Open" bypass — you'll see *"Apple could not verify AgentForge is free of malware"* with only **Done** and **Move to Bin** buttons.
+
+To open the app:
+
+1. Try to open AgentForge once → click **Done** on the warning.
+2. Open **System Settings → Privacy & Security**, scroll to the bottom security section.
+3. You'll see *"AgentForge was blocked because it's not from an identified developer"* with an **Open Anyway** button.
+4. Click **Open Anyway**, authenticate, and the app launches. macOS remembers; future launches just work.
+
 ## Usage
 
 1. Click **+** on the canvas (or right-click, or press ⌘K) to open the add-node menu.
