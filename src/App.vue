@@ -1,6 +1,6 @@
 <!-- src/App.vue -->
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref, watch } from 'vue';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { useGraphStore } from '@/stores/graph';
 import { useSettingsStore } from '@/stores/settings';
@@ -31,7 +31,20 @@ function rafLoop() {
   requestAnimationFrame(rafLoop);
 }
 
+function applyTheme(pref: 'system' | 'light' | 'dark') {
+  // 'system' resolves to whatever the OS preference is right now. The
+  // <html data-theme> attribute drives the legacy CSS variables in tokens.css.
+  const resolved =
+    pref === 'system'
+      ? (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
+      : pref;
+  document.documentElement.setAttribute('data-theme', resolved);
+}
+
 async function bootstrap() {
+  // Apply the persisted theme before paint so there's no light→dark flash.
+  applyTheme(settings.theme);
+
   try {
     const key = await loadApiKey();
     settings.setApiKey(key);
@@ -40,12 +53,23 @@ async function bootstrap() {
   }
   showOnboarding.value = !settings.apiKeyConfigured;
 
-  // Load the "Hello Model" template by default for a never-empty canvas.
-  // Untitled — user must Save As before runs persist.
-  const helloTemplate = TEMPLATES.find((t) => t.id === 'hello-model');
-  if (helloTemplate) {
-    graph.load(JSON.parse(JSON.stringify(helloTemplate.graph)), null);
+  // Auto-load the "Hello Model" template by default for a never-empty canvas
+  // — unless the user has disabled this in General settings.
+  if (settings.autoLoadHelloModel) {
+    const helloTemplate = TEMPLATES.find((t) => t.id === 'hello-model');
+    if (helloTemplate) {
+      graph.load(JSON.parse(JSON.stringify(helloTemplate.graph)), null);
+    }
   }
+}
+
+// Re-apply theme whenever the setting changes (e.g. user toggles in Settings).
+watch(() => settings.theme, applyTheme);
+// Also re-apply if the OS preference flips while pref is 'system'.
+if (typeof window !== 'undefined') {
+  window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
+    if (settings.theme === 'system') applyTheme('system');
+  });
 }
 
 function confirmDiscardIfDirty(action: string): boolean {

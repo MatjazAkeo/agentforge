@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useGraphStore } from '@/stores/graph';
+import { useSettingsStore } from '@/stores/settings';
 import type { Node } from '@/domain/graph';
 import type { NodeType } from '@/domain/node-types';
 
@@ -33,6 +34,7 @@ const props = defineProps<{
 const emit = defineEmits<{ close: [] }>();
 
 const graph = useGraphStore();
+const settings = useSettingsStore();
 const search = ref('');
 const focusedIndex = ref(0);
 
@@ -56,7 +58,7 @@ function defaultConfig(type: NodeType): Record<string, unknown> {
     case 'input': return { name: 'input', defaultValue: '' };
     case 'output': return { format: 'auto' };
     case 'llm-call': return {
-      model: 'openai/gpt-oss-120b:free',
+      model: settings.defaultModel ?? 'openai/gpt-oss-120b:free',
       systemPrompt: '',
       temperature: 0.7,
       maxTokens: null,
@@ -76,7 +78,7 @@ function defaultConfig(type: NodeType): Record<string, unknown> {
       valueChannels: [{ name: 'value', type: 'json' }],
     };
     case 'agent': return {
-      model: 'openai/gpt-oss-120b:free',
+      model: settings.defaultModel ?? 'openai/gpt-oss-120b:free',
       systemPrompt: '',
       temperature: 0.7,
       maxTokens: null,
