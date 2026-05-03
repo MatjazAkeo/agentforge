@@ -1,13 +1,14 @@
 # Build AgentForge installers + signed update bundles for macOS, Linux, Windows
-# and attach them to a draft GitHub Release. Triggered by pushing a tag like
+# and publish them to a GitHub Release. Triggered by pushing a tag like
 # `v0.2.0` or by manual dispatch from the Actions tab.
 #
 # Required GitHub secrets (Settings → Secrets and variables → Actions):
 #   TAURI_SIGNING_PRIVATE_KEY            generated locally via `npm run tauri signer generate`
 #   TAURI_SIGNING_PRIVATE_KEY_PASSWORD   the passphrase you chose when generating
 #
-# After a tagged release lands, edit the draft (set release notes), then publish.
-# The published release exposes `latest.json` at:
+# A tag push auto-publishes the release with notes extracted from CHANGELOG.md.
+# Manual dispatches publish with a generic body. Once published, `latest.json`
+# is exposed at:
 #   https://github.com/MatjazAkeo/agentforge/releases/latest/download/latest.json
 # which is the URL the in-app updater hits on bootstrap.
 
@@ -20,7 +21,44 @@ on:
   workflow_dispatch:
 
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      notes: ${{ steps.extract.outputs.notes }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract release notes from CHANGELOG.md
+        id: extract
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+            # Pull the section between `## [VERSION]` and the next `## [`.
+            NOTES=$(awk -v ver="$VERSION" '
+              $0 ~ "^## \\[" ver "\\]" { found=1; next }
+              found && /^## \[/ { exit }
+              found { print }
+            ' CHANGELOG.md)
+            if [[ -z "${NOTES// }" ]]; then
+              NOTES="Release ${GITHUB_REF_NAME}. See [CHANGELOG.md](https://github.com/MatjazAkeo/agentforge/blob/main/CHANGELOG.md) for details."
+            fi
+          else
+            NOTES="Manual dispatch build. See [CHANGELOG.md](https://github.com/MatjazAkeo/agentforge/blob/main/CHANGELOG.md) for details."
+          fi
+          {
+            echo "notes<<RELEASE_NOTES_EOF"
+            echo "$NOTES"
+            echo ""
+            echo "---"
+            echo ""
+            echo "**macOS first launch:** the app is unsigned (no Apple Developer account). On first open, Gatekeeper will block it. Open **System Settings → Privacy & Security**, scroll down, and click **Open Anyway** next to the AgentForge entry. macOS remembers; future launches don't prompt."
+            echo "RELEASE_NOTES_EOF"
+          } >> "$GITHUB_OUTPUT"
+
   publish-tauri:
+    needs: prepare
     permissions:
       contents: write
     strategy:
@@ -64,7 +102,7 @@ jobs:
       - name: Install npm deps
         run: npm ci
 
-      - name: Build + bundle + draft release
+      - name: Build + bundle + publish release
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -73,10 +111,7 @@ jobs:
         with:
           tagName: ${{ github.ref_name }}
           releaseName: 'AgentForge ${{ github.ref_name }}'
-          releaseBody: |
-            See the [changelog](https://github.com/MatjazAkeo/agentforge/blob/main/CHANGELOG.md) for full details.
-
-            macOS users: the app is unsigned (no Apple Developer account). On first launch you may need to right-click the app → Open, then confirm the Gatekeeper prompt.
-          releaseDraft: true
+          releaseBody: ${{ needs.prepare.outputs.notes }}
+          releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}

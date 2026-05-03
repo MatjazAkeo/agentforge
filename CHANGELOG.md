@@ -7,11 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.1.1] — 2026-05-03
+## [0.1.2] — 2026-05-03
 
 ### Fixed
 
 - **API key now persists across app launches.** v0.1.0 declared the `keyring` crate without enabling any platform backend feature; keyring 3.x ships with no backend by default, so reads and writes silently went to an in-memory mock that died with the process. Enabled `apple-native`, `windows-native`, and `sync-secret-service` features so the macOS Security framework, Windows Credential Manager, and Linux Secret Service are actually used.
+
+### Changed
+
+- Release workflow now auto-publishes tagged releases instead of leaving them as drafts. The release body is auto-extracted from the matching CHANGELOG.md section, with a macOS first-launch note appended.
+- README and Getting Started docs updated for the modern macOS Gatekeeper "Open Anyway" flow (right-click → Open is gone on recent macOS).
+
+(v0.1.1 was tagged but never published — superseded by this release.)
 
 ## [0.1.0] — 2026-05-03
 
@@ -66,5 +73,6 @@ Six bundled starter graphs accessible from the toolbar:
 - In-app auto-updater verified by minisign-style signatures (independent of macOS Gatekeeper / Windows SmartScreen).
 - Bundled installers: `.dmg`, `.deb`, `.AppImage`, `-setup.exe`, `.msi`.
 
-[Unreleased]: https://github.com/MatjazAkeo/agentforge/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/MatjazAkeo/agentforge/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.1.2
 [0.1.0]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.1.0
