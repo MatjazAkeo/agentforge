@@ -3,6 +3,8 @@ import { ref, computed, onMounted } from 'vue';
 import { useSettingsStore, type ModelEntry } from '@/stores/settings';
 import {
   fetchOpenRouterCatalog,
+  fetchModelEndpoints,
+  bestUptime,
   metaToEntry,
   isFree,
   type OpenRouterModelMeta,
@@ -18,6 +20,24 @@ const catalog = ref<OpenRouterModelMeta[]>([]);
 const loading = ref(false);
 const error = ref<string | null>(null);
 
+// Per-model uptime, fetched lazily for configured models only. Range 0..1, or
+// null while loading or if no provider reports uptime.
+const uptimes = ref<Record<string, number | null>>({});
+
+async function loadUptimeForConfigured() {
+  await Promise.all(
+    settings.models.map(async (m) => {
+      if (m.id in uptimes.value) return; // already attempted
+      try {
+        const eps = await fetchModelEndpoints(m.id);
+        uptimes.value = { ...uptimes.value, [m.id]: bestUptime(eps) };
+      } catch {
+        uptimes.value = { ...uptimes.value, [m.id]: null };
+      }
+    }),
+  );
+}
+
 onMounted(async () => {
   loading.value = true;
   error.value = null;
@@ -28,6 +48,8 @@ onMounted(async () => {
   } finally {
     loading.value = false;
   }
+  // Fetch uptime for configured models in parallel — bounded list, fire-and-forget.
+  void loadUptimeForConfigured();
 });
 
 const configuredIds = computed(() => new Set(settings.models.map((m) => m.id)));
@@ -68,6 +90,22 @@ function ctxChip(n?: number): string {
 
 function onAdd(meta: OpenRouterModelMeta) {
   settings.addModel(metaToEntry(meta));
+  // Kick off uptime fetch for the newly added model.
+  void loadUptimeForConfigured();
+}
+
+function uptimeChip(modelId: string): string | null {
+  const u = uptimes.value[modelId];
+  if (u === null || u === undefined) return null;
+  return `${(u * 100).toFixed(1)}% uptime`;
+}
+
+function uptimeColor(modelId: string): string {
+  const u = uptimes.value[modelId];
+  if (u === null || u === undefined) return 'text-text-dim';
+  if (u >= 0.99) return 'text-success';
+  if (u >= 0.95) return 'text-warn';
+  return 'text-error';
 }
 
 function onRemove(id: string) {
@@ -123,6 +161,11 @@ function noteValue(m: ModelEntry): string {
                 <span v-if="m.contextLength" class="px-1.5 py-0.5 rounded bg-elev text-text-dim text-[10px]">{{ ctxChip(m.contextLength) }}</span>
                 <span v-if="m.modality && m.modality !== 'text->text'" class="px-1.5 py-0.5 rounded bg-elev text-text-dim text-[10px]">{{ m.modality }}</span>
                 <span v-if="m.pricing" class="px-1.5 py-0.5 rounded bg-elev text-text-dim text-[10px]">{{ formatPrice(m.pricing) }}</span>
+                <span
+                  v-if="uptimeChip(m.id)"
+                  :class="['px-1.5 py-0.5 rounded bg-elev text-[10px]', uptimeColor(m.id)]"
+                  title="Best provider uptime over last 30 minutes"
+                >{{ uptimeChip(m.id) }}</span>
               </div>
               <input
                 :value="noteValue(m)"

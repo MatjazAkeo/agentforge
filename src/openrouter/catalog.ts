@@ -66,3 +66,48 @@ export function metaToEntry(meta: OpenRouterModelMeta): ModelEntry {
 export function isFree(meta: OpenRouterModelMeta): boolean {
   return meta.pricing?.prompt === '0' && meta.pricing?.completion === '0';
 }
+
+/** One provider serving a model, as returned by /api/v1/models/{id}/endpoints. */
+export interface OpenRouterEndpoint {
+  name?: string;
+  provider_name?: string;
+  /** Uptime fraction over the last 30 min, range 0..1. */
+  uptime_last_30m?: number;
+  status?: number;
+}
+
+interface EndpointsResponse {
+  data?: { endpoints?: OpenRouterEndpoint[] };
+}
+
+const endpointsCache = new Map<string, OpenRouterEndpoint[]>();
+
+/**
+ * Returns the providers serving `modelId`, including per-provider uptime stats.
+ * Cached per session by model id. Use this only for CONFIGURED models — fetching
+ * for the entire catalog would be 400+ HTTP requests.
+ */
+export async function fetchModelEndpoints(modelId: string): Promise<OpenRouterEndpoint[]> {
+  const hit = endpointsCache.get(modelId);
+  if (hit) return hit;
+  const r = await fetch(`${BASE}/models/${encodeURIComponent(modelId)}/endpoints`);
+  if (!r.ok) throw new Error(`endpoints HTTP ${r.status}`);
+  const body = (await r.json()) as EndpointsResponse;
+  const eps = body.data?.endpoints ?? [];
+  endpointsCache.set(modelId, eps);
+  return eps;
+}
+
+/**
+ * Best uptime across all providers serving this model, as a fraction 0..1.
+ * Returns `null` if no provider reports uptime.
+ */
+export function bestUptime(endpoints: OpenRouterEndpoint[]): number | null {
+  let best: number | null = null;
+  for (const e of endpoints) {
+    if (typeof e.uptime_last_30m === 'number') {
+      if (best === null || e.uptime_last_30m > best) best = e.uptime_last_30m;
+    }
+  }
+  return best;
+}

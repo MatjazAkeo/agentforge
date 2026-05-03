@@ -19,7 +19,7 @@ const borderColor = computed(() => {
     case 'error': return 'var(--error)';
     case 'running':
     case 'streaming': return 'var(--accent)';
-    default: return '#16181c';
+    default: return 'var(--border)';
   }
 });
 
@@ -52,11 +52,11 @@ function onDelete() {
 
 <template>
   <div
-    class="node-shell group w-[260px] bg-[#25272d] border rounded-md shadow-[0_2px_8px_rgba(0,0,0,0.45)] font-ui text-text-base"
+    class="node-shell group w-[260px] bg-node border rounded-md shadow-[0_2px_8px_rgba(0,0,0,0.45)] font-ui text-text-base"
     :style="{ borderColor }"
     :data-status="status"
   >
-    <div class="relative rounded-t-md flex items-center gap-2 px-3 py-1.5 border-b border-[#16181c]">
+    <div class="relative rounded-t-md flex items-center gap-2 px-3 py-1.5 border-b border-border-base">
       <span class="w-2 h-2 rounded-full bg-[#7aa2ff] flex-shrink-0" title="LLM call" />
       <div class="flex-1 min-w-0">
         <div class="flex items-center gap-2">
@@ -103,7 +103,7 @@ function onDelete() {
 
     <div
       :class="[
-        'rounded-b-md px-3 py-2 text-[11px] border-t border-[#16181c] bg-[#16181c] min-h-[36px] whitespace-pre-wrap break-words',
+        'rounded-b-md px-3 py-2 text-[11px] border-t border-border-base bg-node-inset min-h-[36px] whitespace-pre-wrap break-words',
         hasContent ? 'text-left opacity-90' : 'text-center italic opacity-55',
       ]"
     >

@@ -17,7 +17,7 @@ const borderColor = computed(() => {
     case 'error': return 'var(--error)';
     case 'running':
     case 'streaming': return 'var(--accent)';
-    default: return '#16181c';
+    default: return 'var(--border)';
   }
 });
 const channels = computed(() => props.data.config.valueChannels ?? []);
@@ -40,12 +40,12 @@ function onDelete() { graph.removeNode(props.id); }
 
 <template>
   <div
-    class="node-shell group w-[280px] bg-[#25272d] border rounded-md shadow-[0_2px_8px_rgba(0,0,0,0.45)] font-ui text-text-base"
+    class="node-shell group w-[280px] bg-node border rounded-md shadow-[0_2px_8px_rgba(0,0,0,0.45)] font-ui text-text-base"
     :style="{ borderColor }"
     :data-status="status"
   >
     <!-- Title bar -->
-    <div class="relative rounded-t-md flex items-center gap-2 px-3 py-1.5 border-b border-[#16181c]">
+    <div class="relative rounded-t-md flex items-center gap-2 px-3 py-1.5 border-b border-border-base">
       <span class="w-2 h-2 rounded-full bg-[#7aff8a] flex-shrink-0" title="loop controller" />
       <div class="flex-1 min-w-0">
         <div class="text-text-base font-medium text-xs leading-tight">Loop Controller ↺</div>
@@ -70,9 +70,9 @@ function onDelete() { graph.removeNode(props.id); }
     <div
       v-for="ch in channels"
       :key="ch.name"
-      class="relative mx-2 my-2 border border-[#1d1f23] rounded-sm bg-[#1d1f23]/30"
+      class="relative mx-2 my-2 border border-border-base rounded-sm bg-node-inset/30"
     >
-      <div class="px-2 py-0.5 bg-[#1d1f23] text-[10px] font-mono opacity-80 border-b border-[#16181c]">
+      <div class="px-2 py-0.5 bg-node-inset text-[10px] font-mono opacity-80 border-b border-border-base">
         {{ ch.name }}
       </div>
 
@@ -115,7 +115,7 @@ function onDelete() { graph.removeNode(props.id); }
 
     <!-- Halt strip — visually distinct from channel rows. continue (in) on the left,
          iteration counter (out) on the right. -->
-    <div class="rounded-b-md border-t border-[#16181c] bg-[#16181c]">
+    <div class="rounded-b-md border-t border-border-base bg-node-inset">
       <div class="relative h-7 flex items-center justify-between px-3 text-[11px]">
         <div class="flex items-center gap-1.5">
           <Handle

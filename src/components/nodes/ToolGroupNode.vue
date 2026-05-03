@@ -25,10 +25,10 @@ function onDelete() {
 
 <template>
   <div
-    class="node-shell group w-[240px] bg-[#25272d] border border-[#16181c] rounded-md shadow-[0_2px_8px_rgba(0,0,0,0.45)] font-ui text-text-base"
+    class="node-shell group w-[240px] bg-node border border-border-base rounded-md shadow-[0_2px_8px_rgba(0,0,0,0.45)] font-ui text-text-base"
     :data-status="status"
   >
-    <div class="relative rounded-t-md flex items-center gap-2 px-3 py-1.5 border-b border-[#16181c]">
+    <div class="relative rounded-t-md flex items-center gap-2 px-3 py-1.5 border-b border-border-base">
       <span class="w-2 h-2 rounded-full bg-[#ffd54a] flex-shrink-0" title="tool group" />
       <div class="flex-1 min-w-0">
         <div class="text-text-base font-medium text-xs leading-tight">Tool Group</div>
@@ -50,7 +50,7 @@ function onDelete() {
       <Handle id="toolDefinition" type="source" :position="Position.Right" :style="{ background: colorForType('tools') }" />
     </div>
 
-    <div class="rounded-b-md px-3 py-1.5 text-[10px] opacity-60 border-t border-[#16181c] bg-[#16181c] text-center">
+    <div class="rounded-b-md px-3 py-1.5 text-[10px] opacity-60 border-t border-border-base bg-node-inset text-center">
       <span v-if="memberCount > 0">{{ memberCount }} tool{{ memberCount === 1 ? '' : 's' }}</span>
       <span v-else class="italic">— no tools yet —</span>
     </div>

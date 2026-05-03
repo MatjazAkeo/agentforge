@@ -16,7 +16,7 @@ const borderColor = computed(() => {
     case 'done': return 'var(--success)';
     case 'error': return 'var(--error)';
     case 'running': case 'streaming': return 'var(--accent)';
-    default: return '#16181c';
+    default: return 'var(--border)';
   }
 });
 const placeholders = computed(() => extractPlaceholders(props.data.config.template ?? ''));
@@ -25,11 +25,11 @@ function onDelete() { graph.removeNode(props.id); }
 
 <template>
   <div
-    class="node-shell group w-[240px] bg-[#25272d] border rounded-md shadow-[0_2px_8px_rgba(0,0,0,0.45)] font-ui text-text-base"
+    class="node-shell group w-[240px] bg-node border rounded-md shadow-[0_2px_8px_rgba(0,0,0,0.45)] font-ui text-text-base"
     :style="{ borderColor }"
     :data-status="status"
   >
-    <div class="relative rounded-t-md flex items-center gap-2 px-3 py-1.5 border-b border-[#16181c]">
+    <div class="relative rounded-t-md flex items-center gap-2 px-3 py-1.5 border-b border-border-base">
       <span class="w-2 h-2 rounded-full bg-[#ffaa55] flex-shrink-0" title="prompt template" />
       <div class="flex-1 min-w-0">
         <div class="text-text-base font-medium text-xs leading-tight">Prompt Template</div>
@@ -46,10 +46,10 @@ function onDelete() { graph.removeNode(props.id); }
       <Handle id="text" type="source" :position="Position.Right" :style="{ background: colorForType('string') }" />
     </div>
 
-    <div v-if="placeholders.length === 0" class="px-3 py-2 text-[11px] text-text-dim italic opacity-60 rounded-b-md border-t border-[#16181c] bg-[#16181c]">
+    <div v-if="placeholders.length === 0" class="px-3 py-2 text-[11px] text-text-dim italic opacity-60 rounded-b-md border-t border-border-base bg-node-inset">
       No placeholders in template — output is the literal template.
     </div>
-    <div v-else class="border-t border-[#16181c] rounded-b-md bg-[#16181c]/40">
+    <div v-else class="border-t border-border-base rounded-b-md bg-node-inset/40">
       <div
         v-for="name in placeholders"
         :key="name"
