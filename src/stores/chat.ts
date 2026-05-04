@@ -85,6 +85,9 @@ export const useChatStore = defineStore('chat', () => {
 
     const userTurn: ChatTurn = { role: 'user', content: text, attachments: turnAttachments };
     thread.value.push(userTurn);
+    // Clear the composer chip strip immediately — the snapshot above already
+    // captured the attachments for the turn, so the chips' job is done.
+    clearAttachments();
     status.value = 'running';
 
     // Build the ChatMessage[] history. Each user turn re-composes its
@@ -110,7 +113,6 @@ export const useChatStore = defineStore('chat', () => {
       thread.value.push({ role: 'assistant', content: `Error: ${(e as Error).message}` });
     } finally {
       status.value = 'idle';
-      clearAttachments();
     }
   }
 
