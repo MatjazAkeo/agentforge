@@ -12,6 +12,7 @@ const baseCtx = (chatSession?: { userMessage: string; history: { role: string; c
   details: {} as Record<string, unknown>,
   apiKey: '',
   chatSession: chatSession as never,
+  graphFilePath: null,
 });
 
 describe('chatInputNode', () => {

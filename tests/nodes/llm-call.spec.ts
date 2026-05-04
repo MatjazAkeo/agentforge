@@ -26,7 +26,7 @@ describe('llm-call node', () => {
         temperature: 0.7, maxTokens: null, responseFormat: null,
       },
     };
-    const ctx = { signal: new AbortController().signal, details: {} as Record<string, unknown>, apiKey: 'test-key' };
+    const ctx = { signal: new AbortController().signal, details: {} as Record<string, unknown>, apiKey: 'test-key', graphFilePath: null };
     const out = await llmCallNode.run(node, { userMessage: 'capital of France?' }, ctx);
 
     expect(out.text).toBe('Paris');

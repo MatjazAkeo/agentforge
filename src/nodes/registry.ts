@@ -26,6 +26,9 @@ export interface NodeRunContext {
   /** Set by the runner when the run was triggered by a chat-sidebar submission. */
   chatSession?: ChatSession;
   apiKey: string;
+  /** Absolute path of the saved graph file, or null if the graph is unsaved.
+   *  Used by file-input to locate its side-car assets directory. */
+  graphFilePath: string | null;
 }
 
 export interface NodeDefinition {

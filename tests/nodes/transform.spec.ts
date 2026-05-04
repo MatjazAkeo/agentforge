@@ -6,7 +6,7 @@ function makeNode(config: Record<string, unknown>): Node {
   return { id: 't', type: 'transform', position: { x: 0, y: 0 }, config };
 }
 
-const ctx = () => ({ signal: new AbortController().signal, details: {} as Record<string, unknown>, apiKey: '' });
+const ctx = () => ({ signal: new AbortController().signal, details: {} as Record<string, unknown>, apiKey: '', graphFilePath: null });
 
 describe('transformNode', () => {
   it('json-parse: parses a JSON string into an object', async () => {

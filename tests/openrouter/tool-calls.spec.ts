@@ -25,7 +25,7 @@ describe('LLM Call with tools', () => {
       config: { model: 'm', systemPrompt: '', temperature: 0.5, maxTokens: null, responseFormat: null },
     };
     const tools = [{ toolId: 't1', name: 'add', description: 'add two numbers', inputSchema: { type: 'object' }, code: '', timeoutMs: 1000 }];
-    const ctx = { signal: new AbortController().signal, details: {} as any, apiKey: 'k' };
+    const ctx = { signal: new AbortController().signal, details: {} as any, apiKey: 'k', graphFilePath: null };
     const out = await llmCallNode.run(node, { userMessage: 'add 2 and 3', tools }, ctx);
 
     expect(capturedBody.tools).toBeDefined();

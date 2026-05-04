@@ -18,6 +18,7 @@ const ctx = {
   signal: new AbortController().signal,
   details: {} as Record<string, unknown>,
   apiKey: '',
+  graphFilePath: null,
 };
 
 describe('loopControllerNode', () => {

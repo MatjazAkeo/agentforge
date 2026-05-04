@@ -30,7 +30,7 @@ describe('tool-runner node', () => {
       tools,
       messages,
     };
-    const ctx = { signal: new AbortController().signal, details: {} as Record<string, unknown>, apiKey: '' };
+    const ctx = { signal: new AbortController().signal, details: {} as Record<string, unknown>, apiKey: '', graphFilePath: null };
     const out = await toolRunnerNode.run(node, inputs, ctx);
 
     const outMessages = out.messages as ChatMessage[];
@@ -48,7 +48,7 @@ describe('tool-runner node', () => {
       tools: [],
       messages: [],
     };
-    const ctx = { signal: new AbortController().signal, details: {} as Record<string, unknown>, apiKey: '' };
+    const ctx = { signal: new AbortController().signal, details: {} as Record<string, unknown>, apiKey: '', graphFilePath: null };
     const out = await toolRunnerNode.run(node, inputs, ctx);
     const results = out.results as Array<{ error?: string }>;
     expect(results[0].error).toMatch(/not found/i);

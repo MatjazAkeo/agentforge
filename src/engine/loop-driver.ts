@@ -106,10 +106,11 @@ export interface LoopDriverArgs {
   setLivePreview?: (nodeId: string, preview: string) => void;
   clearLivePreview?: (nodeId: string) => void;
   chatSession?: ChatSession;
+  graphFilePath: string | null;
 }
 
 export async function driveLoop(args: LoopDriverArgs): Promise<LoopDriverResult> {
-  const { graph, run, controllerId, outputsByNode, apiKey, signal } = args;
+  const { graph, run, controllerId, outputsByNode, apiKey, signal, graphFilePath } = args;
 
   // I4: build nodeById map once for O(1) lookups throughout driveLoop
   const nodeById = new Map(graph.nodes.map((n) => [n.id, n]));
@@ -178,7 +179,7 @@ export async function driveLoop(args: LoopDriverArgs): Promise<LoopDriverResult>
       const ctrlStart = new Date().toISOString();
       try {
         ctrlOut = await ctrlDef.run(controllerNode, ctrlInputs, {
-          signal, details: ctrlIterDetails, apiKey, chatSession: args.chatSession,
+          signal, details: ctrlIterDetails, apiKey, chatSession: args.chatSession, graphFilePath,
         });
       } catch (e) {
         ctrlResult.status = 'error';
@@ -253,6 +254,7 @@ export async function driveLoop(args: LoopDriverArgs): Promise<LoopDriverResult>
             signal, details: iterDetails, apiKey,
             onStreamUpdate: (preview) => args.setLivePreview?.(id, preview),
             chatSession: args.chatSession,
+            graphFilePath,
           });
           bodyOutputsByNode.set(id, out);
           result.output = out;

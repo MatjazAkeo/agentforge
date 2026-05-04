@@ -14,7 +14,7 @@ function makeAgent(): Node {
     },
   };
 }
-const ctx = () => ({ signal: new AbortController().signal, details: {} as Record<string, unknown>, apiKey: 'k' });
+const ctx = () => ({ signal: new AbortController().signal, details: {} as Record<string, unknown>, apiKey: 'k', graphFilePath: null });
 
 describe('agentNode', () => {
   beforeEach(() => {

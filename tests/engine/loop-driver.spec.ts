@@ -91,6 +91,7 @@ describe('driveLoop integration', () => {
     const out = await driveLoop({
       graph, run, controllerId: 'lc', outputsByNode,
       apiKey: '', signal: new AbortController().signal,
+      graphFilePath: null,
     });
 
     expect(out.iterationCount).toBe(3); // 0→1, 1→2, 2→3 (3 not <3, continue=false)
@@ -155,6 +156,7 @@ describe('driveLoop integration', () => {
     await driveLoop({
       graph, run, controllerId: 'lc', outputsByNode,
       apiKey: '', signal: new AbortController().signal,
+      graphFilePath: null,
     });
 
     // Every iteration must have seen the outside-in inputs, not just the channel.
@@ -216,6 +218,7 @@ describe('driveLoop abort', () => {
     const out = await driveLoop({
       graph, run, controllerId: 'lc', outputsByNode,
       apiKey: '', signal: ac.signal,
+      graphFilePath: null,
     });
 
     expect(out.stopReason).toBe('aborted');
@@ -281,6 +284,7 @@ describe('driveLoop halt-rule (isTruthy)', () => {
     const out = await driveLoop({
       graph, run, controllerId: 'lc', outputsByNode,
       apiKey: '', signal: new AbortController().signal,
+      graphFilePath: null,
     });
 
     expect(out.iterationCount).toBe(expectedIters);

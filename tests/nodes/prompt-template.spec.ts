@@ -5,7 +5,7 @@ import type { Node } from '@/domain/graph';
 function makeNode(template: string): Node {
   return { id: 'pt', type: 'prompt-template', position: { x: 0, y: 0 }, config: { template } };
 }
-const ctx = () => ({ signal: new AbortController().signal, details: {} as Record<string, unknown>, apiKey: '' });
+const ctx = () => ({ signal: new AbortController().signal, details: {} as Record<string, unknown>, apiKey: '', graphFilePath: null });
 
 describe('promptTemplateNode', () => {
   it('renders a template with no placeholders verbatim', async () => {

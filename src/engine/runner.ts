@@ -76,6 +76,7 @@ export async function runGraph(args: RunGraphArgs): Promise<Run> {
             setLivePreview: (nid, p) => runStore.setLivePreview(nid, p),
             clearLivePreview: (nid) => runStore.clearLivePreview(nid),
             chatSession: args.chatSession,
+            graphFilePath: useGraphStore().filePath,
           });
           // max-iterations is a soft halt (graceful give-up), not an error —
           // production ReAct loops use it as a safety cap. The Loop Controller's
@@ -139,6 +140,7 @@ export async function runGraph(args: RunGraphArgs): Promise<Run> {
           },
           chatSession: args.chatSession,
           apiKey: args.apiKey,
+          graphFilePath: useGraphStore().filePath,
         };
         const outputs = await def.run(node, inputs, ctx);
         outputsByNode.set(id, outputs);

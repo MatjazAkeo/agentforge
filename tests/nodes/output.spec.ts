@@ -8,7 +8,7 @@ describe('output node', () => {
       id: 'b', type: 'output', position: { x: 0, y: 0 },
       config: { format: 'auto' },
     };
-    const ctx = { signal: new AbortController().signal, details: {} as Record<string, unknown>, apiKey: '' };
+    const ctx = { signal: new AbortController().signal, details: {} as Record<string, unknown>, apiKey: '', graphFilePath: null };
     await outputNode.run(node, { text: 'hello' }, ctx);
     expect(ctx.details.value).toBe('hello');
   });
@@ -18,7 +18,7 @@ describe('output node', () => {
       id: 'b', type: 'output', position: { x: 0, y: 0 },
       config: { format: 'auto' },
     };
-    const ctx = { signal: new AbortController().signal, details: {}, apiKey: '' };
+    const ctx = { signal: new AbortController().signal, details: {}, apiKey: '', graphFilePath: null };
     const result = await outputNode.run(node, { text: 'x' }, ctx);
     expect(result).toEqual({});
   });
