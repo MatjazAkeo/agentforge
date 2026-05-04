@@ -17,7 +17,7 @@ const isChatActive = computed(() => {
 
 <template>
   <div class="flex flex-col h-full text-sm">
-    <div class="flex border-b border-border-base">
+    <div class="flex border-b border-border-base items-stretch">
       <button
         type="button"
         @click="ui.leftActiveTab = 'chat'"
@@ -38,6 +38,13 @@ const isChatActive = computed(() => {
             : 'text-text-dim border-transparent',
         ]"
       >Runs</button>
+      <button
+        type="button"
+        @click="ui.toggleLeftSidebar()"
+        title="Hide sidebar"
+        aria-label="Hide sidebar"
+        class="px-2 text-text-dim hover:text-text-base cursor-pointer border-b-2 border-transparent"
+      >‹</button>
     </div>
     <div class="flex-1 overflow-hidden">
       <template v-if="ui.leftActiveTab === 'chat'">

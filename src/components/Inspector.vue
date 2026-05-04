@@ -27,8 +27,15 @@ const selectedNode = computed(() => {
 
 <template>
   <div class="flex flex-col h-full text-sm">
-    <div class="px-3.5 py-2.5 border-b border-border-base">
+    <div class="px-3.5 py-2.5 border-b border-border-base flex items-center justify-between">
       <strong class="text-base">Inspector</strong>
+      <button
+        type="button"
+        @click="ui.toggleRightSidebar()"
+        title="Hide inspector"
+        aria-label="Hide inspector"
+        class="text-text-dim hover:text-text-base cursor-pointer leading-none px-1"
+      >›</button>
     </div>
     <div v-if="!selectedNode" class="p-5 opacity-50 text-center">
       Select a node
