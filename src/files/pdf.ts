@@ -9,7 +9,14 @@ export async function extractPdfText(bytes: ArrayBuffer): Promise<string> {
   for (let i = 1; i <= doc.numPages; i++) {
     const page = await doc.getPage(i);
     const content = await page.getTextContent();
-    pages.push(content.items.map((it: { str: string }) => it.str).join(' '));
+    // pdfjs `items` is (TextItem | TextMarkedContent)[]. Only TextItem carries
+    // `str`; TextMarkedContent is layout marker metadata we skip.
+    const texts: string[] = [];
+    for (const it of content.items) {
+      const maybe = it as { str?: unknown };
+      if (typeof maybe.str === 'string') texts.push(maybe.str);
+    }
+    pages.push(texts.join(' '));
   }
   return pages.join('\n\n');
 }
