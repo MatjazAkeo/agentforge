@@ -17,8 +17,10 @@ export async function extractText(bytes: ArrayBuffer, extension: string): Promis
   }
 }
 
-/** Returns the extension without the dot, or empty string if none. */
+/** Returns the extension without the dot, or empty string if none.
+ *  Treats dotfiles (e.g. `.hidden`, `.gitignore`) as having no extension,
+ *  matching Node's `path.extname` semantics. */
 export function extensionOf(filename: string): string {
   const dot = filename.lastIndexOf('.');
-  return dot === -1 ? '' : filename.slice(dot + 1);
+  return dot <= 0 ? '' : filename.slice(dot + 1);
 }

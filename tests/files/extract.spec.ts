@@ -5,7 +5,7 @@ vi.mock('@/files/pdf', () => ({
   extractPdfText: (...args: unknown[]) => mockExtractPdf(...args),
 }));
 
-import { extractText } from '@/files/extract';
+import { extractText, extensionOf } from '@/files/extract';
 
 beforeEach(() => mockExtractPdf.mockReset());
 
@@ -38,5 +38,28 @@ describe('extractText', () => {
   it('treats extension case-insensitively', async () => {
     const out = await extractText(utf8('hi'), 'TXT');
     expect(out).toBe('hi');
+  });
+});
+
+describe('extensionOf', () => {
+  it('returns the last extension for normal filenames', () => {
+    expect(extensionOf('notes.txt')).toBe('txt');
+  });
+
+  it('returns the last extension for multi-dot filenames', () => {
+    expect(extensionOf('archive.tar.gz')).toBe('gz');
+  });
+
+  it('returns empty for files with no extension', () => {
+    expect(extensionOf('Makefile')).toBe('');
+  });
+
+  it('returns empty for dotfiles (leading dot only)', () => {
+    expect(extensionOf('.hidden')).toBe('');
+    expect(extensionOf('.gitignore')).toBe('');
+  });
+
+  it('returns empty for an empty string', () => {
+    expect(extensionOf('')).toBe('');
   });
 });
