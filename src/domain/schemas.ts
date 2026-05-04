@@ -13,7 +13,7 @@ export const nodeSchema = z.object({
   type: z.enum([
     'input', 'output', 'llm-call', 'tool', 'tool-group', 'tool-runner',
     'prompt-template', 'transform', 'loop-controller', 'agent',
-    'chat-input', 'chat-output',
+    'chat-input', 'chat-output', 'file-input',
   ]),
   position: positionSchema,
   config: z.record(z.string(), z.unknown()),
