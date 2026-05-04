@@ -20,6 +20,9 @@ const templatesOpen = ref(false);
 
 function onPickTemplate(tpl: BundledTemplate) {
   const cloned = JSON.parse(JSON.stringify(tpl.graph));
+  // Generate a fresh id so two graphs spawned from the same template don't
+  // collide. The template file's id ('tmpl-...') is just an authoring marker.
+  cloned.id = crypto.randomUUID();
   graph.load(cloned, null);
   templatesOpen.value = false;
 }

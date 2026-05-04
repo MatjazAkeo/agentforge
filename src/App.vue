@@ -62,7 +62,9 @@ async function bootstrap() {
   if (settings.autoLoadHelloModel) {
     const helloTemplate = TEMPLATES.find((t) => t.id === 'hello-model');
     if (helloTemplate) {
-      graph.load(JSON.parse(JSON.stringify(helloTemplate.graph)), null);
+      const cloned = JSON.parse(JSON.stringify(helloTemplate.graph));
+      cloned.id = crypto.randomUUID();
+      graph.load(cloned, null);
     }
   }
 }

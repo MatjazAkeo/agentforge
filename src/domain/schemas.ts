@@ -29,7 +29,10 @@ export const edgeSchema = z.object({
 
 export const graphSchema = z.object({
   schemaVersion: z.literal(1),
-  id: z.string().uuid(),
+  // Graph id is an internal identifier — usually a UUID generated at create time,
+  // but bundled templates ship with stable string ids like 'tmpl-01-hello-model'.
+  // Accept any non-empty string so saved-then-reopened graphs from templates parse cleanly.
+  id: z.string().min(1),
   name: z.string(),
   description: z.string().optional(),
   createdAt: z.string(),
