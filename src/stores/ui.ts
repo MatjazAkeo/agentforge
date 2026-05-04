@@ -3,8 +3,8 @@ import { defineStore } from 'pinia';
 import { ref, watch } from 'vue';
 
 const STORAGE_KEY = 'agent-playground.ui';
-const DEFAULT_LEFT_WIDTH = 240;
-const DEFAULT_RIGHT_WIDTH = 288;
+const DEFAULT_LEFT_WIDTH = 200;
+const DEFAULT_RIGHT_WIDTH = 300;
 const MIN_SIDEBAR_WIDTH = 200;
 const MAX_SIDEBAR_FRACTION = 0.5; // never wider than half the viewport
 
