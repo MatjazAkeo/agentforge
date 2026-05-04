@@ -8,6 +8,7 @@ import './styles/vue-flow-overrides.css';
 import '@/nodes/agent';
 import '@/nodes/chat-input';
 import '@/nodes/chat-output';
+import '@/nodes/file-input';
 import '@/nodes/input';
 import '@/nodes/output';
 import '@/nodes/llm-call';
