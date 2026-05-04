@@ -231,6 +231,24 @@ ports.out: []
 
 **Semantic:** the assistant's reply written back to the chat thread. In code, the return value of your chat handler.
 
+### 2.13 file-input
+
+```ts
+config: {
+  files: Array<{
+    filename: string;       // basename in <graph>.assets/, may have -2/-3 suffix on collision
+    sizeBytes: number;      // recorded at attach time; 10 MB hard cap
+    sourcePath?: string;    // user's original path, display only
+  }>;
+}
+ports.in:  []
+ports.out: [text:string]
+```
+
+**Semantic:** at run time, reads each file from `<graph>.assets/<filename>` (relative to the saved graph file), text-extracts it (UTF-8 for txt/json, pdfjs for pdf), wraps each as `<file name="…">…</file>`, and concatenates with one blank line between blocks into a single string. Throws if the graph is unsaved (no path) or if a referenced asset is missing on disk. Emits the wrapped concatenation on the `text` output port.
+
+**In code:** read each file from disk (or wherever your project sources content from), run extraction if needed, and join with the same XML wrapper from §4.6.5. The graph's "saved location" maps to whatever path conventions your project uses (next to a config, in an `assets/` dir, etc.). If the LLM only needs raw text and you don't care about per-file boundaries, you can skip the wrapper — but matching it is the lossless translation.
+
 ## 3. Data flow rules
 
 1. **Edges flow data, not control.** The runtime evaluates each node when all its inputs are ready.
@@ -448,6 +466,40 @@ def render(template, vars):
     import re
     return re.sub(r"\{\{(\w+)\}\}", lambda m: str(vars.get(m.group(1), "")), template)
 ```
+
+### 4.6.5 File content wrapping (shared by file-input + chat attachments)
+
+For each file that flows into the model's prompt — whether from a `file-input` node (§2.13) or a chat-sidebar attachment — wrap with this exact shape:
+
+```
+<file name="{filename}">
+{utf-8 text content (or pdfjs-extracted text for pdfs)}
+</file>
+```
+
+Multiple files concatenated with one blank line between blocks. No surrounding container — the model parses each `<file>` block independently. Use the same wrapper on both surfaces so the model sees a consistent shape.
+
+**TypeScript:**
+
+```ts
+function wrapFileBlock(filename: string, content: string): string {
+  const safe = filename.replace(/"/g, "&quot;");
+  return `<file name="${safe}">\n${content}\n</file>`;
+}
+const composed = userText + "\n\n" + files.map(f => wrapFileBlock(f.name, f.content)).join("\n\n");
+```
+
+**Python:**
+
+```python
+def wrap_file_block(filename: str, content: str) -> str:
+    safe = filename.replace('"', "&quot;")
+    return f'<file name="{safe}">\n{content}\n</file>'
+
+composed = user_text + "\n\n" + "\n\n".join(wrap_file_block(f["name"], f["content"]) for f in files)
+```
+
+The "extract" step (UTF-8 decode for txt/json, PDF text extraction for pdf) is whatever your project does — see §2.13. If the developer's environment doesn't have a PDF extractor, defer that one extension and document the limitation.
 
 ### 4.7 Transform
 
