@@ -5,15 +5,20 @@ import type { ChatMessage } from '@/openrouter/types';
 import { runGraph } from '@/engine/runner';
 import { wrapFileBlock, concatFileBlocks } from '@/files/wrapping';
 
-export interface ChatTurn {
-  role: 'user' | 'assistant';
-  content: string;
-}
-
 export interface ChatAttachment {
   filename: string;
   content: string; // already-extracted text
   sizeBytes: number;
+}
+
+export interface ChatTurn {
+  role: 'user' | 'assistant';
+  /** The user's typed text (or assistant reply). UI bubbles render this. */
+  content: string;
+  /** Files attached to this turn at send time. The UI renders these as chips
+   *  below the bubble; the LLM history-builder re-composes them into the
+   *  user-role message content via concatFileBlocks(wrapFileBlock(...)). */
+  attachments?: ChatAttachment[];
 }
 
 export const useChatStore = defineStore('chat', () => {
@@ -56,25 +61,45 @@ export const useChatStore = defineStore('chat', () => {
   /**
    * Append the user message, run the graph, append the assistant reply (or error).
    */
+  /** Re-compose what the model should see for a single user turn. Combines
+   *  the typed text with each attachment wrapped as <file>…</file>. The chat
+   *  bubble renders only `content`; this function is the bridge to the LLM. */
+  function composeTurnForLLM(turn: ChatTurn): string {
+    if (turn.role !== 'user' || !turn.attachments || turn.attachments.length === 0) {
+      return turn.content;
+    }
+    const wrapped = concatFileBlocks(
+      turn.attachments.map((a) => wrapFileBlock(a.filename, a.content)),
+    );
+    return `${turn.content}\n\n${wrapped}`;
+  }
+
   async function submit(args: { graph: Graph; apiKey: string; userMessage: string }) {
     const text = args.userMessage.trim();
     if (!text || status.value === 'running') return;
 
-    const composedText = composeUserMessage(text);
+    // Snapshot attachments at send time so they persist on the turn (the
+    // store's own attachments ref will be cleared in `finally`).
+    const turnAttachments: ChatAttachment[] | undefined =
+      attachments.value.length > 0 ? attachments.value.map((a) => ({ ...a })) : undefined;
 
-    thread.value.push({ role: 'user', content: composedText });
+    const userTurn: ChatTurn = { role: 'user', content: text, attachments: turnAttachments };
+    thread.value.push(userTurn);
     status.value = 'running';
 
-    // Build the ChatMessage[] history (sidebar uses {role, content}; LLMs need ChatMessage).
-    const history: ChatMessage[] = thread.value.map((t) => ({ role: t.role, content: t.content }));
+    // Build the ChatMessage[] history. Each user turn re-composes its
+    // attachments inline; assistant turns pass through unchanged.
+    const history: ChatMessage[] = thread.value.map((t) => ({
+      role: t.role,
+      content: composeTurnForLLM(t),
+    }));
 
     try {
       const run = await runGraph({
         graph: args.graph,
         apiKey: args.apiKey,
-        chatSession: { userMessage: composedText, history },
+        chatSession: { userMessage: composeTurnForLLM(userTurn), history },
       });
-      // Find the chat-output node and read its recorded value.
       const outId = args.graph.nodes.find((n) => n.type === 'chat-output')?.id;
       const reply =
         outId && run.nodeResults[outId]

@@ -118,6 +118,7 @@ watch(
         :key="i"
         :role="t.role"
         :content="t.content"
+        :attachments="t.attachments"
       />
       <div v-if="chat.status === 'running'" class="text-text-dim italic text-xs px-1 mb-2">
         running…
@@ -127,7 +128,7 @@ watch(
     <div class="border-t border-border-base p-2">
       <ChatAttachmentStrip />
       <div v-if="attachError" class="text-error text-[11px] px-2 pb-1">{{ attachError }}</div>
-      <div class="flex gap-1.5">
+      <div class="flex gap-1.5 items-end">
         <textarea
           v-model="input"
           @keydown="onKeydown"
@@ -136,13 +137,13 @@ watch(
           @paste="onPaste"
           placeholder="Type a message — Enter to send, Shift+Enter for newline. Drop files here, or click +."
           rows="2"
-          class="flex-1 bg-elev text-text-base border border-border-base rounded px-2 py-1.5 text-sm font-ui resize-none"
+          class="flex-1 min-h-[40px] bg-elev text-text-base border border-border-base rounded-md px-2.5 py-2 text-sm font-ui resize-none leading-snug focus:outline-none focus:border-accent/60"
           :disabled="chat.status === 'running'"
         ></textarea>
         <button
           type="button"
           @click="onPickFiles"
-          class="h-9 w-9 flex items-center justify-center rounded border border-border-strong bg-elev text-text-base text-lg leading-none"
+          class="h-10 w-10 shrink-0 inline-flex items-center justify-center rounded-md border border-border-strong bg-elev text-text-base text-lg leading-none hover:bg-panel disabled:opacity-50 disabled:cursor-default"
           :disabled="chat.status === 'running'"
           title="Attach a file"
           aria-label="Attach a file"
