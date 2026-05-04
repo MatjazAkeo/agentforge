@@ -3,15 +3,40 @@ import { ref } from 'vue';
 import type { Graph } from '@/domain/graph';
 import type { ChatMessage } from '@/openrouter/types';
 import { runGraph } from '@/engine/runner';
+import { wrapFileBlock, concatFileBlocks } from '@/files/wrapping';
 
 export interface ChatTurn {
   role: 'user' | 'assistant';
   content: string;
 }
 
+export interface ChatAttachment {
+  filename: string;
+  content: string; // already-extracted text
+  sizeBytes: number;
+}
+
 export const useChatStore = defineStore('chat', () => {
   const thread = ref<ChatTurn[]>([]);
   const status = ref<'idle' | 'running'>('idle');
+  const attachments = ref<ChatAttachment[]>([]);
+
+  function addAttachment(a: ChatAttachment) {
+    attachments.value = [...attachments.value, a];
+  }
+  function removeAttachment(index: number) {
+    attachments.value = attachments.value.filter((_, i) => i !== index);
+  }
+  function clearAttachments() {
+    attachments.value = [];
+  }
+  function composeUserMessage(userText: string): string {
+    if (attachments.value.length === 0) return userText;
+    const wrapped = concatFileBlocks(
+      attachments.value.map((a) => wrapFileBlock(a.filename, a.content)),
+    );
+    return `${userText}\n\n${wrapped}`;
+  }
 
   function clear() {
     thread.value = [];
@@ -35,7 +60,9 @@ export const useChatStore = defineStore('chat', () => {
     const text = args.userMessage.trim();
     if (!text || status.value === 'running') return;
 
-    thread.value.push({ role: 'user', content: text });
+    const composedText = composeUserMessage(text);
+
+    thread.value.push({ role: 'user', content: composedText });
     status.value = 'running';
 
     // Build the ChatMessage[] history (sidebar uses {role, content}; LLMs need ChatMessage).
@@ -45,7 +72,7 @@ export const useChatStore = defineStore('chat', () => {
       const run = await runGraph({
         graph: args.graph,
         apiKey: args.apiKey,
-        chatSession: { userMessage: text, history },
+        chatSession: { userMessage: composedText, history },
       });
       // Find the chat-output node and read its recorded value.
       const outId = args.graph.nodes.find((n) => n.type === 'chat-output')?.id;
@@ -58,8 +85,20 @@ export const useChatStore = defineStore('chat', () => {
       thread.value.push({ role: 'assistant', content: `Error: ${(e as Error).message}` });
     } finally {
       status.value = 'idle';
+      clearAttachments();
     }
   }
 
-  return { thread, status, clear, isChatActive, submit };
+  return {
+    thread,
+    status,
+    attachments,
+    clear,
+    isChatActive,
+    submit,
+    addAttachment,
+    removeAttachment,
+    clearAttachments,
+    composeUserMessage,
+  };
 });
