@@ -11,7 +11,8 @@ export type NodeType =
   | 'loop-controller'
   | 'agent'
   | 'chat-input'
-  | 'chat-output';
+  | 'chat-output'
+  | 'file-input';
 
 export interface InputConfig {
   name: string;
@@ -98,6 +99,17 @@ export interface AgentConfig {
   stopCondition: 'no-tool-calls';   // only option in v1
 }
 
+export interface FileInputConfig {
+  files: Array<{
+    /** Basename used in <graph>.assets/. May include a -2/-3 suffix on collision. */
+    filename: string;
+    /** Recorded at attach time, used for size guardrail and inspector display. */
+    sizeBytes: number;
+    /** Original absolute path on the user's machine, for display only. */
+    sourcePath?: string;
+  }>;
+}
+
 // Plan 1 defines only these three. Other node-type configs come in later plans
 // but the union type is declared up-front for stability.
 export type NodeConfig =
@@ -113,4 +125,5 @@ export type NodeConfig =
   | ChatOutputConfig
   | LoopControllerConfig
   | AgentConfig
+  | FileInputConfig
   | Record<string, unknown>;
