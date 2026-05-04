@@ -76,13 +76,16 @@ function onDelete() { graph.removeNode(props.id); }
         {{ ch.name }}
       </div>
 
-      <!-- Default (initial value, fires on iter 1) -->
+      <!-- Default (initial value, fires on iter 1).
+           Handle pulled out by -8px to sit on the outer node edge — the
+           channel sub-box has mx-2 so without this the dot would float
+           inside the node and edges would end short of it. -->
       <div class="relative h-6 flex items-center pl-3 text-[11px]">
         <Handle
           :id="`default-${ch.name}`"
           type="target"
           :position="Position.Left"
-          :style="{ background: colorForType(ch.type ?? 'json') }"
+          :style="{ background: colorForType(ch.type ?? 'json'), left: '-8px' }"
         />
         <span class="text-text-dim font-mono text-[10px]">default</span>
       </div>
@@ -96,7 +99,7 @@ function onDelete() { graph.removeNode(props.id); }
           :id="`input-${ch.name}`"
           type="target"
           :position="Position.Left"
-          :style="{ background: colorForType(ch.type ?? 'json') }"
+          :style="{ background: colorForType(ch.type ?? 'json'), left: '-8px' }"
         />
         <span class="text-text-dim font-mono text-[10px]">↺ input</span>
       </div>
@@ -108,7 +111,7 @@ function onDelete() { graph.removeNode(props.id); }
           :id="`output-${ch.name}`"
           type="source"
           :position="Position.Right"
-          :style="{ background: colorForType(ch.type ?? 'json') }"
+          :style="{ background: colorForType(ch.type ?? 'json'), right: '-8px' }"
         />
       </div>
     </div>
