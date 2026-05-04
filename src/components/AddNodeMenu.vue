@@ -13,6 +13,7 @@ interface NodeOption {
 
 const ALL_OPTIONS: NodeOption[] = [
   { type: 'input', label: 'Input', description: 'Source value into the graph' },
+  { type: 'file-input', label: 'File Input', description: 'Source content from txt / json / pdf files on disk' },
   { type: 'output', label: 'Output', description: 'Display final value' },
   { type: 'llm-call', label: 'LLM Call', description: 'Send a chat completion to OpenRouter' },
   { type: 'tool', label: 'Tool', description: 'Define a callable function the LLM can use' },
@@ -56,6 +57,7 @@ watch(() => props.open, (open) => {
 function defaultConfig(type: NodeType): Record<string, unknown> {
   switch (type) {
     case 'input': return { name: 'input', defaultValue: '' };
+    case 'file-input': return { files: [] };
     case 'output': return { format: 'auto' };
     case 'llm-call': return {
       model: settings.defaultModel ?? 'openai/gpt-oss-120b:free',
