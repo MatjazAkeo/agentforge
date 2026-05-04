@@ -5,6 +5,8 @@ import { useGraphStore } from '@/stores/graph';
 import { useSettingsStore } from '@/stores/settings';
 import type { Graph } from '@/domain/graph';
 import ChatBubble from './ChatBubble.vue';
+import { extractText, extensionOf } from '@/files/extract';
+import ChatAttachmentStrip from './ChatAttachmentStrip.vue';
 
 const chat = useChatStore();
 const graphStore = useGraphStore();
@@ -12,6 +14,10 @@ const settings = useSettingsStore();
 
 const input = ref('');
 const scroller = ref<HTMLDivElement | null>(null);
+
+const MAX_BYTES = 10 * 1024 * 1024;
+const ALLOWED = ['txt', 'json', 'pdf'];
+const attachError = ref<string | null>(null);
 
 async function onSubmit() {
   if (!input.value.trim() || chat.status === 'running') return;
@@ -37,6 +43,48 @@ function onKeydown(e: KeyboardEvent) {
   if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault();
     onSubmit();
+  }
+}
+
+async function ingestFile(file: File) {
+  attachError.value = null;
+  const ext = extensionOf(file.name).toLowerCase();
+  if (!ALLOWED.includes(ext)) {
+    attachError.value = `${file.name}: only txt/json/pdf supported.`;
+    return;
+  }
+  if (file.size > MAX_BYTES) {
+    attachError.value = `${file.name} is over 10 MB.`;
+    return;
+  }
+  const bytes = await file.arrayBuffer();
+  const content = await extractText(bytes, ext);
+  chat.addAttachment({ filename: file.name, content, sizeBytes: file.size });
+}
+
+function onFiles(fileList: FileList | null) {
+  if (!fileList) return;
+  for (let i = 0; i < fileList.length; i++) void ingestFile(fileList[i]);
+}
+
+async function onPickFiles() {
+  const inputEl = document.createElement('input');
+  inputEl.type = 'file';
+  inputEl.multiple = true;
+  inputEl.accept = '.txt,.json,.pdf';
+  inputEl.onchange = () => onFiles(inputEl.files);
+  inputEl.click();
+}
+
+function onDrop(e: DragEvent) {
+  e.preventDefault();
+  if (e.dataTransfer?.files) onFiles(e.dataTransfer.files);
+}
+
+function onPaste(e: ClipboardEvent) {
+  if (e.clipboardData?.files && e.clipboardData.files.length > 0) {
+    e.preventDefault();
+    onFiles(e.clipboardData.files);
   }
 }
 
@@ -77,14 +125,29 @@ watch(
     </div>
 
     <div class="border-t border-border-base p-2">
-      <textarea
-        v-model="input"
-        @keydown="onKeydown"
-        placeholder="Type a message — Enter to send, Shift+Enter for newline"
-        rows="2"
-        class="w-full bg-elev text-text-base border border-border-base rounded px-2 py-1.5 text-sm font-ui resize-none"
-        :disabled="chat.status === 'running'"
-      ></textarea>
+      <ChatAttachmentStrip />
+      <div v-if="attachError" class="text-error text-[11px] px-2 pb-1">{{ attachError }}</div>
+      <div class="flex gap-1.5">
+        <textarea
+          v-model="input"
+          @keydown="onKeydown"
+          @drop="onDrop"
+          @dragover.prevent
+          @paste="onPaste"
+          placeholder="Type a message — Enter to send, Shift+Enter for newline. Drop files here, or click +."
+          rows="2"
+          class="flex-1 bg-elev text-text-base border border-border-base rounded px-2 py-1.5 text-sm font-ui resize-none"
+          :disabled="chat.status === 'running'"
+        ></textarea>
+        <button
+          type="button"
+          @click="onPickFiles"
+          class="h-9 w-9 flex items-center justify-center rounded border border-border-strong bg-elev text-text-base text-lg leading-none"
+          :disabled="chat.status === 'running'"
+          title="Attach a file"
+          aria-label="Attach a file"
+        >+</button>
+      </div>
     </div>
   </div>
 </template>
