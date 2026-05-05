@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import { useGraphStore } from '@/stores/graph';
 import { useRunStore } from '@/stores/run';
-import type { ToolGroupConfig, ToolConfig } from '@/domain/node-types';
+import type { ToolGroupConfig, ToolConfig, ToolPackConfig } from '@/domain/node-types';
 import PortLegend from './PortLegend.vue';
 import IOValues from './IOValues.vue';
 
@@ -14,18 +14,30 @@ const node = computed(() => graph.nodes.find((n) => n.id === props.nodeId));
 const cfg = computed(() => (node.value?.config ?? null) as ToolGroupConfig | null);
 
 /** Live member list derived from the graph topology — populates as soon as
- *  Tool nodes are connected, no run required. */
+ *  Tool / Tool Pack / nested Tool Group nodes are connected upstream. No
+ *  run required. */
 const members = computed(() => {
   const incomingEdges = graph.edges.filter(
     (e) => e.target === props.nodeId && (e.targetHandle ?? '') === 'tools',
   );
-  return incomingEdges
-    .map((e) => graph.nodes.find((n) => n.id === e.source))
-    .filter((n): n is NonNullable<typeof n> => !!n && n.type === 'tool')
-    .map((n) => {
-      const tc = n.config as ToolConfig;
-      return { name: tc.name ?? '(unnamed)', description: tc.description ?? '' };
-    });
+  const out: Array<{ name: string; description: string }> = [];
+  for (const e of incomingEdges) {
+    const upstream = graph.nodes.find((n) => n.id === e.source);
+    if (!upstream) continue;
+    if (upstream.type === 'tool') {
+      const tc = upstream.config as ToolConfig;
+      out.push({ name: tc.name ?? '(unnamed)', description: tc.description ?? '' });
+    } else if (upstream.type === 'tool-pack') {
+      const tp = upstream.config as ToolPackConfig;
+      for (const t of tp.tools ?? []) {
+        out.push({ name: t.name ?? '(unnamed)', description: t.description ?? '' });
+      }
+    }
+    // tool-group → tool-group fan-in could be supported here too, but it's
+    // a rare topology (would imply tools fanning through two groups). Leave
+    // for a future polish pass if needed.
+  }
+  return out;
 });
 
 const errorMessage = computed(() => run.current?.nodeResults[props.nodeId]?.errorMessage ?? null);
