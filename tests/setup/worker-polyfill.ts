@@ -17,17 +17,54 @@ import { Worker as NodeWorker } from 'node:worker_threads';
 const WORKER_SOURCE = `
 const { parentPort } = require('node:worker_threads');
 
-parentPort.on('message', async (data) => {
-  const { code, inputs } = data;
+let nextCallId = 1;
+const pending = new Map();
+
+function callHelper(helper, method, args) {
+  const callId = nextCallId++;
+  return new Promise((resolve, reject) => {
+    pending.set(callId, { resolve, reject });
+    parentPort.postMessage({ type: 'helper-call', callId, helper, method, args });
+  });
+}
+
+function makeHelperProxy(name) {
+  return new Proxy({}, {
+    get(_t, method) {
+      return (...args) => callHelper(name, method, args);
+    },
+  });
+}
+
+parentPort.on('message', async (msg) => {
+  if (msg && msg.type === 'helper-result') {
+    const p = pending.get(msg.callId);
+    if (!p) return;
+    pending.delete(msg.callId);
+    if (msg.ok) p.resolve(msg.value);
+    else p.reject(new Error(msg.error || 'helper call failed'));
+    return;
+  }
+
+  // type === 'run'
+  const { code, inputs, helperNames } = msg;
+  const names = Array.isArray(helperNames) ? helperNames : [];
 
   const helpers = {
     log: (...args) => parentPort.postMessage({ type: 'log', args }),
     fetch: (url, init) => fetch(url, init),
   };
 
+  const helperProxies = names.map(makeHelperProxy);
+
   try {
-    const fn = new Function('inputs', 'helpers', 'return (async () => { ' + code + ' })();');
-    const value = await fn(inputs, helpers);
+    const fn = new Function(
+      'inputs',
+      'helpers',
+      ...names,
+      'return (async () => { ' + code + ' })();'
+    );
+    const value = await fn(inputs, helpers, ...helperProxies);
     parentPort.postMessage({ type: 'ok', value });
   } catch (err) {
     parentPort.postMessage({ type: 'error', message: err.message, stack: err.stack });

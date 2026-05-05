@@ -1,9 +1,21 @@
 // src/sandbox/runner.ts
+export interface SandboxHelpers {
+  /** Map from helper name (e.g. 'sqlite') to an object whose methods are async
+   *  functions invoked from inside the user code. The runner routes worker
+   *  messages of shape { type:'helper-call', helper, method, args, callId }
+   *  to the matching method on this object. */
+  [helperName: string]: { [methodName: string]: (...args: unknown[]) => Promise<unknown> };
+}
+
 export interface RunInSandboxArgs {
   code: string;
   inputs: Record<string, unknown>;
   timeoutMs: number;
   signal: AbortSignal;
+  /** Optional helpers exposed to the user code. Names become positional args
+   *  in the function wrapping the body, so the code can write
+   *  `await sqlite.query(...)`. */
+  helpers?: SandboxHelpers;
 }
 
 export type SandboxResult =
@@ -14,6 +26,8 @@ export async function runInSandbox(args: RunInSandboxArgs): Promise<SandboxResul
   const t0 = performance.now();
   const worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
   const logs: unknown[][] = [];
+  const helpers = args.helpers ?? {};
+  const helperNames = Object.keys(helpers);
 
   return new Promise<SandboxResult>((resolve) => {
     let settled = false;
@@ -40,10 +54,40 @@ export async function runInSandbox(args: RunInSandboxArgs): Promise<SandboxResul
     };
     args.signal.addEventListener('abort', onAbort);
 
-    worker.onmessage = (e) => {
+    worker.onmessage = async (e) => {
       const msg = e.data as { type: string; [k: string]: unknown };
       if (msg.type === 'log') {
         logs.push(msg.args as unknown[]);
+        return;
+      }
+      if (msg.type === 'helper-call') {
+        const { callId, helper, method, args: callArgs } = msg as unknown as {
+          callId: number;
+          helper: string;
+          method: string;
+          args: unknown[];
+        };
+        const impl = helpers[helper]?.[method];
+        if (!impl) {
+          worker.postMessage({
+            type: 'helper-result',
+            callId,
+            ok: false,
+            error: `unknown helper ${helper}.${method}`,
+          });
+          return;
+        }
+        try {
+          const value = await impl(...callArgs);
+          worker.postMessage({ type: 'helper-result', callId, ok: true, value });
+        } catch (err) {
+          worker.postMessage({
+            type: 'helper-result',
+            callId,
+            ok: false,
+            error: (err as Error).message,
+          });
+        }
         return;
       }
       if (msg.type === 'ok') {
@@ -68,6 +112,11 @@ export async function runInSandbox(args: RunInSandboxArgs): Promise<SandboxResul
       });
     };
 
-    worker.postMessage({ code: args.code, inputs: args.inputs });
+    worker.postMessage({
+      type: 'run',
+      code: args.code,
+      inputs: args.inputs,
+      helperNames,
+    });
   });
 }
