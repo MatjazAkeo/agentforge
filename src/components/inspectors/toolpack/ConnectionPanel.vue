@@ -15,7 +15,7 @@ const graph = useGraphStore();
 const run = useRunStore();
 
 const MAX_BYTES = 100 * 1024 * 1024;
-const ALLOWED = ['db', 'sqlite', 'sqlite3'];
+const ALLOWED = ['db', 'sqlite', 'sqlite3', 'store'];
 
 const error = ref<string | null>(null);
 const node = computed(() => graph.nodes.find((n) => n.id === props.nodeId));

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted, markRaw, watch } from 'vue';
-import { VueFlow, useVueFlow, type Node as VFNode, type Edge as VFEdge } from '@vue-flow/core';
+import { VueFlow, useVueFlow, type Node as VFNode, type Edge as VFEdge, type NodeChange, type EdgeChange } from '@vue-flow/core';
 import { Background } from '@vue-flow/background';
 import { Controls, ControlButton } from '@vue-flow/controls';
 import { MiniMap } from '@vue-flow/minimap';
@@ -101,6 +101,22 @@ function onKeydown(e: KeyboardEvent) {
 
 function onNodeClick({ node }: { node: VFNode }) { ui.selectedNodeId = node.id; }
 function onPaneClick() { ui.selectedNodeId = null; menuOpen.value = false; }
+
+// Vue Flow's internal keydown handlers (Backspace/Delete) remove items from
+// its own store but never tell ours. Mirror remove changes back into Pinia
+// so a subsequent add doesn't resurrect the deleted item via our setNodes
+// rehydrate. Position / select / dimension changes are owned by Vue Flow
+// internally and we ignore them here (positions sync via @node-drag-stop).
+function onNodesChange(changes: NodeChange[]) {
+  for (const c of changes) {
+    if (c.type === 'remove') graph.removeNode(c.id);
+  }
+}
+function onEdgesChange(changes: EdgeChange[]) {
+  for (const c of changes) {
+    if (c.type === 'remove') graph.removeEdge(c.id);
+  }
+}
 
 function nodeBox(n: { position: { x: number; y: number }; dimensions?: { width: number; height: number } }) {
   const w = n.dimensions?.width ?? NODE_DEFAULT_W;
@@ -251,6 +267,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown, true));
       @pane-click="onPaneClick"
       @node-drag="onNodeDrag"
       @node-drag-stop="onNodeDragStop"
+      @nodes-change="onNodesChange"
+      @edges-change="onEdgesChange"
       @connect="onConnect"
     >
       <Background :gap="GRID" />
