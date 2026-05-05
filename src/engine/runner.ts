@@ -9,6 +9,10 @@ import { newRunAbortController } from './abort';
 import { useGraphStore } from '@/stores/graph';
 import { writeRun } from '@/persistence/runs-dir';
 import { useRunsStore } from '@/stores/runs';
+import { dbRegistry } from '@/sqlite/db-registry';
+import { writeFileAtomic } from '@/persistence/atomic-write';
+import { assetsDirFor } from '@/persistence/assets-dir';
+import type { ToolPackConfig } from '@/domain/node-types';
 
 export interface RunGraphArgs {
   graph: Graph;
@@ -174,6 +178,31 @@ export async function runGraph(args: RunGraphArgs): Promise<Run> {
       await useRunsStore().refresh();
     } catch (e) {
       console.error('Failed to save run:', e);
+    }
+  }
+
+  // Persist any Tool Pack DBs that were touched during the run. Only on
+  // successful completion — failed/aborted runs leave in-memory state intact
+  // (and "Reload from disk" reverts) so a partial state doesn't sneak onto
+  // disk. The export+atomic-write happens for every Tool Pack with a live
+  // DbHost; v1 doesn't track per-write dirty state.
+  if (run.status === 'completed' && graphStore.filePath) {
+    const graphFilePath = graphStore.filePath;
+    for (const node of args.graph.nodes) {
+      if (node.type !== 'tool-pack') continue;
+      const host = dbRegistry.get(node.id);
+      if (!host) continue;
+      try {
+        const cfg = node.config as ToolPackConfig;
+        const filename = (cfg.connection as { db?: string }).db;
+        if (!filename) continue;
+        const bytes = await host.export();
+        const dbPath = `${assetsDirFor(graphFilePath)}/${filename}`;
+        await writeFileAtomic(dbPath, new Uint8Array(bytes));
+      } catch (e) {
+        console.error(`tool-pack: failed to persist ${node.id}:`, e);
+        // Don't fail the whole run — in-memory state stays available.
+      }
     }
   }
 
