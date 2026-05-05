@@ -12,7 +12,8 @@ export type NodeType =
   | 'agent'
   | 'chat-input'
   | 'chat-output'
-  | 'file-input';
+  | 'file-input'
+  | 'tool-pack';
 
 export interface InputConfig {
   name: string;
@@ -110,6 +111,28 @@ export interface FileInputConfig {
   }>;
 }
 
+export interface ToolPackTool {
+  /** Tool name as the LLM sees it. Snake_case or kebab-case, [a-zA-Z0-9_-]+. */
+  name: string;
+  /** Description shown to the LLM. Authors paste schema info here for v1. */
+  description: string;
+  /** JSON Schema for the tool's arguments. Validated leniently — invalid
+   *  schemas warn but don't block saves. */
+  inputSchema: Record<string, unknown>;
+  /** JS function body. `inputs` (validated args) and `sqlite` (helper) are in scope. */
+  code: string;
+  /** Author-controlled cap on rows returned by sqlite.query. Falls back to 1000. */
+  maxRows?: number;
+}
+
+export interface ToolPackConfig {
+  /** v1 only ships 'sqlite'; future flavors slot in here. */
+  flavor: 'sqlite';
+  /** Shape determined by flavor. For SQLite: { db, sourcePath?, sizeBytes }. */
+  connection: Record<string, unknown>;
+  tools: ToolPackTool[];
+}
+
 // Plan 1 defines only these three. Other node-type configs come in later plans
 // but the union type is declared up-front for stability.
 export type NodeConfig =
@@ -126,4 +149,5 @@ export type NodeConfig =
   | LoopControllerConfig
   | AgentConfig
   | FileInputConfig
+  | ToolPackConfig
   | Record<string, unknown>;
