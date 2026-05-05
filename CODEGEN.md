@@ -249,6 +249,49 @@ ports.out: [text:string]
 
 **In code:** read each file from disk (or wherever your project sources content from), run extraction if needed, and join with the same XML wrapper from §4.6.5. The graph's "saved location" maps to whatever path conventions your project uses (next to a config, in an `assets/` dir, etc.). If the LLM only needs raw text and you don't care about per-file boundaries, you can skip the wrapper — but matching it is the lossless translation.
 
+### 2.14 tool-pack
+
+```ts
+config: {
+  flavor: 'sqlite';                             // future: 'http' | 'graphql' | 'postgres' | …
+  connection: { db: string; sourcePath?: string; sizeBytes: number };
+  tools: Array<{
+    name: string;
+    description: string;
+    inputSchema: Record<string, unknown>;       // JSON Schema for the LLM
+    code: string;                                // JS body, has `inputs` and `sqlite` in scope
+    maxRows?: number;                            // per-tool override of the 1000-row cap
+  }>;
+}
+ports.in:  []
+ports.out: [tools:tools]
+```
+
+**Semantic:** instantiates a backend helper based on `flavor`. For SQLite (the only v1 flavor), opens `<graph>.assets/<connection.db>` via sql.js and emits one tool descriptor per configured tool. Each descriptor's `code` runs in a sandboxed Web Worker per call, with the `sqlite` helper bound into scope. The `sqlite` helper exposes `query(sql, params)` returning `{ rows, truncated, rowsAffected? }`, plus `tables()` and `columns(tableName)` for schema introspection. Named params (`:name`) are canonical (pass `inputs` directly as the params object); positional `?` is accepted as fallback when params is an array. Writes accumulate in memory and persist to the side-car .db file on successful run completion.
+
+**In code:** map this to a class or module that holds a connection and exposes one method per tool. Translate each tool's JS body into the host language; substitute the `sqlite` helper with whichever client your project uses. Pseudocode for a SQLite tool with named params:
+
+```ts
+// TS — substitute your client
+async function ac_get_user_activity(inputs: { user_id: number; since: string }) {
+  return await yourSqliteClient.all(
+    `SELECT * FROM activities WHERE user_id = :user_id AND created_at >= :since`,
+    inputs,
+  );
+}
+```
+
+```python
+# Python — substitute your client
+def ac_get_user_activity(inputs: dict) -> list[dict]:
+    return your_sqlite_client.fetch_all(
+        "SELECT * FROM activities WHERE user_id = :user_id AND created_at >= :since",
+        inputs,
+    )
+```
+
+The agent / LLM-call side is unchanged — same as wiring any `tools` wire (§2.4–§2.6).
+
 ## 3. Data flow rules
 
 1. **Edges flow data, not control.** The runtime evaluates each node when all its inputs are ready.
