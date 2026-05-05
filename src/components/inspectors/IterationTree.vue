@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import type { IterationRecord } from '@/domain/run';
+import CopyableField from './CopyableField.vue';
 
 const props = defineProps<{ iterations: IterationRecord[] }>();
 const expanded = ref<Set<number>>(new Set());
@@ -33,14 +34,8 @@ function format(value: unknown): string {
         <span class="opacity-60">{{ expanded.has(r.iteration) ? '▼' : '▶' }}</span>
       </button>
       <div v-if="expanded.has(r.iteration)" class="px-2 pb-2 flex flex-col gap-1.5">
-        <div>
-          <div class="text-[10px] uppercase opacity-50 mb-0.5">inputs</div>
-          <pre class="bg-elev px-2 py-1.5 rounded text-[11px] whitespace-pre-wrap m-0 max-h-[160px] overflow-auto">{{ format(r.inputs) }}</pre>
-        </div>
-        <div>
-          <div class="text-[10px] uppercase opacity-50 mb-0.5">output</div>
-          <pre class="bg-elev px-2 py-1.5 rounded text-[11px] whitespace-pre-wrap m-0 max-h-[160px] overflow-auto">{{ format(r.output) }}</pre>
-        </div>
+        <CopyableField label="inputs" :value="format(r.inputs)" />
+        <CopyableField label="output" :value="format(r.output)" />
       </div>
     </div>
   </div>

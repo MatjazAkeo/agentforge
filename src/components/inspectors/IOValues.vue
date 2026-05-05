@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useRunStore } from '@/stores/run';
+import CopyableField from './CopyableField.vue';
 
 const props = defineProps<{ nodeId: string }>();
 const run = useRunStore();
@@ -65,8 +66,7 @@ const iterCount = computed(() => result.value?.iterations?.length ?? 0);
         >{{ inputsOpen ? '▼' : '▶' }} inputs ({{ inputEntries.length }})</button>
         <ul v-show="inputsOpen" class="flex flex-col gap-1.5">
           <li v-for="[handle, value] in inputEntries" :key="`in-${handle}`">
-            <div class="font-mono text-[11px] opacity-80 mb-0.5">{{ handle }}</div>
-            <pre class="bg-panel px-2 py-1.5 rounded text-[11px] whitespace-pre-wrap m-0 max-h-[160px] overflow-auto">{{ format(value) }}</pre>
+            <CopyableField :label="handle" :value="format(value)" />
           </li>
         </ul>
       </div>
@@ -79,8 +79,7 @@ const iterCount = computed(() => result.value?.iterations?.length ?? 0);
         >{{ outputsOpen ? '▼' : '▶' }} outputs ({{ outputEntries.length }})</button>
         <ul v-show="outputsOpen" class="flex flex-col gap-1.5">
           <li v-for="[handle, value] in outputEntries" :key="`out-${handle}`">
-            <div class="font-mono text-[11px] opacity-80 mb-0.5">{{ handle }}</div>
-            <pre class="bg-panel px-2 py-1.5 rounded text-[11px] whitespace-pre-wrap m-0 max-h-[160px] overflow-auto">{{ format(value) }}</pre>
+            <CopyableField :label="handle" :value="format(value)" />
           </li>
         </ul>
       </div>
