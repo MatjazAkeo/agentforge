@@ -6,5 +6,4 @@ import type { ModelEntry } from '@/stores/settings';
 //   https://openrouter.ai/models?max_price=0
 export const DEFAULT_MODELS: ModelEntry[] = [
   { id: 'openai/gpt-oss-120b:free', displayName: 'GPT-OSS 120B (free)', supportsTools: true, supportsJsonMode: true, notes: '' },
-  { id: 'openrouter/free', displayName: 'OpenRouter Free (auto)', supportsTools: true, supportsJsonMode: false, notes: 'OpenRouter routes the request to one of its free-tier models.' },
 ];

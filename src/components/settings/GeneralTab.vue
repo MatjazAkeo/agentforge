@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { useSettingsStore, type ThemePref } from '@/stores/settings';
+import { modelOptionsForDropdown } from '@/config/virtual-models';
 
 const settings = useSettingsStore();
+const modelOptions = computed(() => modelOptionsForDropdown(settings.models));
 
 function setTheme(t: ThemePref) {
   settings.theme = t;
@@ -33,10 +36,8 @@ function setDefaultModel(id: string) {
         :value="settings.defaultModel ?? ''"
         @change="(e) => setDefaultModel((e.target as HTMLSelectElement).value)"
         class="bg-elev text-text-base border border-border-base rounded px-2 py-1.5 text-sm font-ui"
-        :disabled="settings.models.length === 0"
       >
-        <option v-for="m in settings.models" :key="m.id" :value="m.id">{{ m.displayName }}</option>
-        <option v-if="settings.models.length === 0" value="">— configure models first —</option>
+        <option v-for="m in modelOptions" :key="m.id" :value="m.id">{{ m.displayName }}</option>
       </select>
       <div class="text-[11px] opacity-60">Used as the initial model when you add a new LLM Call or Agent node.</div>
     </label>

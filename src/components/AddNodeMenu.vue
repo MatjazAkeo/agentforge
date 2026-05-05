@@ -61,7 +61,7 @@ function defaultConfig(type: NodeType): Record<string, unknown> {
     case 'file-input': return { files: [] };
     case 'output': return { format: 'auto' };
     case 'llm-call': return {
-      model: settings.defaultModel ?? 'openai/gpt-oss-120b:free',
+      model: settings.defaultModel ?? 'openrouter/free',
       systemPrompt: '',
       temperature: 0.7,
       maxTokens: null,
@@ -86,7 +86,7 @@ function defaultConfig(type: NodeType): Record<string, unknown> {
       valueChannels: [{ name: 'value', type: 'json' }],
     };
     case 'agent': return {
-      model: settings.defaultModel ?? 'openai/gpt-oss-120b:free',
+      model: settings.defaultModel ?? 'openrouter/free',
       systemPrompt: '',
       temperature: 0.7,
       maxTokens: null,

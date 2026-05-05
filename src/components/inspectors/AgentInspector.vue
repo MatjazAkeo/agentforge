@@ -4,6 +4,7 @@ import { useGraphStore } from '@/stores/graph';
 import { useRunStore } from '@/stores/run';
 import { useSettingsStore } from '@/stores/settings';
 import { DEFAULT_MODELS } from '@/config/default-models';
+import { modelOptionsForDropdown } from '@/config/virtual-models';
 import type { AgentConfig } from '@/domain/node-types';
 import IterationTree from './IterationTree.vue';
 import IOValues from './IOValues.vue';
@@ -17,7 +18,9 @@ const settings = useSettingsStore();
 const node = computed(() => graph.nodes.find((n) => n.id === props.nodeId));
 const cfg = computed(() => (node.value?.config ?? null) as AgentConfig | null);
 const result = computed(() => run.current?.nodeResults[props.nodeId]);
-const modelOptions = computed(() => settings.models.length > 0 ? settings.models : DEFAULT_MODELS);
+const modelOptions = computed(() =>
+  modelOptionsForDropdown(settings.models.length > 0 ? settings.models : DEFAULT_MODELS),
+);
 
 function update<K extends keyof AgentConfig>(key: K, value: AgentConfig[K]) {
   graph.updateNodeConfig(props.nodeId, { [key]: value });

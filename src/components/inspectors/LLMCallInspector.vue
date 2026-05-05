@@ -5,6 +5,7 @@ import { useRunStore } from '@/stores/run';
 import { useSettingsStore } from '@/stores/settings';
 import type { LLMCallConfig } from '@/domain/node-types';
 import { DEFAULT_MODELS } from '@/config/default-models';
+import { modelOptionsForDropdown } from '@/config/virtual-models';
 import PortLegend from './PortLegend.vue';
 import IOValues from './IOValues.vue';
 
@@ -25,7 +26,7 @@ const sectionsOpen = ref({
 const selectedIter = ref<number | null>(null);
 
 const modelOptions = computed(() =>
-  settings.models.length > 0 ? settings.models : DEFAULT_MODELS,
+  modelOptionsForDropdown(settings.models.length > 0 ? settings.models : DEFAULT_MODELS),
 );
 
 function update<K extends keyof LLMCallConfig>(key: K, value: LLMCallConfig[K]) {
