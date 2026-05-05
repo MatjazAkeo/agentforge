@@ -42,7 +42,13 @@ export async function runToolBatch(args: ToolBatchArgs): Promise<ToolBatchResult
   }));
   const toolMessages: ChatMessage[] = results.map((r) => ({
     role: 'tool', tool_call_id: r.toolCallId, name: r.name,
-    content: r.error ? `Error: ${r.error}` : String(r.output ?? ''),
+    // Serialize structured outputs as JSON so the LLM sees the actual data
+    // instead of "[object Object]". Strings pass through verbatim.
+    content: r.error
+      ? `Error: ${r.error}`
+      : typeof r.output === 'string'
+        ? r.output
+        : JSON.stringify(r.output ?? null),
   }));
   return { results, toolMessages };
 }
