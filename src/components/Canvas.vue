@@ -21,6 +21,7 @@ import LLMCallNode from './nodes/LLMCallNode.vue';
 import ToolNode from './nodes/ToolNode.vue';
 import ToolGroupNode from './nodes/ToolGroupNode.vue';
 import ToolRunnerNode from './nodes/ToolRunnerNode.vue';
+import ToolPackNode from './nodes/ToolPackNode.vue';
 import LoopControllerNode from './nodes/LoopControllerNode.vue';
 import AgentNode from './nodes/AgentNode.vue';
 import TransformNode from './nodes/TransformNode.vue';
@@ -37,7 +38,7 @@ const graph = useGraphStore();
 const ui = useUiStore();
 const { project, viewport, getNodes, setNodes, setEdges } = useVueFlow();
 
-const nodeTypes = { input: markRaw(InputNode), 'file-input': markRaw(FileInputNode), output: markRaw(OutputNode), 'llm-call': markRaw(LLMCallNode), tool: markRaw(ToolNode), 'tool-group': markRaw(ToolGroupNode), 'tool-runner': markRaw(ToolRunnerNode), 'loop-controller': markRaw(LoopControllerNode), 'agent': markRaw(AgentNode), 'transform': markRaw(TransformNode), 'prompt-template': markRaw(PromptTemplateNode), 'chat-input': markRaw(ChatInputNode), 'chat-output': markRaw(ChatOutputNode) } as Record<string, ReturnType<typeof markRaw>>;
+const nodeTypes = { input: markRaw(InputNode), 'file-input': markRaw(FileInputNode), output: markRaw(OutputNode), 'llm-call': markRaw(LLMCallNode), tool: markRaw(ToolNode), 'tool-group': markRaw(ToolGroupNode), 'tool-runner': markRaw(ToolRunnerNode), 'tool-pack': markRaw(ToolPackNode), 'loop-controller': markRaw(LoopControllerNode), 'agent': markRaw(AgentNode), 'transform': markRaw(TransformNode), 'prompt-template': markRaw(PromptTemplateNode), 'chat-input': markRaw(ChatInputNode), 'chat-output': markRaw(ChatOutputNode) } as Record<string, ReturnType<typeof markRaw>>;
 
 const flowNodes = computed<VFNode[]>(() =>
   graph.nodes.map((n) => ({ id: n.id, type: n.type, position: n.position, data: { config: n.config } })),
