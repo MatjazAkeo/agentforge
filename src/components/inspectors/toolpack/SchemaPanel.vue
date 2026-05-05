@@ -16,7 +16,10 @@ async function load() {
   error.value = null;
   try {
     const host = dbRegistry.get(props.nodeId);
-    if (!host) {
+    if (!host || !host.isInitialized()) {
+      // Either no host yet, or one created but never init'd (e.g. a failed
+      // run hit dbRegistry.getOrCreate before init). No schema to show
+      // until ConnectionPanel attaches a DB.
       tables.value = [];
       return;
     }

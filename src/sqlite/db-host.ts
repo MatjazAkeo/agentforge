@@ -13,6 +13,8 @@ export interface DbHost {
   tables(): Promise<string[]>;
   columns(table: string): Promise<ColumnInfo[]>;
   export(): Promise<ArrayBuffer>;
+  /** True after a successful init() or reload(). False before, or after dispose(). */
+  isInitialized(): boolean;
   dispose(): void;
   /** Test-only — list of messages we posted to the worker. */
   posted(): unknown[];
@@ -23,6 +25,7 @@ const DEFAULT_MAX_ROWS = 1000;
 export function createDbHost(): DbHost {
   const worker = new DbWorker();
   let nextId = 1;
+  let initialized = false;
   const pending = new Map<number, { resolve: (v: unknown) => void; reject: (e: Error) => void }>();
   const posted: unknown[] = [];
 
@@ -48,14 +51,24 @@ export function createDbHost(): DbHost {
   }
 
   return {
-    init: (bytes) => send<void>({ op: 'init', bytes }),
-    reload: (bytes) => send<void>({ op: 'reload', bytes }),
+    init: async (bytes) => {
+      await send<void>({ op: 'init', bytes });
+      initialized = true;
+    },
+    reload: async (bytes) => {
+      await send<void>({ op: 'reload', bytes });
+      initialized = true;
+    },
     query: (sql, params, maxRows = DEFAULT_MAX_ROWS) =>
       send<QueryResult>({ op: 'query', sql, params, maxRows }),
     tables: () => send<string[]>({ op: 'tables' }),
     columns: (table) => send<ColumnInfo[]>({ op: 'columns', table }),
     export: () => send<ArrayBuffer>({ op: 'export' }),
-    dispose: () => worker.terminate(),
+    isInitialized: () => initialized,
+    dispose: () => {
+      initialized = false;
+      worker.terminate();
+    },
     posted: () => posted,
   };
 }

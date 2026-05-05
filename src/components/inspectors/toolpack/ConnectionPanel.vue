@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { open as openDialog } from '@tauri-apps/plugin-dialog';
 import { stat } from '@tauri-apps/plugin-fs';
 import { useGraphStore } from '@/stores/graph';
@@ -75,6 +75,23 @@ async function onReloadFromDisk() {
   await host.reload(bytes);
   emit('schemaReloaded');
 }
+
+// Auto-init the worker when the inspector first mounts on a Tool Pack with
+// a configured DB. The graph store disposes all hosts on load(), so the
+// first time the user looks at a Tool Pack after re-opening a graph, we need
+// to spin the worker back up. Idempotent — does nothing if already inited.
+onMounted(async () => {
+  if (!graph.filePath || !filename.value) return;
+  const host = dbRegistry.getOrCreate(props.nodeId);
+  if (host.isInitialized()) return;
+  try {
+    const bytes = await readAssetBytes(graph.filePath, filename.value);
+    await host.init(bytes);
+    emit('schemaReloaded');
+  } catch (e) {
+    error.value = `Failed to load DB: ${(e as Error).message}`;
+  }
+});
 
 async function onSaveNow() {
   if (!graph.filePath || !filename.value) return;
