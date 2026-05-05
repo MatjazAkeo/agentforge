@@ -28,7 +28,7 @@ async function onClick() {
 
 <template>
   <div
-    class="bg-panel rounded cursor-pointer hover:ring-1 hover:ring-accent/40 transition"
+    class="bg-node-inset rounded cursor-pointer hover:ring-1 hover:ring-accent/40 transition"
     :title="copied ? 'Copied to clipboard' : 'Click to copy'"
     @click="onClick"
   >
