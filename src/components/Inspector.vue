@@ -15,6 +15,7 @@ import PromptTemplateInspector from './inspectors/PromptTemplateInspector.vue';
 import ChatInputInspector from './inspectors/ChatInputInspector.vue';
 import ChatOutputInspector from './inspectors/ChatOutputInspector.vue';
 import FileInputInspector from './inspectors/FileInputInspector.vue';
+import ToolPackInspector from './inspectors/ToolPackInspector.vue';
 
 const ui = useUiStore();
 const graph = useGraphStore();
@@ -50,6 +51,9 @@ const selectedNode = computed(() => {
       </div>
       <div v-else-if="selectedNode.type === 'file-input'">
         <FileInputInspector :nodeId="selectedNode.id" />
+      </div>
+      <div v-else-if="selectedNode.type === 'tool-pack'">
+        <ToolPackInspector :nodeId="selectedNode.id" />
       </div>
       <div v-else-if="selectedNode.type === 'output'">
         <OutputInspector :nodeId="selectedNode.id" />
