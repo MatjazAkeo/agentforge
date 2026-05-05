@@ -43,6 +43,9 @@ export function getSourcePortType(node: Node, handleId: string): DataType | null
     case 'tool-group':
       if (handleId === 'toolDefinition') return 'tools';
       return null;
+    case 'tool-pack':
+      if (handleId === 'tools') return 'tools';
+      return null;
     case 'tool-runner':
       if (handleId === 'messages') return 'messages';
       if (handleId === 'results') return 'json';
