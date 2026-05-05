@@ -5,6 +5,10 @@
 // many query messages.
 
 import type { DbRequest, DbResponse, QueryResult, ColumnInfo } from './types';
+// Vite resolves the `?url` suffix to a built asset URL, so sql.js can find
+// its WASM blob regardless of where the worker bundle ends up. Without this
+// sql.js tries a relative fetch that 404s in dev and breaks in prod.
+import sqlWasmUrl from 'sql.js/dist/sql-wasm.wasm?url';
 
 interface SqlJsDatabase {
   exec(sql: string, params?: Record<string, unknown> | unknown[]): Array<{
@@ -27,7 +31,7 @@ async function ensureSql(): Promise<SqlJs> {
   if (SQL) return SQL;
   // @ts-expect-error sql.js types are not aligned with our minimal interface
   const initSqlJs = (await import('sql.js')).default;
-  SQL = await initSqlJs();
+  SQL = await initSqlJs({ locateFile: () => sqlWasmUrl });
   return SQL!;
 }
 
