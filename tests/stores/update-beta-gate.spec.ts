@@ -11,20 +11,15 @@ describe('isBetaVersion', () => {
     expect(isBetaVersion('0.2.0-beta.3')).toBe(true);
   });
 
-  it('matches alpha, rc, dev, canary identifiers', () => {
+  it('matches alpha identifier', () => {
     expect(isBetaVersion('0.2.0-alpha')).toBe(true);
     expect(isBetaVersion('0.2.0-alpha.2')).toBe(true);
-    expect(isBetaVersion('1.0.0-rc.1')).toBe(true);
-    expect(isBetaVersion('1.0.0-dev')).toBe(true);
-    expect(isBetaVersion('1.0.0-dev.5')).toBe(true);
-    expect(isBetaVersion('1.0.0-canary')).toBe(true);
-    expect(isBetaVersion('1.0.0-canary.20260506')).toBe(true);
+    expect(isBetaVersion('0.2.0-alpha1')).toBe(true);
   });
 
   it('is case-insensitive', () => {
     expect(isBetaVersion('0.2.0-BETA')).toBe(true);
-    expect(isBetaVersion('1.0.0-RC.1')).toBe(true);
-    expect(isBetaVersion('1.0.0-DEV')).toBe(true);
+    expect(isBetaVersion('0.2.0-Alpha')).toBe(true);
   });
 
   it('rejects stable versions', () => {
@@ -33,7 +28,10 @@ describe('isBetaVersion', () => {
     expect(isBetaVersion('0.0.1')).toBe(false);
   });
 
-  it('rejects unrelated pre-release identifiers', () => {
+  it('rejects unsupported pre-release identifiers', () => {
+    expect(isBetaVersion('1.0.0-rc.1')).toBe(false);
+    expect(isBetaVersion('1.0.0-dev')).toBe(false);
+    expect(isBetaVersion('1.0.0-canary')).toBe(false);
     expect(isBetaVersion('1.0.0-nightly')).toBe(false);
     expect(isBetaVersion('1.0.0-snapshot')).toBe(false);
   });

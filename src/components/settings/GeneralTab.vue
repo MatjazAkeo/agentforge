@@ -55,10 +55,9 @@ function setDefaultModel(id: string) {
       <span>Receive beta releases</span>
     </label>
     <div class="text-[11px] opacity-60 -mt-1.5 ml-6">
-      Auto-update will install pre-release versions tagged <code class="font-mono">-beta</code>,
-      <code class="font-mono">-alpha</code>, <code class="font-mono">-rc</code>,
-      <code class="font-mono">-dev</code>, or <code class="font-mono">-canary</code>. Off by default —
-      stable releases only.
+      Auto-update will install pre-release versions tagged
+      <code class="font-mono">-alpha</code> or <code class="font-mono">-beta</code>.
+      Off by default — stable releases only.
     </div>
   </div>
 </template>
