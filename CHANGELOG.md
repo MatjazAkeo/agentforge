@@ -7,20 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.1.5-beta.2] — 2026-05-03
+## [0.1.5-beta.3] — 2026-05-06
 
 First public **beta**. Two major features land here, plus a lot of UX polish.
 Opt in via Settings → General → "Receive beta releases" to keep getting these.
 
-Two earlier tags failed to build: `v0.1.5-beta` died on Vite's default
+Three earlier tags failed to build: `v0.1.5-beta` died on Vite's default
 `worker.format: 'iife'` (no code-splitting, which the SQLite Tool Pack's DB
 worker needs for its `?url`-imported sql.js WASM — fix: `worker.format: 'es'`
 in `vite.config.ts`). `v0.1.5-beta.1` then died on Windows only — Tauri's MSI
 bundler requires the optional pre-release identifier to be numeric-only and
-≤ 65535, and `beta.1` has alphabetic characters. The release workflow now
-skips MSI on Windows for `-alpha` / `-beta` tags (NSIS `.exe` only); stable
-releases keep both bundles. Tags are immutable once pushed, so each fix
-required a roll-forward bump.
+≤ 65535, and `beta.1` has alphabetic characters. `v0.1.5-beta.2` got the
+Windows skip-MSI logic but used invalid bundle ids (`app`, `updater` aren't
+accepted on Windows — only `msi` and `nsis` are). `-beta.3` passes the right
+arg: `--bundles nsis` on Windows for `-alpha` / `-beta` tags (NSIS auto-
+produces the updater zip + signature). Stable releases still get both MSI
+and NSIS. Tags are immutable, so each fix required a roll-forward bump.
 
 ### Added
 
@@ -207,8 +209,8 @@ Six bundled starter graphs accessible from the toolbar:
 - In-app auto-updater verified by minisign-style signatures (independent of macOS Gatekeeper / Windows SmartScreen).
 - Bundled installers: `.dmg`, `.deb`, `.AppImage`, `-setup.exe`, `.msi`.
 
-[Unreleased]: https://github.com/MatjazAkeo/agentforge/compare/v0.1.5-beta.2...HEAD
-[0.1.5-beta.2]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.1.5-beta.2
+[Unreleased]: https://github.com/MatjazAkeo/agentforge/compare/v0.1.5-beta.3...HEAD
+[0.1.5-beta.3]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.1.5-beta.3
 [0.1.4]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.1.4
 [0.1.3]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.1.3
 [0.1.2]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.1.2

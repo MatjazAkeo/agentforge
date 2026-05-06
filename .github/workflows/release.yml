@@ -140,8 +140,8 @@ jobs:
           EXTRA=""
           if [[ "${{ matrix.platform }}" == "windows-latest" ]] \
              && [[ "${GITHUB_REF_NAME:-}" =~ -(alpha|beta) ]]; then
-            EXTRA="--bundles app,nsis,updater"
-            echo "Pre-release tag on Windows: skipping MSI bundle."
+            EXTRA="--bundles nsis"
+            echo "Pre-release tag on Windows: bundling NSIS only (skipping MSI)."
           fi
           echo "args=$BASE_ARGS $EXTRA" >> "$GITHUB_OUTPUT"
 
