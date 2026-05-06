@@ -77,6 +77,16 @@ const NODES = [
     outputs: [['text', 'string'], ['messages', 'messages']],
   },
   {
+    type: 'file-input', title: 'File Input',
+    inputs: [],
+    outputs: [['text', 'string']],
+  },
+  {
+    type: 'tool-pack', title: 'Tool Pack',
+    inputs: [],
+    outputs: [['tools', 'tools']],
+  },
+  {
     type: 'chat-output', title: 'Chat Output',
     inputs: [['text', 'string']],
     outputs: [],
