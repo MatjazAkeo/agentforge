@@ -13,6 +13,15 @@ export default defineConfig(async () => ({
     alias: { "@": path.resolve(__dirname, "src") },
   },
 
+  // The Tool Pack DB worker uses `import ...?url` to locate sql.js's WASM,
+  // which forces code-splitting in the worker bundle. Vite's default
+  // `worker.format: 'iife'` rejects code-splitting at build time. ESM is
+  // the supported format for split workers and is fine in modern browsers /
+  // the Tauri webview.
+  worker: {
+    format: "es",
+  },
+
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
   // 1. prevent Vite from obscuring rust errors

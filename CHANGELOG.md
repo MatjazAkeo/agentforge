@@ -7,10 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.1.5-beta] — 2026-05-06
+## [0.1.5-beta.1] — 2026-05-06
 
 First public **beta**. Two major features land here, plus a lot of UX polish.
 Opt in via Settings → General → "Receive beta releases" to keep getting these.
+
+(`v0.1.5-beta` was tagged but never built — the CI build failed because Vite's
+default `worker.format: 'iife'` doesn't support code-splitting, which the
+SQLite Tool Pack's DB worker needs for its `?url`-imported sql.js WASM.
+Setting `worker.format: 'es'` in `vite.config.ts` fixed it. Rolled forward to
+`-beta.1` so the auto-updater sees it as a newer SemVer.)
 
 ### Added
 
@@ -197,8 +203,8 @@ Six bundled starter graphs accessible from the toolbar:
 - In-app auto-updater verified by minisign-style signatures (independent of macOS Gatekeeper / Windows SmartScreen).
 - Bundled installers: `.dmg`, `.deb`, `.AppImage`, `-setup.exe`, `.msi`.
 
-[Unreleased]: https://github.com/MatjazAkeo/agentforge/compare/v0.1.5-beta...HEAD
-[0.1.5-beta]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.1.5-beta
+[Unreleased]: https://github.com/MatjazAkeo/agentforge/compare/v0.1.5-beta.1...HEAD
+[0.1.5-beta.1]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.1.5-beta.1
 [0.1.4]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.1.4
 [0.1.3]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.1.3
 [0.1.2]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.1.2
