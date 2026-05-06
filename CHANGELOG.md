@@ -7,6 +7,108 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.5-beta] — 2026-05-06
+
+First public **beta**. Two major features land here, plus a lot of UX polish.
+Opt in via Settings → General → "Receive beta releases" to keep getting these.
+
+### Added
+
+- **File Input node + chat-side file attachments.** Drop a `.txt` / `.json` / `.pdf`
+  into the Input node's side-car directory or the chat composer. Files are
+  copied into `<graph>.assets/` so the graph stays portable. PDF text is
+  extracted lazily via `pdfjs-dist`. Chat attachments render as chips below the
+  bubble instead of dumping wrapped XML into the message body.
+- **SQLite Tool Pack node.** A new generic Tool Pack node with a flavor
+  registry; v1 ships SQLite as the only flavor. Authors define N named tools
+  in one card (master/detail editor with Monaco JSON + JS), each tool body has
+  a `sqlite` helper bound into scope (`sqlite.query(sql, params)`,
+  `sqlite.tables()`, `sqlite.columns(table)`). Read + write supported; writes
+  persist to the side-car .db on successful run completion via atomic
+  tmp-rename. Schema panel introspects `sqlite_master` / `PRAGMA table_info`
+  on attach. Per-Tool-Pack persistent DB worker keeps sql.js + the parsed DB
+  warm across runs.
+- **Resizable + collapsible sidebars.** Drag the inner edge of either sidebar
+  to resize; widths persist to localStorage. Chevron buttons collapse each
+  side to a thin restore button at the canvas edge.
+- **`CODEGEN.md`.** SDK-agnostic graph ↔ code spec for AI coding assistants
+  (Claude / Codex / Cursor) — schema, per-node reference, semantic operations
+  with TS + Python pseudocode, worked examples, reverse-mapping rules. Now
+  includes §2.13 (file-input) and §2.14 (tool-pack).
+- **Beta releases opt-in.** New Settings → General → "Receive beta releases".
+  When off (default), `-alpha` / `-beta` releases are silently ignored by the
+  in-app updater. The release workflow rejects any tag that isn't
+  `vX.Y.Z` / `vX.Y.Z-alpha[.N|N]` / `vX.Y.Z-beta[.N|N]`.
+- **`openrouter/free`** virtual model in LLM Call / Agent / default-model
+  dropdowns (auto-routes to a free OpenRouter model). Doesn't appear in the
+  Settings → Models catalog tab.
+- **Inspector I/O fields are click-to-copy cards** matching the iteration card
+  style — single click copies the full value to the clipboard with a brief
+  confirmation flash.
+
+### Changed
+
+- Tool Group inspector's Members list now expands Tool Pack tools (not just
+  Tool nodes) so the live preview reflects what the runtime actually sees.
+- Loop Controller port dots now sit on the outer node edge — wires connect
+  cleanly instead of ending short of the visible dot.
+- Chat thread renders user attachments as small chips beneath the bubble; the
+  raw `<file>...</file>` block goes only to the LLM, not the UI.
+- Default sidebar widths: left 200 px, right 300 px.
+- README rewritten with hero screenshot, badges, and the modern macOS
+  Gatekeeper unblock flow. Repo now has an MIT LICENSE.
+
+### Fixed
+
+- **Tool result content was `[object Object]` for structured returns.** The
+  tool-runner used `String()` to coerce results into chat-message content,
+  so any tool returning an object delivered the literal string
+  `"[object Object]"` to the LLM — which is why agents would hallucinate
+  table names instead of using real ones. Structured outputs are JSON-
+  serialized now; strings still pass through verbatim.
+- **Vue Flow delete events** weren't propagating back to the Pinia store —
+  Backspace-deleted nodes/edges would reappear when adding a new one. Bound
+  `@nodes-change` / `@edges-change` to mirror remove changes.
+- **sql.js WASM 404 in dev + prod.** The default sql.js loader fetched
+  `sql-wasm.wasm` at a path Vite didn't serve. Now imported with `?url` and
+  passed through `initSqlJs({ locateFile })`.
+- **Tool Pack inspector showed "DB not initialized"** when a graph reload
+  disposed the DB worker. ConnectionPanel auto-inits on mount when the
+  connection has a configured `db` and the graph is saved; SchemaPanel
+  defensively gates on `host.isInitialized()`.
+- **Graph IDs.** Loading a graph from a template (which uses ids like
+  `tmpl-01-hello-model`) failed UUID validation on save+reload. Schema
+  relaxed to any non-empty string; templates regenerate a fresh
+  `crypto.randomUUID()` on pick.
+- **`extensionOf('.hidden')` returned `'hidden'`** — now matches Node's
+  `path.extname` semantics and treats dotfiles as having no extension.
+- **pdfjs `TextItem | TextMarkedContent` union** narrowed correctly so
+  vue-tsc stops complaining and marked-content items don't emit `undefined`s.
+- **Inspector composer collapse button** moved to the canvas-facing edge to
+  mirror the left-sidebar pattern.
+- **Composer alignment** in the chat panel — `+` button now aligns to the
+  bottom of the textarea regardless of how tall it grows; matched heights
+  and added focus-outline.
+- **Composer chip strip** clears immediately on send, not after the run
+  finishes.
+
+### Internal
+
+- Sandbox runner accepts a `helpers` map; user code can `await sqlite.query(...)`
+  by way of a postMessage round-trip into the main thread. Two new tests pin
+  the protocol shape.
+- New `src/sqlite/` module — protocol types, DB worker (lazy sql.js +
+  per-message dispatch), DbHost (Promise wrapper with id correlation), and a
+  per-node DbHost registry with lifecycle hooks tied into the graph store.
+- New `src/flavors/` module — generic flavor registry for Tool Packs; SQLite
+  flavor as the first concrete implementation.
+- `containsCustomCode` flag now flips for Tool Pack nodes with non-empty tool
+  bodies (matches the existing `tool` / `transform-custom` behavior).
+- `src/persistence/atomic-write.ts` — `writeFileAtomic(path, bytes)` writes to
+  `<path>.tmp` and renames; cleans up on rename failure. Used for safe DB
+  persistence; gated by the new `fs:allow-rename` Tauri capability.
+- 188 tests passing across 39 files (was 99 at the start of v0.1.4).
+
 ## [0.1.4] — 2026-05-03
 
 ### Added
@@ -95,7 +197,8 @@ Six bundled starter graphs accessible from the toolbar:
 - In-app auto-updater verified by minisign-style signatures (independent of macOS Gatekeeper / Windows SmartScreen).
 - Bundled installers: `.dmg`, `.deb`, `.AppImage`, `-setup.exe`, `.msi`.
 
-[Unreleased]: https://github.com/MatjazAkeo/agentforge/compare/v0.1.4...HEAD
+[Unreleased]: https://github.com/MatjazAkeo/agentforge/compare/v0.1.5-beta...HEAD
+[0.1.5-beta]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.1.5-beta
 [0.1.4]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.1.4
 [0.1.3]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.1.3
 [0.1.2]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.1.2
