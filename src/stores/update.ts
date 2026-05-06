@@ -13,10 +13,10 @@ import { useSettingsStore } from './settings';
 
 export type UpdateStatus = 'idle' | 'downloading' | 'installing' | 'error';
 
-/** Pre-release identifiers we treat as "beta" — anything in the SemVer
- *  pre-release segment containing 'beta', 'rc', 'alpha'. Stable versions
- *  (no pre-release segment) always pass through. */
-const BETA_RE = /-(?:beta|alpha|rc)(?:[.\d-].*)?$/i;
+/** Pre-release identifiers we treat as "beta" — any SemVer pre-release
+ *  segment matching the conventional unstable-channel keywords. Stable
+ *  versions (no pre-release segment) always pass through. */
+const BETA_RE = /-(?:beta|alpha|rc|dev|canary)(?:[.\d-].*)?$/i;
 
 export function isBetaVersion(version: string): boolean {
   return BETA_RE.test(version);
