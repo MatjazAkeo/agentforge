@@ -28,6 +28,31 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Validate tag format
+        if: github.ref_type == 'tag'
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="$GITHUB_REF_NAME"
+          # Supported: vX.Y.Z (stable) | vX.Y.Z-alpha[.N|N] | vX.Y.Z-beta[.N|N]
+          # Anything else (-rc, -dev, -canary, -anythingelse) is rejected so
+          # we never publish a release the in-app beta gate doesn't recognize.
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-(alpha|beta)(\.[0-9]+|[0-9]+)?)?$ ]]; then
+            echo "::error title=Unsupported tag format::Tag '$TAG' is not a recognized release format."
+            echo ""
+            echo "Supported tags:"
+            echo "  vX.Y.Z              stable release"
+            echo "  vX.Y.Z-alpha        plain alpha"
+            echo "  vX.Y.Z-alpha.N      dotted-numbered alpha (e.g. v0.2.0-alpha.3)"
+            echo "  vX.Y.Z-alphaN       suffixed alpha (e.g. v0.2.0-alpha2)"
+            echo "  vX.Y.Z-beta[.N|N]   same shape as alpha"
+            echo ""
+            echo "Other suffixes (-rc, -dev, -canary, etc.) are not supported."
+            echo "Delete the tag locally + on origin, fix the version, and re-push."
+            exit 1
+          fi
+          echo "Tag '$TAG' is a valid release format."
+
       - name: Extract release notes from CHANGELOG.md
         id: extract
         shell: bash
