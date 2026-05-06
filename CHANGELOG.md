@@ -7,16 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.1.5-beta.1] — 2026-05-06
+## [0.1.5-beta.2] — 2026-05-03
 
 First public **beta**. Two major features land here, plus a lot of UX polish.
 Opt in via Settings → General → "Receive beta releases" to keep getting these.
 
-(`v0.1.5-beta` was tagged but never built — the CI build failed because Vite's
-default `worker.format: 'iife'` doesn't support code-splitting, which the
-SQLite Tool Pack's DB worker needs for its `?url`-imported sql.js WASM.
-Setting `worker.format: 'es'` in `vite.config.ts` fixed it. Rolled forward to
-`-beta.1` so the auto-updater sees it as a newer SemVer.)
+Two earlier tags failed to build: `v0.1.5-beta` died on Vite's default
+`worker.format: 'iife'` (no code-splitting, which the SQLite Tool Pack's DB
+worker needs for its `?url`-imported sql.js WASM — fix: `worker.format: 'es'`
+in `vite.config.ts`). `v0.1.5-beta.1` then died on Windows only — Tauri's MSI
+bundler requires the optional pre-release identifier to be numeric-only and
+≤ 65535, and `beta.1` has alphabetic characters. The release workflow now
+skips MSI on Windows for `-alpha` / `-beta` tags (NSIS `.exe` only); stable
+releases keep both bundles. Tags are immutable once pushed, so each fix
+required a roll-forward bump.
 
 ### Added
 
@@ -203,8 +207,8 @@ Six bundled starter graphs accessible from the toolbar:
 - In-app auto-updater verified by minisign-style signatures (independent of macOS Gatekeeper / Windows SmartScreen).
 - Bundled installers: `.dmg`, `.deb`, `.AppImage`, `-setup.exe`, `.msi`.
 
-[Unreleased]: https://github.com/MatjazAkeo/agentforge/compare/v0.1.5-beta.1...HEAD
-[0.1.5-beta.1]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.1.5-beta.1
+[Unreleased]: https://github.com/MatjazAkeo/agentforge/compare/v0.1.5-beta.2...HEAD
+[0.1.5-beta.2]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.1.5-beta.2
 [0.1.4]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.1.4
 [0.1.3]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.1.3
 [0.1.2]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.1.2

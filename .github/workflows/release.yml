@@ -127,6 +127,24 @@ jobs:
       - name: Install npm deps
         run: npm ci
 
+      # Windows MSI bundler requires the optional pre-release identifier to be
+      # numeric-only and <= 65535. SemVer pre-releases like `beta.1` contain
+      # alphabetic characters and break the MSI build. For -alpha / -beta tags
+      # on Windows we skip MSI and ship NSIS (.exe) only; stable tags get both.
+      - name: Compute Tauri bundle args
+        id: tauri_args
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_ARGS="${{ matrix.args }}"
+          EXTRA=""
+          if [[ "${{ matrix.platform }}" == "windows-latest" ]] \
+             && [[ "${GITHUB_REF_NAME:-}" =~ -(alpha|beta) ]]; then
+            EXTRA="--bundles app,nsis,updater"
+            echo "Pre-release tag on Windows: skipping MSI bundle."
+          fi
+          echo "args=$BASE_ARGS $EXTRA" >> "$GITHUB_OUTPUT"
+
       - name: Build + bundle + publish release
         uses: tauri-apps/tauri-action@v0
         env:
@@ -139,4 +157,4 @@ jobs:
           releaseBody: ${{ needs.prepare.outputs.notes }}
           releaseDraft: false
           prerelease: false
-          args: ${{ matrix.args }}
+          args: ${{ steps.tauri_args.outputs.args }}

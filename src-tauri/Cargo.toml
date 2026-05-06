@@ -1,6 +1,6 @@
 [package]
 name = "agentforge"
-version = "0.1.5-beta.1"
+version = "0.1.5-beta.2"
 description = "Visual node-based AI agent playground"
 authors = ["MatjazAkeo"]
 edition = "2021"
