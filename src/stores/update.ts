@@ -9,8 +9,18 @@ import { defineStore } from 'pinia';
 import { ref, shallowRef } from 'vue';
 import { check, type Update } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
+import { useSettingsStore } from './settings';
 
 export type UpdateStatus = 'idle' | 'downloading' | 'installing' | 'error';
+
+/** Pre-release identifiers we treat as "beta" — anything in the SemVer
+ *  pre-release segment containing 'beta', 'rc', 'alpha'. Stable versions
+ *  (no pre-release segment) always pass through. */
+const BETA_RE = /-(?:beta|alpha|rc)(?:[.\d-].*)?$/i;
+
+export function isBetaVersion(version: string): boolean {
+  return BETA_RE.test(version);
+}
 
 export const useUpdateStore = defineStore('update', () => {
   const update = shallowRef<Update | null>(null);
@@ -22,10 +32,13 @@ export const useUpdateStore = defineStore('update', () => {
   async function checkForUpdate() {
     try {
       const u = await check();
-      if (u && u.available) {
-        update.value = u;
-        modalOpen.value = true;
+      if (!u || !u.available) return;
+      // Skip pre-release builds unless the user explicitly opted in.
+      if (isBetaVersion(u.version) && !useSettingsStore().enableBetaUpdates) {
+        return;
       }
+      update.value = u;
+      modalOpen.value = true;
     } catch (e) {
       console.warn('Update check failed:', e);
     }

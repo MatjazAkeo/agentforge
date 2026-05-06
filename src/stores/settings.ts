@@ -29,6 +29,7 @@ interface PersistedSettings {
   theme: ThemePref;
   defaultModel: string | null;
   autoLoadHelloModel: boolean;
+  enableBetaUpdates: boolean;
 }
 
 function loadPersisted(): PersistedSettings {
@@ -41,6 +42,7 @@ function loadPersisted(): PersistedSettings {
       theme: parsed.theme ?? 'system',
       defaultModel: parsed.defaultModel ?? DEFAULT_MODELS[0]?.id ?? null,
       autoLoadHelloModel: parsed.autoLoadHelloModel ?? true,
+      enableBetaUpdates: parsed.enableBetaUpdates ?? false,
     };
   } catch { return defaults(); }
 }
@@ -51,6 +53,7 @@ function defaults(): PersistedSettings {
     theme: 'system',
     defaultModel: DEFAULT_MODELS[0]?.id ?? null,
     autoLoadHelloModel: true,
+    enableBetaUpdates: false,
   };
 }
 
@@ -63,6 +66,7 @@ export const useSettingsStore = defineStore('settings', () => {
   const theme = ref<ThemePref>(initial.theme);
   const defaultModel = ref<string | null>(initial.defaultModel);
   const autoLoadHelloModel = ref<boolean>(initial.autoLoadHelloModel);
+  const enableBetaUpdates = ref<boolean>(initial.enableBetaUpdates);
   const credits = ref<number | null>(null);    // remaining USD on OpenRouter; null = not yet fetched
 
   function setApiKey(key: string | null) {
@@ -89,12 +93,13 @@ export const useSettingsStore = defineStore('settings', () => {
       theme: theme.value,
       defaultModel: defaultModel.value,
       autoLoadHelloModel: autoLoadHelloModel.value,
+      enableBetaUpdates: enableBetaUpdates.value,
     };
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch { /* ignore quota errors */ }
   }
 
   // Persist non-keychain settings on any change. apiKey lives in OS keychain only.
-  watch([models, theme, defaultModel, autoLoadHelloModel], persist, { deep: true });
+  watch([models, theme, defaultModel, autoLoadHelloModel, enableBetaUpdates], persist, { deep: true });
 
   function addModel(entry: ModelEntry) {
     if (models.value.some((m) => m.id === entry.id)) return;
@@ -112,7 +117,8 @@ export const useSettingsStore = defineStore('settings', () => {
   }
 
   return {
-    apiKey, apiKeyConfigured, models, theme, defaultModel, autoLoadHelloModel, credits,
+    apiKey, apiKeyConfigured, models, theme, defaultModel, autoLoadHelloModel,
+    enableBetaUpdates, credits,
     setApiKey, addModel, removeModel, updateModelNotes, refreshCredits,
   };
 });
