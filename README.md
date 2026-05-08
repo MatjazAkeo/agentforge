@@ -1,4 +1,8 @@
 <div align="center">
+  <img src=".github/assets/hero.png" alt="AgentForge — visual node-based AI agent playground" width="100%" />
+</div>
+
+<div align="center">
 
 # AgentForge
 

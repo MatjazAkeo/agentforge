@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  AgentForge logo — master source.
+
+  Design language: hexagonal prism (front face + back face + 6 depth edges)
+  with 6 beveled satellite nodes and a yellow hub. Front face wires use a
+  3-layer "tube" stroke (shadow + body + highlight) for a 3D cylindrical
+  look. Wires are masked out from a slightly oversized circle around each
+  node so endpoints never bleed through node bevels.
+
+  This 100x100 viewBox file is the only source of truth — all PNG / ICNS /
+  ICO assets are regenerated from it via scripts/generate-icons.sh.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="hub" x1="20%" y1="15%" x2="80%" y2="85%">
+      <stop offset="0%" stop-color="#fff5cc"/>
+      <stop offset="50%" stop-color="#ffd54a"/>
+      <stop offset="100%" stop-color="#a06000"/>
+    </linearGradient>
+    <linearGradient id="sat" x1="20%" y1="15%" x2="80%" y2="85%">
+      <stop offset="0%" stop-color="#ffd9a8"/>
+      <stop offset="50%" stop-color="#ffaa55"/>
+      <stop offset="100%" stop-color="#5a2a00"/>
+    </linearGradient>
+    <linearGradient id="back-sat" x1="20%" y1="15%" x2="80%" y2="85%">
+      <stop offset="0%" stop-color="#ffc488"/>
+      <stop offset="50%" stop-color="#cc7a3a"/>
+      <stop offset="100%" stop-color="#3a1500"/>
+    </linearGradient>
+    <filter id="drop-shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="1.5"/>
+      <feOffset dx="0" dy="1.8"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.6"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <mask id="node-cutout">
+      <rect width="100" height="100" fill="white"/>
+      <circle cx="50" cy="22" r="6.2" fill="black"/>
+      <circle cx="74" cy="36" r="6.2" fill="black"/>
+      <circle cx="74" cy="64" r="6.2" fill="black"/>
+      <circle cx="50" cy="78" r="6.2" fill="black"/>
+      <circle cx="26" cy="64" r="6.2" fill="black"/>
+      <circle cx="26" cy="36" r="6.2" fill="black"/>
+      <circle cx="50" cy="50" r="10.7" fill="black"/>
+      <circle cx="50" cy="34" r="3.7" fill="black"/>
+      <circle cx="65" cy="43" r="3.7" fill="black"/>
+      <circle cx="65" cy="57" r="3.7" fill="black"/>
+      <circle cx="50" cy="66" r="3.7" fill="black"/>
+      <circle cx="35" cy="57" r="3.7" fill="black"/>
+      <circle cx="35" cy="43" r="3.7" fill="black"/>
+    </mask>
+  </defs>
+
+  <!-- Ghost containing hex (silhouette anchor) -->
+  <polygon points="50,14 84,31 84,69 50,86 16,69 16,31"
+           fill="none" stroke="#ffaa55" stroke-width="2" opacity="0.22"/>
+
+  <g mask="url(#node-cutout)">
+    <!-- Back face: smaller hex outline -->
+    <polygon points="50,34 65,43 65,57 50,66 35,57 35,43"
+             fill="none" stroke="#ffaa55" stroke-width="1.4" opacity="0.5"/>
+
+    <!-- Depth edges: front sat → back sat -->
+    <g stroke="#ffaa55" stroke-width="1.4" opacity="0.55">
+      <line x1="50" y1="22" x2="50" y2="34"/>
+      <line x1="74" y1="36" x2="65" y2="43"/>
+      <line x1="74" y1="64" x2="65" y2="57"/>
+      <line x1="50" y1="78" x2="50" y2="66"/>
+      <line x1="26" y1="64" x2="35" y2="57"/>
+      <line x1="26" y1="36" x2="35" y2="43"/>
+    </g>
+
+    <!-- Front face hex: tube stroke (shadow + body + highlight) -->
+    <g fill="none">
+      <polygon points="50,22 74,36 74,64 50,78 26,64 26,36"
+               stroke="#7a3f00" stroke-width="2.6"/>
+      <polygon points="50,22 74,36 74,64 50,78 26,64 26,36"
+               stroke="#ffaa55" stroke-width="1.7"/>
+      <polygon points="50,22 74,36 74,64 50,78 26,64 26,36"
+               stroke="#ffe5c2" stroke-width="0.4" opacity="0.7"/>
+    </g>
+  </g>
+
+  <!-- Back face mini-nodes -->
+  <g opacity="0.85">
+    <circle cx="50" cy="34" r="2.8" fill="url(#back-sat)" stroke="#2a0d00" stroke-width="0.4"/>
+    <circle cx="65" cy="43" r="2.8" fill="url(#back-sat)" stroke="#2a0d00" stroke-width="0.4"/>
+    <circle cx="65" cy="57" r="2.8" fill="url(#back-sat)" stroke="#2a0d00" stroke-width="0.4"/>
+    <circle cx="50" cy="66" r="2.8" fill="url(#back-sat)" stroke="#2a0d00" stroke-width="0.4"/>
+    <circle cx="35" cy="57" r="2.8" fill="url(#back-sat)" stroke="#2a0d00" stroke-width="0.4"/>
+    <circle cx="35" cy="43" r="2.8" fill="url(#back-sat)" stroke="#2a0d00" stroke-width="0.4"/>
+  </g>
+
+  <!-- Front face nodes + hub (with drop shadow, beveled outlines) -->
+  <g filter="url(#drop-shadow)">
+    <circle cx="50" cy="22" r="5.5" fill="url(#sat)" stroke="#3a1500" stroke-width="0.6"/>
+    <circle cx="74" cy="36" r="5.5" fill="url(#sat)" stroke="#3a1500" stroke-width="0.6"/>
+    <circle cx="74" cy="64" r="5.5" fill="url(#sat)" stroke="#3a1500" stroke-width="0.6"/>
+    <circle cx="50" cy="78" r="5.5" fill="url(#sat)" stroke="#3a1500" stroke-width="0.6"/>
+    <circle cx="26" cy="64" r="5.5" fill="url(#sat)" stroke="#3a1500" stroke-width="0.6"/>
+    <circle cx="26" cy="36" r="5.5" fill="url(#sat)" stroke="#3a1500" stroke-width="0.6"/>
+    <circle cx="50" cy="50" r="10" fill="url(#hub)" stroke="#5a3000" stroke-width="0.6"/>
+  </g>
+</svg>
