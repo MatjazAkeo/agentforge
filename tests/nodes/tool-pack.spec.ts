@@ -10,11 +10,19 @@ vi.mock('@/flavors/sqlite', () => ({
   },
 }));
 vi.mock('@/flavors/registry', () => ({
-  getFlavor: (t: string) => (t === 'sqlite' ? {
-    type: 'sqlite',
-    helperName: 'sqlite',
-    buildHelper: (...args: unknown[]) => mockBuildHelper(...args),
-  } : undefined),
+  getFlavor: (t: string) => {
+    if (t === 'sqlite') return {
+      type: 'sqlite',
+      helperName: 'sqlite',
+      buildHelper: (...args: unknown[]) => mockBuildHelper(...args),
+    };
+    if (t === 'none') return {
+      type: 'none',
+      helperName: '',
+      buildHelper: async () => ({}),
+    };
+    return undefined;
+  },
   registerFlavor: vi.fn(),
 }));
 
@@ -84,6 +92,32 @@ describe('tool-pack node', () => {
     const node = makeNode([{ name: 'X', description: '', code: '' }]);
     await toolPackNode.run(node, {}, ctxBase());
     expect(toolPackHelperFactories.has('tp')).toBe(true);
+  });
+
+  it("'none' flavor does not register a helper factory", async () => {
+    const node: Node = {
+      id: 'tp', type: 'tool-pack', position: { x: 0, y: 0 },
+      config: {
+        flavor: 'none',
+        connection: {},
+        tools: [{ name: 'pick_color', description: '', code: 'return "blue";', inputSchema: { type: 'object', properties: {} } }],
+      },
+    };
+    const result = await toolPackNode.run(node, {}, ctxBase());
+    const tools = result.tools as Array<{ name: string }>;
+    expect(tools.map((t) => t.name)).toEqual(['pick_color']);
+    expect(toolPackHelperFactories.has('tp')).toBe(false);
+  });
+
+  it("switching from 'sqlite' to 'none' removes the previously-registered factory", async () => {
+    await toolPackNode.run(makeNode([{ name: 'X', description: '', code: '' }]), {}, ctxBase());
+    expect(toolPackHelperFactories.has('tp')).toBe(true);
+    const noneNode: Node = {
+      id: 'tp', type: 'tool-pack', position: { x: 0, y: 0 },
+      config: { flavor: 'none', connection: {}, tools: [] },
+    };
+    await toolPackNode.run(noneNode, {}, ctxBase());
+    expect(toolPackHelperFactories.has('tp')).toBe(false);
   });
 
   it('throws if flavor is unknown', async () => {

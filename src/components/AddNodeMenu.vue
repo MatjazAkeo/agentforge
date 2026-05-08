@@ -19,7 +19,7 @@ const ALL_OPTIONS: NodeOption[] = [
   { type: 'tool', label: 'Tool', description: 'Define a callable function the LLM can use' },
   { type: 'tool-group', label: 'Tool Group', description: 'Aggregate multiple tools into a single edge' },
   { type: 'tool-runner', label: 'Tool Runner', description: 'Execute tool calls emitted by an LLM' },
-  { type: 'tool-pack', label: 'Tool Pack', description: 'A library of typed tools sharing a backend (SQLite for v1)' },
+  { type: 'tool-pack', label: 'Tool Pack', description: 'Group multiple tools in one node — plain or SQLite-backed' },
   { type: 'loop-controller', label: 'Loop Controller', description: 'Cycle anchor for ReAct, retry, refinement loops' },
   { type: 'agent', label: 'Agent', description: 'LLM ↔ Tool loop encapsulated' },
   { type: 'transform', label: 'Transform', description: 'Parse / extract / reformat data between nodes' },
@@ -77,8 +77,8 @@ function defaultConfig(type: NodeType): Record<string, unknown> {
     case 'tool-group': return { label: 'tools' };
     case 'tool-runner': return {};
     case 'tool-pack': return {
-      flavor: 'sqlite',
-      connection: { db: '', sourcePath: undefined, sizeBytes: 0 },
+      flavor: 'none',
+      connection: {},
       tools: [],
     };
     case 'loop-controller': return {

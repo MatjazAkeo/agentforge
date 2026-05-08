@@ -126,9 +126,9 @@ export interface ToolPackTool {
 }
 
 export interface ToolPackConfig {
-  /** v1 only ships 'sqlite'; future flavors slot in here. */
-  flavor: 'sqlite';
-  /** Shape determined by flavor. For SQLite: { db, sourcePath?, sizeBytes }. */
+  /** 'none' = plain tool list, no helper bound. 'sqlite' = SQLite-backed. */
+  flavor: 'none' | 'sqlite';
+  /** Shape determined by flavor. SQLite: { db, sourcePath?, sizeBytes }. None: {}. */
   connection: Record<string, unknown>;
   tools: ToolPackTool[];
 }

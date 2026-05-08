@@ -43,20 +43,26 @@ export const toolPackNode: NodeDefinition = {
     }));
 
     // Stash a closure on the runtime registry so tool-runner can find the
-    // matching flavor builder when this node's tools are executed.
-    toolPackHelperFactories.set(nodeId, async (toolName: string) => {
-      const tool = (cfg.tools ?? []).find((t) => t.name === toolName);
-      const maxRows = tool?.maxRows;
-      // SQLite-specific signature: (connection, nodeId, graphFilePath, maxRows?)
-      // The variadic registry interface accepts these as ...rest.
-      const helper = await flavor.buildHelper(
-        cfg.connection,
-        nodeId,
-        graphFilePath,
-        maxRows,
-      );
-      return { name: flavor.helperName, impl: helper };
-    });
+    // matching flavor builder when this node's tools are executed. Flavors
+    // with an empty helperName (e.g. 'none') skip registration entirely so
+    // tool bodies run with no helper bound into scope.
+    if (flavor.helperName) {
+      toolPackHelperFactories.set(nodeId, async (toolName: string) => {
+        const tool = (cfg.tools ?? []).find((t) => t.name === toolName);
+        const maxRows = tool?.maxRows;
+        // SQLite-specific signature: (connection, nodeId, graphFilePath, maxRows?)
+        // The variadic registry interface accepts these as ...rest.
+        const helper = await flavor.buildHelper(
+          cfg.connection,
+          nodeId,
+          graphFilePath,
+          maxRows,
+        );
+        return { name: flavor.helperName, impl: helper };
+      });
+    } else {
+      toolPackHelperFactories.delete(nodeId);
+    }
 
     ctx.details.toolCount = payloads.length;
     ctx.details.flavor = cfg.flavor;

@@ -19,6 +19,7 @@ import '@/nodes/tool-group';
 import '@/nodes/tool-pack';
 import '@/nodes/tool-runner';
 import '@/nodes/transform';
+import '@/flavors/none';
 import '@/flavors/sqlite';
 
 // Tauri's plugin-http leaks an "Unhandled Promise Rejection: The resource id X

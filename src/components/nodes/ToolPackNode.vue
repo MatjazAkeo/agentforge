@@ -22,11 +22,14 @@ const borderColor = computed(() => {
 });
 
 const toolCount = computed(() => props.data.config.tools?.length ?? 0);
-const dbName = computed(() => {
-  const c = props.data.config.connection as { db?: string } | undefined;
-  return c?.db || '— no DB —';
+const flavor = computed(() => props.data.config.flavor ?? 'none');
+const subtitle = computed(() => {
+  if (flavor.value === 'sqlite') {
+    const c = props.data.config.connection as { db?: string } | undefined;
+    return `sqlite · ${c?.db || '— no DB —'}`;
+  }
+  return 'plain';
 });
-const flavor = computed(() => props.data.config.flavor ?? 'sqlite');
 
 function onDelete() { graph.removeNode(props.id); }
 </script>
@@ -41,7 +44,7 @@ function onDelete() { graph.removeNode(props.id); }
       <span class="w-2 h-2 rounded-full bg-[#ffd54a] flex-shrink-0" title="tool pack" />
       <div class="flex-1 min-w-0">
         <div class="text-text-base font-medium text-xs leading-tight">Tool Pack</div>
-        <div class="text-text-dim text-[10px] font-mono truncate">{{ flavor }} · {{ dbName }}</div>
+        <div class="text-text-dim text-[10px] font-mono truncate">{{ subtitle }}</div>
       </div>
       <button
         type="button"
