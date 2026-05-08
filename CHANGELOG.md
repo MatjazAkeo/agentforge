@@ -7,25 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.1.5-beta.3] — 2026-05-06
+## [0.1.5] — 2026-05-08
 
-First public **beta**. Two major features land here, plus a lot of UX polish.
-Opt in via Settings → General → "Receive beta releases" to keep getting these.
-
-Three earlier tags failed to build: `v0.1.5-beta` died on Vite's default
-`worker.format: 'iife'` (no code-splitting, which the SQLite Tool Pack's DB
-worker needs for its `?url`-imported sql.js WASM — fix: `worker.format: 'es'`
-in `vite.config.ts`). `v0.1.5-beta.1` then died on Windows only — Tauri's MSI
-bundler requires the optional pre-release identifier to be numeric-only and
-≤ 65535, and `beta.1` has alphabetic characters. `v0.1.5-beta.2` got the
-Windows skip-MSI logic but used invalid bundle ids (`app`, `updater` aren't
-accepted on Windows — only `msi` and `nsis` are). `-beta.3` passes the right
-arg: `--bundles nsis` on Windows for `-alpha` / `-beta` tags (NSIS auto-
-produces the updater zip + signature). Stable releases still get both MSI
-and NSIS. Tags are immutable, so each fix required a roll-forward bump.
+First **stable** release after the v0.1.5-beta.{0..3} test cycle. Two big
+features (file inputs, SQLite Tool Pack), full branding pass (new logo +
+app icon + README hero), and a bag of UX polish.
 
 ### Added
 
+- **AgentForge has a face.** New logo, app icon, README hero, GitHub social
+  card. Master SVGs live in `src-tauri/icons-source/` and the entire icon
+  matrix (macOS `.icns`, Windows `.ico`, Linux PNGs, Microsoft Store tiles,
+  marketing assets) regenerates from them via `scripts/generate-icons.sh`.
+- **Tool Pack 'none' flavor.** Group multiple tools in a single Tool Pack
+  node without a backend — handy for organizing many small tools without
+  the SQLite attach ceremony. Inspector has a Plain/SQLite toggle; new Tool
+  Packs default to Plain.
 - **File Input node + chat-side file attachments.** Drop a `.txt` / `.json` / `.pdf`
   into the Input node's side-car directory or the chat composer. Files are
   copied into `<graph>.assets/` so the graph stays portable. PDF text is
@@ -209,8 +206,8 @@ Six bundled starter graphs accessible from the toolbar:
 - In-app auto-updater verified by minisign-style signatures (independent of macOS Gatekeeper / Windows SmartScreen).
 - Bundled installers: `.dmg`, `.deb`, `.AppImage`, `-setup.exe`, `.msi`.
 
-[Unreleased]: https://github.com/MatjazAkeo/agentforge/compare/v0.1.5-beta.3...HEAD
-[0.1.5-beta.3]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.1.5-beta.3
+[Unreleased]: https://github.com/MatjazAkeo/agentforge/compare/v0.1.5...HEAD
+[0.1.5]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.1.5
 [0.1.4]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.1.4
 [0.1.3]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.1.3
 [0.1.2]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.1.2
