@@ -189,6 +189,21 @@ const responseJson = computed(() => {
           >
         </label>
         <label class="flex flex-col gap-1 text-xs opacity-85">
+          Response format
+          <select
+            :value="cfg.responseFormat ?? 'null'"
+            @change="(e) => update('responseFormat', ((e.target as HTMLSelectElement).value === 'null' ? null : 'json_object') as LLMCallConfig['responseFormat'])"
+            class="bg-elev text-text-base border border-border-base rounded px-2 py-1.5 text-sm font-ui"
+          >
+            <option value="null">Free-form text (default)</option>
+            <option value="json_object">JSON object (model supports JSON mode)</option>
+          </select>
+          <span class="text-text-dim text-[10px] leading-snug">
+            JSON mode constrains output to be parseable JSON. Check the model has the
+            <code class="text-[#4ad7e2]">json mode</code> chip in Settings → Models.
+          </span>
+        </label>
+        <label class="flex flex-col gap-1 text-xs opacity-85">
           Image port
           <select
             :value="cfg.imagesPortMode ?? 'auto'"
