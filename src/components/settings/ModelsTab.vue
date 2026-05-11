@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useSettingsStore, type ModelEntry } from '@/stores/settings';
 import {
   fetchOpenRouterCatalog,
@@ -25,21 +25,31 @@ const error = ref<string | null>(null);
 // null while loading or if no provider reports uptime.
 const uptimes = ref<Record<string, number | null>>({});
 
-async function loadUptimeForConfigured() {
+async function fetchUptimeFor(ids: string[]): Promise<void> {
   await Promise.all(
-    settings.models.map(async (m) => {
-      if (m.id in uptimes.value) return; // already attempted
+    ids.map(async (id) => {
+      if (id in uptimes.value) return; // already attempted
       try {
-        const eps = await fetchModelEndpoints(m.id);
-        uptimes.value = { ...uptimes.value, [m.id]: bestUptime(eps) };
+        const eps = await fetchModelEndpoints(id);
+        uptimes.value = { ...uptimes.value, [id]: bestUptime(eps) };
       } catch (err) {
-        console.warn(`Uptime fetch failed for ${m.id}:`, err);
-        uptimes.value = { ...uptimes.value, [m.id]: null };
+        console.warn(`Uptime fetch failed for ${id}:`, err);
+        uptimes.value = { ...uptimes.value, [id]: null };
       }
     }),
   );
 }
 
+async function loadUptimeForConfigured() {
+  await fetchUptimeFor(settings.models.map((m) => m.id));
+}
+
+/**
+ * Catalog browser uptime is opt-in via filtering. When the filtered list is
+ * short enough (≤ MAX_AUTO_UPTIME_FETCH), auto-fetch for any new IDs that
+ * haven't been attempted yet. Wider filters (empty search, no toggles) leave
+ * the chips off — fetching all 300+ catalog entries would hammer the API.
+ */
 onMounted(async () => {
   loading.value = true;
   error.value = null;
@@ -73,6 +83,16 @@ const filteredCatalog = computed(() => {
     }
     return true;
   });
+});
+
+// Catalog-side uptime auto-fetch: only when the filter has narrowed the list
+// to a manageable size. Wider filters leave the chips off — fetching all
+// 300+ catalog entries would hammer the API.
+const MAX_AUTO_UPTIME_FETCH = 30;
+watch(filteredCatalog, async (list) => {
+  const ids = list.map((m) => m.id);
+  if (ids.length === 0 || ids.length > MAX_AUTO_UPTIME_FETCH) return;
+  await fetchUptimeFor(ids);
 });
 
 function formatPrice(p?: { prompt: string; completion: string }): string {
@@ -234,6 +254,11 @@ function noteValue(m: ModelEntry): string {
                 <span v-if="m.context_length" class="px-1.5 py-0.5 rounded bg-elev text-text-dim text-[10px]">{{ ctxChip(m.context_length) }}</span>
                 <span v-if="m.architecture?.modality && m.architecture.modality !== 'text->text'" class="px-1.5 py-0.5 rounded bg-elev text-text-dim text-[10px]">{{ m.architecture.modality }}</span>
                 <span v-if="m.pricing" class="px-1.5 py-0.5 rounded bg-elev text-text-dim text-[10px]">{{ formatPrice(m.pricing) }}</span>
+                <span
+                  v-if="uptimeChip(m.id)"
+                  :class="['px-1.5 py-0.5 rounded bg-elev text-[10px]', uptimeColor(m.id)]"
+                  title="Best provider uptime over last 30 minutes"
+                >{{ uptimeChip(m.id) }}</span>
               </div>
             </div>
             <button
