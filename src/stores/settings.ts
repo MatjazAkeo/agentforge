@@ -18,6 +18,8 @@ export interface ModelEntry {
   modality?: string;
   /** OpenRouter `supported_parameters` list — e.g. ['temperature', 'tools', 'response_format']. */
   supportedParameters?: string[];
+  /** Per OpenRouter `architecture.input_modalities` — e.g. ['text', 'image']. Empty/absent = text-only. */
+  input_modalities?: string[];
 }
 
 export type ThemePref = 'light' | 'dark' | 'system';

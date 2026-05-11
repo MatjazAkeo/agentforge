@@ -10,7 +10,7 @@ export interface OpenRouterModelMeta {
   description?: string;
   context_length?: number;
   pricing?: { prompt: string; completion: string };
-  architecture?: { modality?: string };
+  architecture?: { modality?: string; input_modalities?: string[] };
   supported_parameters?: string[];
 }
 
@@ -58,6 +58,7 @@ export function metaToEntry(meta: OpenRouterModelMeta): ModelEntry {
     pricing: meta.pricing,
     contextLength: meta.context_length,
     modality: meta.architecture?.modality,
+    input_modalities: meta.architecture?.input_modalities,
     supportedParameters: params,
   };
 }
