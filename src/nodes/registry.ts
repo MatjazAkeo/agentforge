@@ -2,6 +2,7 @@ import type { Node } from '@/domain/graph';
 import type { NodeType } from '@/domain/node-types';
 import type { IterationRecord } from '@/domain/run';
 import type { ChatMessage } from '@/openrouter/types';
+import type { ChatAttachment } from '@/stores/chat';
 
 export type RunInputs = Record<string, unknown>;
 export type RunOutputs = Record<string, unknown>;
@@ -9,6 +10,8 @@ export type RunOutputs = Record<string, unknown>;
 export interface ChatSession {
   /** The just-submitted user message text. */
   userMessage: string;
+  /** Attachments from the latest user turn (for Chat Input node to emit images). */
+  userAttachments: ChatAttachment[];
   /** Full chat history including the latest user message at the end. */
   history: ChatMessage[];
 }

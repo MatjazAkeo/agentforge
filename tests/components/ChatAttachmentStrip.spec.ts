@@ -13,8 +13,8 @@ describe('ChatAttachmentStrip', () => {
   });
 
   it('renders a chip per attachment', () => {
-    useChatStore().addAttachment({ filename: 'a.txt', content: 'A', sizeBytes: 1 });
-    useChatStore().addAttachment({ filename: 'b.json', content: 'B', sizeBytes: 1024 });
+    useChatStore().addAttachment({ kind: 'text', filename: 'a.txt', content: 'A', sizeBytes: 1 });
+    useChatStore().addAttachment({ kind: 'text', filename: 'b.json', content: 'B', sizeBytes: 1024 });
     const w = mount(ChatAttachmentStrip);
     expect(w.text()).toContain('a.txt');
     expect(w.text()).toContain('b.json');
@@ -23,7 +23,7 @@ describe('ChatAttachmentStrip', () => {
 
   it('removes an attachment when × is clicked', async () => {
     const c = useChatStore();
-    c.addAttachment({ filename: 'a.txt', content: 'A', sizeBytes: 1 });
+    c.addAttachment({ kind: 'text', filename: 'a.txt', content: 'A', sizeBytes: 1 });
     const w = mount(ChatAttachmentStrip);
     await w.find('button').trigger('click');
     expect(c.attachments).toEqual([]);

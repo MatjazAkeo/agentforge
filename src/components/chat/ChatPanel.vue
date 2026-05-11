@@ -59,7 +59,7 @@ async function ingestFile(file: File) {
   }
   const bytes = await file.arrayBuffer();
   const content = await extractText(bytes, ext);
-  chat.addAttachment({ filename: file.name, content, sizeBytes: file.size });
+  chat.addAttachment({ kind: 'text', filename: file.name, content, sizeBytes: file.size });
 }
 
 function onFiles(fileList: FileList | null) {

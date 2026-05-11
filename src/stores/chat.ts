@@ -1,15 +1,14 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import type { Graph } from '@/domain/graph';
-import type { ChatMessage } from '@/openrouter/types';
+import type { ChatMessage, ContentPart } from '@/openrouter/types';
+import type { ImageMime } from '@/domain/images';
 import { runGraph } from '@/engine/runner';
 import { wrapFileBlock, concatFileBlocks } from '@/files/wrapping';
 
-export interface ChatAttachment {
-  filename: string;
-  content: string; // already-extracted text
-  sizeBytes: number;
-}
+export type ChatAttachment =
+  | { kind: 'text'; filename: string; content: string; sizeBytes: number }
+  | { kind: 'image'; filename: string; dataUrl: string; mime: ImageMime; sizeBytes: number };
 
 export interface ChatTurn {
   role: 'user' | 'assistant';
@@ -37,9 +36,11 @@ export const useChatStore = defineStore('chat', () => {
   }
   function composeUserMessage(userText: string): string {
     if (attachments.value.length === 0) return userText;
-    const wrapped = concatFileBlocks(
-      attachments.value.map((a) => wrapFileBlock(a.filename, a.content)),
+    const textAtts = attachments.value.filter(
+      (a): a is Extract<ChatAttachment, { kind: 'text' }> => a.kind === 'text',
     );
+    if (textAtts.length === 0) return userText;
+    const wrapped = concatFileBlocks(textAtts.map((a) => wrapFileBlock(a.filename, a.content)));
     return `${userText}\n\n${wrapped}`;
   }
 
@@ -62,16 +63,33 @@ export const useChatStore = defineStore('chat', () => {
    * Append the user message, run the graph, append the assistant reply (or error).
    */
   /** Re-compose what the model should see for a single user turn. Combines
-   *  the typed text with each attachment wrapped as <file>…</file>. The chat
-   *  bubble renders only `content`; this function is the bridge to the LLM. */
+   *  the typed text with text-kind attachments wrapped as <file>…</file>. The
+   *  chat bubble renders only `content`; this function is the bridge to the
+   *  LLM for the plain-text fold. Image attachments are handled separately
+   *  by buildMessageContent. */
   function composeTurnForLLM(turn: ChatTurn): string {
     if (turn.role !== 'user' || !turn.attachments || turn.attachments.length === 0) {
       return turn.content;
     }
-    const wrapped = concatFileBlocks(
-      turn.attachments.map((a) => wrapFileBlock(a.filename, a.content)),
+    const textAtts = turn.attachments.filter(
+      (a): a is Extract<ChatAttachment, { kind: 'text' }> => a.kind === 'text',
     );
+    if (textAtts.length === 0) return turn.content;
+    const wrapped = concatFileBlocks(textAtts.map((a) => wrapFileBlock(a.filename, a.content)));
     return `${turn.content}\n\n${wrapped}`;
+  }
+
+  function buildMessageContent(turn: ChatTurn): string | ContentPart[] {
+    const textContent = composeTurnForLLM(turn);
+    if (turn.role !== 'user' || !turn.attachments) return textContent;
+    const imageAtts = turn.attachments.filter(
+      (a): a is Extract<ChatAttachment, { kind: 'image' }> => a.kind === 'image',
+    );
+    if (imageAtts.length === 0) return textContent;
+    const parts: ContentPart[] = [];
+    if (textContent) parts.push({ type: 'text', text: textContent });
+    for (const img of imageAtts) parts.push({ type: 'image_url', image_url: { url: img.dataUrl } });
+    return parts;
   }
 
   async function submit(args: { graph: Graph; apiKey: string; userMessage: string }) {
@@ -91,17 +109,22 @@ export const useChatStore = defineStore('chat', () => {
     status.value = 'running';
 
     // Build the ChatMessage[] history. Each user turn re-composes its
-    // attachments inline; assistant turns pass through unchanged.
+    // attachments inline (text only in the string fold; images as ContentPart[]).
+    // Assistant turns pass through unchanged.
     const history: ChatMessage[] = thread.value.map((t) => ({
       role: t.role,
-      content: composeTurnForLLM(t),
+      content: buildMessageContent(t),
     }));
 
     try {
       const run = await runGraph({
         graph: args.graph,
         apiKey: args.apiKey,
-        chatSession: { userMessage: composeTurnForLLM(userTurn), history },
+        chatSession: {
+          userMessage: composeTurnForLLM(userTurn),
+          userAttachments: turnAttachments ?? [],
+          history,
+        },
       });
       const outId = args.graph.nodes.find((n) => n.type === 'chat-output')?.id;
       const reply =
