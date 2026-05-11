@@ -85,15 +85,15 @@ const filteredCatalog = computed(() => {
   });
 });
 
-// Catalog-side uptime auto-fetch: only when the filter has narrowed the list
-// to a manageable size. Wider filters leave the chips off — fetching all
-// 300+ catalog entries would hammer the API.
-const MAX_AUTO_UPTIME_FETCH = 30;
+// Catalog-side uptime auto-fetch. Fetching all 300+ catalog entries would
+// hammer the API, so we fetch the top of the currently-filtered list as
+// the user types / toggles. Re-fires deduplicate via the uptimes cache —
+// previously-attempted IDs are skipped inside fetchUptimeFor.
+const CATALOG_UPTIME_WINDOW = 50;
 watch(filteredCatalog, async (list) => {
-  const ids = list.map((m) => m.id);
-  if (ids.length === 0 || ids.length > MAX_AUTO_UPTIME_FETCH) return;
-  await fetchUptimeFor(ids);
-});
+  if (list.length === 0) return;
+  await fetchUptimeFor(list.slice(0, CATALOG_UPTIME_WINDOW).map((m) => m.id));
+}, { immediate: true });
 
 function formatPrice(p?: { prompt: string; completion: string }): string {
   if (!p) return '';
