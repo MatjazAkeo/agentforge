@@ -32,6 +32,7 @@ export interface LLMCallConfig {
   temperature: number;
   maxTokens: number | null;
   responseFormat: 'text' | 'json_object' | null;
+  imagesPortMode?: 'auto' | 'force-on' | 'force-off';
 }
 
 export interface ToolConfig {

@@ -66,6 +66,7 @@ function defaultConfig(type: NodeType): Record<string, unknown> {
       temperature: 0.7,
       maxTokens: null,
       responseFormat: null,
+      imagesPortMode: 'auto',
     };
     case 'tool': return {
       name: 'my_tool',
