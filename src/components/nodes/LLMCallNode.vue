@@ -3,11 +3,15 @@ import { Handle, Position } from '@vue-flow/core';
 import { computed } from 'vue';
 import { useRunStore } from '@/stores/run';
 import { useGraphStore } from '@/stores/graph';
+import { useSettingsStore } from '@/stores/settings';
 import { colorForType } from '@/nodes/port-types';
+import { resolveImagesPortVisibility, type ImagesPortMode } from '@/openrouter/vision';
+import type { LLMCallConfig } from '@/domain/node-types';
 
-const props = defineProps<{ id: string; data: { config: { model: string } } }>();
+const props = defineProps<{ id: string; data: { config: LLMCallConfig } }>();
 const run = useRunStore();
 const graph = useGraphStore();
+const settings = useSettingsStore();
 
 const result = computed(() => run.current?.nodeResults[props.id]);
 const livePreview = computed(() => run.livePreviews[props.id]);
@@ -44,6 +48,14 @@ const previewText = computed(() => {
   if (status.value === 'error') return result.value?.errorMessage ?? 'error';
   return '— not yet run —';
 });
+
+const showImagesPort = computed(() =>
+  resolveImagesPortVisibility(
+    (props.data.config.imagesPortMode ?? 'auto') as ImagesPortMode,
+    props.data.config.model,
+    settings.models,
+  ),
+);
 
 function onDelete() {
   graph.removeNode(props.id);
@@ -98,6 +110,12 @@ function onDelete() {
         <Handle id="tools" type="target" :position="Position.Left" :style="{ background: colorForType('tools') }" />
         <span class="text-text-dim font-mono text-[10px]">toolCalls</span>
         <Handle id="toolCalls" type="source" :position="Position.Right" :style="{ background: colorForType('tool-calls') }" />
+      </div>
+      <!-- Row 4: images in | (no output) — only when model has vision -->
+      <div v-if="showImagesPort" class="relative h-6 flex items-center justify-between px-3 text-[11px]">
+        <span class="text-text-dim font-mono text-[10px]">images</span>
+        <Handle id="images" type="target" :position="Position.Left" :style="{ background: colorForType('images') }" />
+        <span class="text-text-dim font-mono text-[10px] opacity-0">&nbsp;</span>
       </div>
     </div>
 
