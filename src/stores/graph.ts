@@ -2,6 +2,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import type { Graph, Node, Edge } from '@/domain/graph';
+import type { FileInputConfig } from '@/domain/node-types';
 import { dbRegistry } from '@/sqlite/db-registry';
 
 function newEmptyGraph(): Graph {
@@ -101,10 +102,19 @@ export const useGraphStore = defineStore('graph', () => {
 
   function updateNodeConfig(id: string, config: Record<string, unknown>) {
     const n = graph.value.nodes.find((x) => x.id === id);
-    if (n) {
-      n.config = { ...n.config, ...config };
-      dirty.value = true;
-      recomputeContainsCustomCode();
+    if (!n) return;
+    n.config = { ...n.config, ...config };
+    dirty.value = true;
+    recomputeContainsCustomCode();
+
+    if (n.type === 'file-input') {
+      const cfg = n.config as FileInputConfig;
+      const hasImages = (cfg.files ?? []).some((f) => f.kind === 'image');
+      if (!hasImages) {
+        graph.value.edges = graph.value.edges.filter(
+          (e) => !(e.source === id && e.sourceHandle === 'images'),
+        );
+      }
     }
   }
 
