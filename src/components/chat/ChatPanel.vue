@@ -17,7 +17,7 @@ const settings = useSettingsStore();
 const input = ref('');
 const scroller = ref<HTMLDivElement | null>(null);
 
-const MAX_BYTES = 10 * 1024 * 1024;
+const MAX_BYTES = 50 * 1024 * 1024;
 const ALLOWED = ['txt', 'json', 'pdf'];
 const IMAGE_EXTS = ['png', 'jpg', 'jpeg', 'webp'];
 const IMAGE_MAX_BYTES = 50 * 1024 * 1024;
@@ -83,7 +83,7 @@ async function ingestFile(file: File) {
     return;
   }
   if (file.size > MAX_BYTES) {
-    attachError.value = `${file.name} is over 10 MB.`;
+    attachError.value = `${file.name} is over 50 MB.`;
     return;
   }
   const bytes = await file.arrayBuffer();
