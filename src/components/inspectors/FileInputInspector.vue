@@ -21,7 +21,7 @@ const cfg = computed(() => (node.value?.config ?? null) as FileInputConfig | nul
 const IMAGE_EXTS = ['png', 'jpg', 'jpeg', 'webp'] as const;
 const TEXT_EXTS = ['txt', 'json', 'pdf'] as const;
 const IMAGE_MAX_BYTES = 50 * 1024 * 1024;
-const TEXT_MAX_BYTES = 50 * 1024 * 1024;
+const TEXT_MAX_BYTES = 200 * 1024;
 
 function mimeFromExt(ext: string): ImageMime {
   if (ext === 'png') return 'image/png';
@@ -100,8 +100,10 @@ async function onAdd() {
     try { const info = await stat(path); rawSize = Number(info.size ?? 0); } catch { rawSize = 0; }
     const cap = isImage ? IMAGE_MAX_BYTES : TEXT_MAX_BYTES;
     if (rawSize > cap) {
-      const capMb = (cap / 1024 / 1024).toFixed(0);
-      error.value = `${basename} is over ${capMb} MB — skipped.`;
+      const capStr = cap >= 1024 * 1024
+        ? `${(cap / 1024 / 1024).toFixed(0)} MB`
+        : `${(cap / 1024).toFixed(0)} KB`;
+      error.value = `${basename} is over ${capStr} — skipped.`;
       continue;
     }
 
