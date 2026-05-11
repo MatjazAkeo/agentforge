@@ -44,6 +44,10 @@ function onDelete() { graph.removeNode(props.id); }
         <span class="text-text-dim font-mono text-[10px]">messages</span>
         <Handle id="messages" type="source" :position="Position.Right" :style="{ background: colorForType('messages') }" />
       </div>
+      <div class="relative h-6 flex items-center justify-end pr-3 text-[11px]">
+        <span class="text-text-dim font-mono text-[10px]">images</span>
+        <Handle id="images" type="source" :position="Position.Right" :style="{ background: colorForType('images') }" />
+      </div>
     </div>
   </div>
 </template>
