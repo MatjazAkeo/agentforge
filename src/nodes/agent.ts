@@ -81,7 +81,7 @@ export const agentNode: NodeDefinition = {
       const llm = await llmOnce({
         apiKey: ctx.apiKey, signal: ctx.signal,
         model: cfg.model, temperature: cfg.temperature, maxTokens: cfg.maxTokens,
-        responseFormat: null, messages, tools,
+        responseFormat: cfg.responseFormat ?? null, messages, tools,
         onUsage: (u) => {
           runStore.addTokens(u.input, u.output);
           const model = useSettingsStore().models.find((m) => m.id === cfg.model);

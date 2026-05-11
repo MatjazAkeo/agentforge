@@ -30,6 +30,14 @@ function update<K extends keyof AgentConfig>(key: K, value: AgentConfig[K]) {
 // as Loop Controller body nodes, so the shared IterationTree renders real per-iteration
 // inputs (messages going in) and outputs (assistant text + toolCalls + toolResults).
 const iterations = computed(() => result.value?.iterations ?? []);
+
+// JSON-mode dropdown tracks the selected model's catalog capability. Unknown
+// models default to shown so custom IDs keep the control.
+const showJsonMode = computed(() => {
+  const m = settings.models.find((x) => x.id === cfg.value?.model);
+  if (!m) return true;
+  return m.supportsJsonMode;
+});
 </script>
 
 <template>
@@ -69,6 +77,20 @@ const iterations = computed(() => result.value?.iterations ?? []);
         <option value="force-on">On</option>
         <option value="force-off">Off</option>
       </select>
+    </label>
+    <label v-if="showJsonMode" class="flex flex-col gap-1 text-xs opacity-85">
+      Response format
+      <select
+        :value="cfg.responseFormat ?? 'null'"
+        @change="(e) => update('responseFormat', ((e.target as HTMLSelectElement).value === 'null' ? null : 'json_object') as AgentConfig['responseFormat'])"
+        class="bg-elev text-text-base border border-border-base rounded px-2 py-1.5 text-sm font-ui"
+      >
+        <option value="null">Free-form text (default)</option>
+        <option value="json_object">JSON object</option>
+      </select>
+      <span class="text-text-dim text-[10px] leading-snug">
+        Applies to every iteration's assistant content. Tool calls are unaffected — they're already structured at the API level.
+      </span>
     </label>
 
     <section v-if="result?.details?.stopReason">
