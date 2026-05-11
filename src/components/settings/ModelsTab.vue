@@ -45,6 +45,10 @@ onMounted(async () => {
   error.value = null;
   try {
     catalog.value = await fetchOpenRouterCatalog();
+    // Re-enrich configured models from the fresh catalog so chips like
+    // ctx / vision / pricing reflect the latest metadata even for models
+    // that were added before those fields existed.
+    settings.enrichModelsFromCatalog(catalog.value.map(metaToEntry));
   } catch (e) {
     error.value = (e as Error).message;
   } finally {

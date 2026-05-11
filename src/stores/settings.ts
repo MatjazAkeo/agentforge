@@ -118,9 +118,25 @@ export const useSettingsStore = defineStore('settings', () => {
     if (i >= 0) models.value[i] = { ...models.value[i], notes };
   }
 
+  /**
+   * Refresh catalog-derived metadata (contextLength, pricing, modality,
+   * input_modalities, supportsTools, supportsJsonMode, supportedParameters)
+   * on existing configured models. Preserves user-edited `notes` and any
+   * fields not present in the fresh entry. No-op for IDs not in the catalog
+   * (e.g., custom or removed-upstream models).
+   */
+  function enrichModelsFromCatalog(fresh: ModelEntry[]): void {
+    const byId = new Map(fresh.map((m) => [m.id, m]));
+    models.value = models.value.map((m) => {
+      const updated = byId.get(m.id);
+      if (!updated) return m;
+      return { ...updated, notes: m.notes };
+    });
+  }
+
   return {
     apiKey, apiKeyConfigured, models, theme, defaultModel, autoLoadHelloModel,
     enableBetaUpdates, credits,
-    setApiKey, addModel, removeModel, updateModelNotes, refreshCredits,
+    setApiKey, addModel, removeModel, updateModelNotes, enrichModelsFromCatalog, refreshCredits,
   };
 });
