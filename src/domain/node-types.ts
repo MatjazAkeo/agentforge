@@ -101,6 +101,7 @@ export interface AgentConfig {
   maxTokens: number | null;
   maxIterations: number;            // default 25
   stopCondition: 'no-tool-calls';   // only option in v1
+  imagesPortMode?: 'auto' | 'force-on' | 'force-off';
 }
 
 export interface FileInputConfig {

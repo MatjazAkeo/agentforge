@@ -3,11 +3,15 @@ import { Handle, Position } from '@vue-flow/core';
 import { computed } from 'vue';
 import { useGraphStore } from '@/stores/graph';
 import { useRunStore } from '@/stores/run';
+import { useSettingsStore } from '@/stores/settings';
 import { colorForType } from '@/nodes/port-types';
+import { resolveImagesPortVisibility, type ImagesPortMode } from '@/openrouter/vision';
+import type { AgentConfig } from '@/domain/node-types';
 
-const props = defineProps<{ id: string; data: { config: { model: string; maxIterations: number } } }>();
+const props = defineProps<{ id: string; data: { config: AgentConfig } }>();
 const graph = useGraphStore();
 const run = useRunStore();
+const settings = useSettingsStore();
 const status = computed(() => run.current?.nodeResults[props.id]?.status ?? 'idle');
 const borderColor = computed(() => {
   switch (status.value) {
@@ -22,6 +26,23 @@ const iterationsRun = computed(() => {
   const iters = run.current?.nodeResults[props.id]?.details?.iterations as Array<unknown> | undefined;
   return iters?.length ?? 0;
 });
+
+const showImagesPort = computed(() =>
+  resolveImagesPortVisibility(
+    (props.data.config.imagesPortMode ?? 'auto') as ImagesPortMode,
+    props.data.config.model,
+    settings.models,
+  ),
+);
+
+// Tools port tracks the selected model's catalog supportsTools flag. Unknown
+// models default to shown so custom / unlisted IDs aren't stripped of wiring.
+const showToolsPort = computed(() => {
+  const m = settings.models.find((x) => x.id === props.data.config.model);
+  if (!m) return true;
+  return m.supportsTools;
+});
+
 function onDelete() { graph.removeNode(props.id); }
 </script>
 
@@ -49,9 +70,18 @@ function onDelete() { graph.removeNode(props.id); }
         <span class="text-text-dim font-mono text-[10px]">messages</span>
         <Handle id="messages" type="source" :position="Position.Right" :style="{ background: colorForType('messages') }" />
       </div>
-      <div class="relative h-6 flex items-center justify-between px-3 text-[11px]">
+      <div v-if="showImagesPort" class="relative h-6 flex items-center pl-3 text-[11px]">
+        <Handle id="images" type="target" :position="Position.Left" :style="{ background: colorForType('images') }" />
+        <span class="text-text-dim font-mono text-[10px]">images</span>
+      </div>
+      <div v-if="showToolsPort" class="relative h-6 flex items-center justify-between px-3 text-[11px]">
         <span class="text-text-dim font-mono text-[10px]">tools</span>
         <Handle id="tools" type="target" :position="Position.Left" :style="{ background: colorForType('tools') }" />
+        <span class="text-text-dim font-mono text-[10px]">iteration</span>
+        <Handle id="iteration" type="source" :position="Position.Right" :style="{ background: colorForType('number') }" />
+      </div>
+      <!-- iteration output is meaningful even without tools — show it standalone when tools row hidden -->
+      <div v-else class="relative h-6 flex items-center justify-end pr-3 text-[11px]">
         <span class="text-text-dim font-mono text-[10px]">iteration</span>
         <Handle id="iteration" type="source" :position="Position.Right" :style="{ background: colorForType('number') }" />
       </div>

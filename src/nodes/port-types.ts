@@ -137,6 +137,7 @@ export function getTargetPortType(node: Node, handleId: string): DataType | null
       if (handleId === 'text') return 'string';
       if (handleId === 'messages') return 'messages';
       if (handleId === 'tools') return 'tools';
+      if (handleId === 'images') return 'images';
       return null;
     case 'chat-output':
       if (handleId === 'text') return 'string';

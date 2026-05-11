@@ -1,9 +1,11 @@
 import { registerNodeDefinition, type NodeDefinition } from './registry';
 import type { AgentConfig } from '@/domain/node-types';
-import type { ChatMessage } from '@/openrouter/types';
+import type { ChatMessage, ContentPart } from '@/openrouter/types';
+import type { ImageRef } from '@/domain/images';
 import type { ToolDefinitionPayload } from './tool';
 import { llmOnce } from './_internals/llm-once';
 import { runToolBatch } from './_internals/tool-batch';
+import { resolveImagesToDataUrls } from './llm-call';
 import { useRunStore } from '@/stores/run';
 import { useSettingsStore } from '@/stores/settings';
 import { estimateCallCostUsd } from '@/openrouter/credits';
@@ -25,29 +27,44 @@ function flattenTools(input: unknown): ToolDefinitionPayload[] {
   return [input as ToolDefinitionPayload];
 }
 
-function buildInitialMessages(cfg: AgentConfig, inputs: Record<string, unknown>): ChatMessage[] {
+function buildInitialMessages(
+  cfg: AgentConfig,
+  inputs: Record<string, unknown>,
+  resolvedImages: string[],
+): ChatMessage[] {
   const upstream = inputs.messages;
+  // Multi-turn mode — messages wins (matches LLM Call precedence rule).
   if (Array.isArray(upstream)) {
     if (cfg.systemPrompt && (upstream as ChatMessage[])[0]?.role !== 'system') {
       return [{ role: 'system', content: cfg.systemPrompt }, ...(upstream as ChatMessage[])];
     }
     return upstream as ChatMessage[];
   }
+  // One-shot mode — synthesize from text + resolvedImages.
   const messages: ChatMessage[] = [];
   if (cfg.systemPrompt) messages.push({ role: 'system', content: cfg.systemPrompt });
   const userText = typeof inputs.text === 'string' ? inputs.text : '';
-  if (userText) messages.push({ role: 'user', content: userText });
+  if (resolvedImages.length === 0) {
+    if (userText) messages.push({ role: 'user', content: userText });
+  } else {
+    const parts: ContentPart[] = [];
+    if (userText) parts.push({ type: 'text', text: userText });
+    for (const url of resolvedImages) parts.push({ type: 'image_url', image_url: { url } });
+    messages.push({ role: 'user', content: parts });
+  }
   return messages;
 }
 
 export const agentNode: NodeDefinition = {
   type: 'agent',
-  inputPorts: ['messages', 'text', 'tools'],
+  inputPorts: ['messages', 'text', 'tools', 'images'],
   outputPorts: ['text', 'messages', 'iteration'],
   async run(node, inputs, ctx) {
     const cfg = node.config as AgentConfig;
     const tools = flattenTools(inputs.tools);
-    let messages = buildInitialMessages(cfg, inputs);
+    const imageRefs = inputs.images as ImageRef[] | undefined;
+    const resolvedImages = await resolveImagesToDataUrls(imageRefs, ctx.graphFilePath);
+    let messages = buildInitialMessages(cfg, inputs, resolvedImages);
     const iterations: AgentIteration[] = [];
     let lastText = '';
     const runStore = useRunStore();

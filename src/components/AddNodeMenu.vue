@@ -93,6 +93,7 @@ function defaultConfig(type: NodeType): Record<string, unknown> {
       maxTokens: null,
       maxIterations: 25,
       stopCondition: 'no-tool-calls',
+      imagesPortMode: 'auto',
     };
     case 'transform': return { mode: 'json-parse' };
     case 'prompt-template': return { template: 'Hello {{name}}!' };

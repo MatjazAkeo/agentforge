@@ -58,6 +58,18 @@ const iterations = computed(() => result.value?.iterations ?? []);
         @input="(e) => update('maxIterations', parseInt((e.target as HTMLInputElement).value, 10) || 25)"
         class="bg-elev text-text-base border border-border-base rounded px-2 py-1.5 text-sm font-ui">
     </label>
+    <label class="flex flex-col gap-1 text-xs opacity-85">
+      Image port
+      <select
+        :value="cfg.imagesPortMode ?? 'auto'"
+        @change="(e) => update('imagesPortMode', (e.target as HTMLSelectElement).value as AgentConfig['imagesPortMode'])"
+        class="bg-elev text-text-base border border-border-base rounded px-2 py-1.5 text-sm font-ui"
+      >
+        <option value="auto">Auto (catalog)</option>
+        <option value="force-on">On</option>
+        <option value="force-off">Off</option>
+      </select>
+    </label>
 
     <section v-if="result?.details?.stopReason">
       <div class="text-[10px] uppercase opacity-60 font-mono mb-1">Stop reason</div>
@@ -74,7 +86,8 @@ const iterations = computed(() => result.value?.iterations ?? []);
       :inputs="[
         { id: 'text', type: 'string', description: 'Initial user prompt for the agent.' },
         { id: 'messages', type: 'messages', description: 'Existing conversation to continue.' },
-        { id: 'tools', type: 'tools', description: 'Tools the agent may call. Wire from a Tool Group.' },
+        { id: 'tools', type: 'tools', description: 'Tools the agent may call. Wire from a Tool Group. Visible only when the selected model supports tools.' },
+        { id: 'images', type: 'images', description: 'Image inputs (ImageRef[]) for the initial user message. Port visibility tracks the selected model.' },
       ]"
       :outputs="[
         { id: 'text', type: 'string', description: 'Final assistant text after the loop terminates.' },

@@ -41,14 +41,14 @@ function buildMessages(
   return messages;
 }
 
-async function resolveImagesToDataUrls(
+export async function resolveImagesToDataUrls(
   refs: ImageRef[] | undefined,
   graphFilePath: string | null,
 ): Promise<string[]> {
   if (!refs || refs.length === 0) return [];
   return Promise.all(refs.map(async (ref) => {
     if (ref.kind === 'inline') return ref.dataUrl;
-    if (!graphFilePath) throw new Error('llm-call: cannot resolve asset image — graph not saved');
+    if (!graphFilePath) throw new Error('cannot resolve asset image — graph not saved');
     const bytes = await readAssetBytes(graphFilePath, ref.filename);
     return `data:${ref.mime};base64,${bytesToBase64(new Uint8Array(bytes))}`;
   }));
