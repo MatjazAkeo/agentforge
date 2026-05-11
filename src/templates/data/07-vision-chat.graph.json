@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "id": "tmpl-07-vision-chat",
+  "name": "Vision Chat",
+  "createdAt": "2026-05-11T00:00:00.000Z",
+  "updatedAt": "2026-05-11T00:00:00.000Z",
+  "containsCustomCode": false,
+  "nodes": [
+    {
+      "id": "ci",
+      "type": "chat-input",
+      "position": {
+        "x": 60,
+        "y": 80
+      },
+      "config": {}
+    },
+    {
+      "id": "llm",
+      "type": "llm-call",
+      "position": {
+        "x": 400,
+        "y": 60
+      },
+      "config": {
+        "model": "openrouter/free",
+        "systemPrompt": "You are a helpful vision assistant. When the user attaches an image, describe what you see and answer their questions about it clearly and concisely. If no image is attached, respond to their text as a normal chat assistant.",
+        "temperature": 0.5,
+        "maxTokens": null,
+        "responseFormat": null,
+        "imagesPortMode": "auto"
+      }
+    },
+    {
+      "id": "co",
+      "type": "chat-output",
+      "position": {
+        "x": 760,
+        "y": 80
+      },
+      "config": {
+        "format": "markdown"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "source": "ci",
+      "sourceHandle": "messages",
+      "target": "llm",
+      "targetHandle": "messages"
+    },
+    {
+      "id": "e2",
+      "source": "llm",
+      "sourceHandle": "text",
+      "target": "co",
+      "targetHandle": "text"
+    }
+  ]
+}
