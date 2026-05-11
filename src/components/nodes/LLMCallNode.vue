@@ -57,6 +57,15 @@ const showImagesPort = computed(() =>
   ),
 );
 
+// Tools/toolCalls visibility tracks the selected model's catalog capability.
+// Unknown models default to shown so custom / unlisted model IDs aren't
+// stripped of their wiring just because the catalog doesn't know about them.
+const showToolsPort = computed(() => {
+  const m = settings.models.find((x) => x.id === props.data.config.model);
+  if (!m) return true;
+  return m.supportsTools;
+});
+
 function onDelete() {
   graph.removeNode(props.id);
 }
@@ -109,8 +118,8 @@ function onDelete() {
         <Handle id="images" type="target" :position="Position.Left" :style="{ background: colorForType('images') }" />
         <span class="text-text-dim font-mono text-[10px]">images</span>
       </div>
-      <!-- Row 4: tools in | toolCalls out -->
-      <div class="relative h-6 flex items-center justify-between px-3 text-[11px]">
+      <!-- Row 4: tools in | toolCalls out — only when model supports tools -->
+      <div v-if="showToolsPort" class="relative h-6 flex items-center justify-between px-3 text-[11px]">
         <span class="text-text-dim font-mono text-[10px]">tools</span>
         <Handle id="tools" type="target" :position="Position.Left" :style="{ background: colorForType('tools') }" />
         <span class="text-text-dim font-mono text-[10px]">toolCalls</span>

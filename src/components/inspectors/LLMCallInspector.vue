@@ -20,6 +20,15 @@ const node = computed(() => graph.nodes.find((n) => n.id === props.nodeId));
 const cfg = computed(() => (node.value?.config ?? null) as LLMCallConfig | null);
 const result = computed(() => run.current?.nodeResults[props.nodeId]);
 
+// JSON mode dropdown visibility tracks the selected model's catalog capability.
+// Unknown models default to shown so custom IDs aren't stripped of the control
+// just because the catalog hasn't indexed them yet.
+const showJsonMode = computed(() => {
+  const m = settings.models.find((x) => x.id === cfg.value?.model);
+  if (!m) return true;
+  return m.supportsJsonMode;
+});
+
 const sectionsOpen = ref({
   config: true, conversation: true, stats: true,
   request: false, response: false, errors: false,
@@ -188,7 +197,7 @@ const responseJson = computed(() => {
             class="bg-elev text-text-base border border-border-base rounded px-2 py-1.5 text-sm font-ui"
           >
         </label>
-        <label class="flex flex-col gap-1 text-xs opacity-85">
+        <label v-if="showJsonMode" class="flex flex-col gap-1 text-xs opacity-85">
           Response format
           <select
             :value="cfg.responseFormat ?? 'null'"
@@ -196,11 +205,10 @@ const responseJson = computed(() => {
             class="bg-elev text-text-base border border-border-base rounded px-2 py-1.5 text-sm font-ui"
           >
             <option value="null">Free-form text (default)</option>
-            <option value="json_object">JSON object (model supports JSON mode)</option>
+            <option value="json_object">JSON object</option>
           </select>
           <span class="text-text-dim text-[10px] leading-snug">
-            JSON mode constrains output to be parseable JSON. Check the model has the
-            <code class="text-[#4ad7e2]">json mode</code> chip in Settings → Models.
+            JSON mode constrains output to be parseable JSON.
           </span>
         </label>
         <label class="flex flex-col gap-1 text-xs opacity-85">
