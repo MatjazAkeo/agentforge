@@ -109,10 +109,20 @@ export const useGraphStore = defineStore('graph', () => {
 
     if (n.type === 'file-input') {
       const cfg = n.config as FileInputConfig;
-      const hasImages = (cfg.files ?? []).some((f) => f.kind === 'image');
+      const files = cfg.files ?? [];
+      const hasImages = files.some((f) => f.kind === 'image');
+      // Mirrors FileInputNode.vue's `hasText` rule: empty config still emits
+      // an empty text wire (legacy compat), otherwise text port exists only
+      // when at least one text-kind file is attached.
+      const hasText = files.length === 0 || files.some((f) => (f.kind ?? 'text') === 'text');
       if (!hasImages) {
         graph.value.edges = graph.value.edges.filter(
           (e) => !(e.source === id && e.sourceHandle === 'images'),
+        );
+      }
+      if (!hasText) {
+        graph.value.edges = graph.value.edges.filter(
+          (e) => !(e.source === id && e.sourceHandle === 'text'),
         );
       }
     }

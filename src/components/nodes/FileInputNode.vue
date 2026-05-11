@@ -22,7 +22,11 @@ const borderColor = computed(() => {
 });
 
 const fileCount = computed(() => props.data.config.files?.length ?? 0);
-const hasImages = computed(() => (props.data.config.files ?? []).some((f) => f.kind === 'image'));
+const files = computed(() => props.data.config.files ?? []);
+const hasImages = computed(() => files.value.some((f) => f.kind === 'image'));
+// Show the text port when there's something text-shaped to emit:
+// empty config (default to 'text' for legacy compat) OR at least one text file attached.
+const hasText = computed(() => files.value.length === 0 || files.value.some((f) => (f.kind ?? 'text') === 'text'));
 
 function onDelete() {
   graph.removeNode(props.id);
@@ -49,7 +53,7 @@ function onDelete() {
       >×</button>
     </div>
 
-    <div class="relative h-7 flex items-center justify-end pr-3 text-[11px]">
+    <div v-if="hasText" class="relative h-7 flex items-center justify-end pr-3 text-[11px]">
       <span class="text-text-dim font-mono text-[10px]">text</span>
       <Handle id="text" type="source" :position="Position.Right" :style="{ background: colorForType('string') }" />
     </div>
