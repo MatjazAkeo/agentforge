@@ -1,4 +1,6 @@
 // src/domain/node-types.ts
+import type { ImageMime } from './images';
+
 export type NodeType =
   | 'input'
   | 'output'
@@ -108,6 +110,10 @@ export interface FileInputConfig {
     sizeBytes: number;
     /** Original absolute path on the user's machine, for display only. */
     sourcePath?: string;
+    /** File kind discriminator. Defaults to 'text' if omitted. */
+    kind?: 'text' | 'image';
+    /** MIME type for image entries. Only set when kind === 'image'. */
+    mime?: ImageMime;
   }>;
 }
 
