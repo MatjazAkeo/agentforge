@@ -197,6 +197,18 @@ const responseJson = computed(() => {
             class="bg-elev text-text-base border border-border-base rounded px-2 py-1.5 text-sm font-ui"
           >
         </label>
+        <label class="flex flex-col gap-1 text-xs opacity-85">
+          Image port
+          <select
+            :value="cfg.imagesPortMode ?? 'auto'"
+            @change="(e) => onPortModeChange((e.target as HTMLSelectElement).value as ImagesPortMode)"
+            class="bg-elev text-text-base border border-border-base rounded px-2 py-1.5 text-sm font-ui"
+          >
+            <option value="auto">Auto (catalog)</option>
+            <option value="force-on">On</option>
+            <option value="force-off">Off</option>
+          </select>
+        </label>
         <label v-if="showJsonMode" class="flex flex-col gap-1 text-xs opacity-85">
           Response format
           <select
@@ -210,18 +222,6 @@ const responseJson = computed(() => {
           <span class="text-text-dim text-[10px] leading-snug">
             JSON mode constrains output to be parseable JSON.
           </span>
-        </label>
-        <label class="flex flex-col gap-1 text-xs opacity-85">
-          Image port
-          <select
-            :value="cfg.imagesPortMode ?? 'auto'"
-            @change="(e) => onPortModeChange((e.target as HTMLSelectElement).value as ImagesPortMode)"
-            class="bg-elev text-text-base border border-border-base rounded px-2 py-1.5 text-sm font-ui"
-          >
-            <option value="auto">Auto (catalog)</option>
-            <option value="force-on">On</option>
-            <option value="force-off">Off</option>
-          </select>
         </label>
       </div>
     </section>
