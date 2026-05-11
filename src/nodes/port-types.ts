@@ -7,8 +7,9 @@ import type { Node } from '@/domain/graph';
  *   - `tools`      — Tool definition list
  *   - `tool-calls` — Tool invocation list emitted by an LLM (distinct from `tools`)
  *   - `json`       — Arbitrary JSON-shaped data (Tool Runner's `results` output)
+ *   - `images`     — ImageRef[] (image references for LLM multimodal input)
  */
-export type DataType = 'string' | 'number' | 'messages' | 'tools' | 'tool-calls' | 'json';
+export type DataType = 'string' | 'number' | 'messages' | 'tools' | 'tool-calls' | 'json' | 'images';
 
 const TYPE_COLORS: Record<DataType, string> = {
   string: '#ffaa55',
@@ -17,6 +18,7 @@ const TYPE_COLORS: Record<DataType, string> = {
   tools: '#ffd54a',
   'tool-calls': '#ff5577',
   json: '#4ad7e2',
+  images: '#7ad48c',
 };
 
 export function colorForType(type: DataType | null): string {
@@ -31,6 +33,7 @@ export function getSourcePortType(node: Node, handleId: string): DataType | null
       return null;
     case 'file-input':
       if (handleId === 'text') return 'string';
+      if (handleId === 'images') return 'images';
       return null;
     case 'llm-call':
       if (handleId === 'text') return 'string';
@@ -74,6 +77,7 @@ export function getSourcePortType(node: Node, handleId: string): DataType | null
     case 'chat-input':
       if (handleId === 'text') return 'string';
       if (handleId === 'messages') return 'messages';
+      if (handleId === 'images') return 'images';
       return null;
     default:
       return null;
@@ -90,6 +94,7 @@ export function getTargetPortType(node: Node, handleId: string): DataType | null
       if (handleId === 'text') return 'string';
       if (handleId === 'messages') return 'messages';
       if (handleId === 'tools') return 'tools';
+      if (handleId === 'images') return 'images';
       return null;
     case 'tool-group':
       if (handleId === 'tools') return 'tools';
