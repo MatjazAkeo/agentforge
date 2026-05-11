@@ -20,7 +20,7 @@ const scroller = ref<HTMLDivElement | null>(null);
 const MAX_BYTES = 10 * 1024 * 1024;
 const ALLOWED = ['txt', 'json', 'pdf'];
 const IMAGE_EXTS = ['png', 'jpg', 'jpeg', 'webp'];
-const IMAGE_MAX_BYTES = 5 * 1024 * 1024;
+const IMAGE_MAX_BYTES = 50 * 1024 * 1024;
 const attachError = ref<string | null>(null);
 
 function mimeFromExt(ext: string): ImageMime {
@@ -62,7 +62,7 @@ async function ingestFile(file: File) {
 
   if (IMAGE_EXTS.includes(ext)) {
     if (file.size > IMAGE_MAX_BYTES) {
-      attachError.value = `${file.name} is over 5 MB — images are capped at 5 MB raw.`;
+      attachError.value = `${file.name} is over 50 MB — images are capped at 50 MB raw.`;
       return;
     }
     const bytes = new Uint8Array(await file.arrayBuffer());

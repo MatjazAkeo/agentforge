@@ -20,7 +20,7 @@ const cfg = computed(() => (node.value?.config ?? null) as FileInputConfig | nul
 
 const IMAGE_EXTS = ['png', 'jpg', 'jpeg', 'webp'] as const;
 const TEXT_EXTS = ['txt', 'json', 'pdf'] as const;
-const IMAGE_MAX_BYTES = 5 * 1024 * 1024;
+const IMAGE_MAX_BYTES = 50 * 1024 * 1024;
 const TEXT_MAX_BYTES = 10 * 1024 * 1024;
 
 function mimeFromExt(ext: string): ImageMime {

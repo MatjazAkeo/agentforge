@@ -104,18 +104,18 @@ function onDelete() {
         <span class="text-text-dim font-mono text-[10px]">messages</span>
         <Handle id="messages" type="source" :position="Position.Right" :style="{ background: colorForType('messages') }" />
       </div>
-      <!-- Row 3: tools in | toolCalls out -->
+      <!-- Row 3: images in | (no output) — only when model has vision -->
+      <div v-if="showImagesPort" class="relative h-6 flex items-center justify-between px-3 text-[11px]">
+        <span class="text-text-dim font-mono text-[10px]">images</span>
+        <Handle id="images" type="target" :position="Position.Left" :style="{ background: colorForType('images') }" />
+        <span class="text-text-dim font-mono text-[10px] opacity-0">&nbsp;</span>
+      </div>
+      <!-- Row 4: tools in | toolCalls out -->
       <div class="relative h-6 flex items-center justify-between px-3 text-[11px]">
         <span class="text-text-dim font-mono text-[10px]">tools</span>
         <Handle id="tools" type="target" :position="Position.Left" :style="{ background: colorForType('tools') }" />
         <span class="text-text-dim font-mono text-[10px]">toolCalls</span>
         <Handle id="toolCalls" type="source" :position="Position.Right" :style="{ background: colorForType('tool-calls') }" />
-      </div>
-      <!-- Row 4: images in | (no output) — only when model has vision -->
-      <div v-if="showImagesPort" class="relative h-6 flex items-center justify-between px-3 text-[11px]">
-        <span class="text-text-dim font-mono text-[10px]">images</span>
-        <Handle id="images" type="target" :position="Position.Left" :style="{ background: colorForType('images') }" />
-        <span class="text-text-dim font-mono text-[10px] opacity-0">&nbsp;</span>
       </div>
     </div>
 
