@@ -15,6 +15,7 @@ const settings = useSettingsStore();
 const search = ref('');
 const onlyFree = ref(false);
 const onlyTools = ref(false);
+const onlyVision = ref(false);
 
 const catalog = ref<OpenRouterModelMeta[]>([]);
 const loading = ref(false);
@@ -61,6 +62,7 @@ const filteredCatalog = computed(() => {
     if (configuredIds.value.has(m.id)) return false; // hide already-configured
     if (onlyFree.value && !isFree(m)) return false;
     if (onlyTools.value && !(m.supported_parameters ?? []).includes('tools')) return false;
+    if (onlyVision.value && !(m.architecture?.input_modalities ?? []).includes('image')) return false;
     if (q) {
       const hay = `${m.id} ${m.name ?? ''}`.toLowerCase();
       if (!hay.includes(q)) return false;
@@ -148,6 +150,10 @@ function noteValue(m: ModelEntry): string {
         <input v-model="onlyTools" type="checkbox" class="cursor-pointer">
         <span>Supports tools</span>
       </label>
+      <label class="flex items-center gap-1 cursor-pointer">
+        <input v-model="onlyVision" type="checkbox" class="cursor-pointer">
+        <span>Vision</span>
+      </label>
     </div>
 
     <!-- Configured models -->
@@ -167,6 +173,7 @@ function noteValue(m: ModelEntry): string {
               <div class="flex flex-wrap gap-1 mt-1">
                 <span v-if="m.supportsTools" class="px-1.5 py-0.5 rounded bg-[#ffd54a]/20 text-[#ffd54a] text-[10px]">tools</span>
                 <span v-if="m.supportsJsonMode" class="px-1.5 py-0.5 rounded bg-[#4ad7e2]/20 text-[#4ad7e2] text-[10px]">json mode</span>
+                <span v-if="(m.input_modalities ?? []).includes('image')" class="px-1.5 py-0.5 rounded bg-[#7ad48c]/20 text-[#7ad48c] text-[10px]" title="Accepts image inputs">vision</span>
                 <span v-if="m.contextLength" class="px-1.5 py-0.5 rounded bg-elev text-text-dim text-[10px]">{{ ctxChip(m.contextLength) }}</span>
                 <span v-if="m.modality && m.modality !== 'text->text'" class="px-1.5 py-0.5 rounded bg-elev text-text-dim text-[10px]">{{ m.modality }}</span>
                 <span v-if="m.pricing" class="px-1.5 py-0.5 rounded bg-elev text-text-dim text-[10px]">{{ formatPrice(m.pricing) }}</span>
@@ -219,6 +226,7 @@ function noteValue(m: ModelEntry): string {
               <div class="flex flex-wrap gap-1 mt-1">
                 <span v-if="(m.supported_parameters ?? []).includes('tools')" class="px-1.5 py-0.5 rounded bg-[#ffd54a]/20 text-[#ffd54a] text-[10px]">tools</span>
                 <span v-if="(m.supported_parameters ?? []).includes('response_format')" class="px-1.5 py-0.5 rounded bg-[#4ad7e2]/20 text-[#4ad7e2] text-[10px]">json mode</span>
+                <span v-if="(m.architecture?.input_modalities ?? []).includes('image')" class="px-1.5 py-0.5 rounded bg-[#7ad48c]/20 text-[#7ad48c] text-[10px]" title="Accepts image inputs">vision</span>
                 <span v-if="m.context_length" class="px-1.5 py-0.5 rounded bg-elev text-text-dim text-[10px]">{{ ctxChip(m.context_length) }}</span>
                 <span v-if="m.architecture?.modality && m.architecture.modality !== 'text->text'" class="px-1.5 py-0.5 rounded bg-elev text-text-dim text-[10px]">{{ m.architecture.modality }}</span>
                 <span v-if="m.pricing" class="px-1.5 py-0.5 rounded bg-elev text-text-dim text-[10px]">{{ formatPrice(m.pricing) }}</span>
