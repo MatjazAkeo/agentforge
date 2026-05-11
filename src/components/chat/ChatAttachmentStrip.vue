@@ -19,8 +19,14 @@ function fmtSize(b: number): string {
     <div
       v-for="(a, i) in chat.attachments"
       :key="i"
-      class="inline-flex items-center gap-1.5 bg-elev border border-border-base rounded-full px-2.5 py-1 text-[11px]"
+      class="inline-flex items-center gap-1.5 bg-elev border border-border-base rounded-full pl-1 pr-2.5 py-1 text-[11px]"
     >
+      <img
+        v-if="a.kind === 'image'"
+        :src="a.dataUrl"
+        class="w-8 h-8 object-cover rounded-full border border-border-base flex-shrink-0"
+        :alt="a.filename"
+      />
       <span class="font-mono truncate max-w-[160px]" :title="a.filename">{{ a.filename }}</span>
       <span class="opacity-60 text-[10px]">{{ fmtSize(a.sizeBytes) }}</span>
       <button
