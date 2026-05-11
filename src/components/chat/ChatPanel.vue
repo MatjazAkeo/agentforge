@@ -6,6 +6,8 @@ import { useSettingsStore } from '@/stores/settings';
 import type { Graph } from '@/domain/graph';
 import ChatBubble from './ChatBubble.vue';
 import { extractText, extensionOf } from '@/files/extract';
+import { optimizeImage, bytesToBase64 } from '@/files/image';
+import type { ImageMime } from '@/domain/images';
 import ChatAttachmentStrip from './ChatAttachmentStrip.vue';
 
 const chat = useChatStore();
@@ -17,7 +19,15 @@ const scroller = ref<HTMLDivElement | null>(null);
 
 const MAX_BYTES = 10 * 1024 * 1024;
 const ALLOWED = ['txt', 'json', 'pdf'];
+const IMAGE_EXTS = ['png', 'jpg', 'jpeg', 'webp'];
+const IMAGE_MAX_BYTES = 5 * 1024 * 1024;
 const attachError = ref<string | null>(null);
+
+function mimeFromExt(ext: string): ImageMime {
+  if (ext === 'png') return 'image/png';
+  if (ext === 'webp') return 'image/webp';
+  return 'image/jpeg';
+}
 
 async function onSubmit() {
   if (!input.value.trim() || chat.status === 'running') return;
@@ -49,8 +59,27 @@ function onKeydown(e: KeyboardEvent) {
 async function ingestFile(file: File) {
   attachError.value = null;
   const ext = extensionOf(file.name).toLowerCase();
+
+  if (IMAGE_EXTS.includes(ext)) {
+    if (file.size > IMAGE_MAX_BYTES) {
+      attachError.value = `${file.name} is over 5 MB — images are capped at 5 MB raw.`;
+      return;
+    }
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const optimized = await optimizeImage(bytes, mimeFromExt(ext));
+    const dataUrl = `data:${optimized.mime};base64,${bytesToBase64(optimized.bytes)}`;
+    chat.addAttachment({
+      kind: 'image',
+      filename: file.name,
+      dataUrl,
+      mime: optimized.mime,
+      sizeBytes: optimized.newSizeBytes,
+    });
+    return;
+  }
+
   if (!ALLOWED.includes(ext)) {
-    attachError.value = `${file.name}: only txt/json/pdf supported.`;
+    attachError.value = `${file.name}: only txt / json / pdf / png / jpg / webp supported.`;
     return;
   }
   if (file.size > MAX_BYTES) {
@@ -71,7 +100,7 @@ async function onPickFiles() {
   const inputEl = document.createElement('input');
   inputEl.type = 'file';
   inputEl.multiple = true;
-  inputEl.accept = '.txt,.json,.pdf';
+  inputEl.accept = '.txt,.json,.pdf,.png,.jpg,.jpeg,.webp';
   inputEl.onchange = () => onFiles(inputEl.files);
   inputEl.click();
 }
@@ -135,7 +164,7 @@ watch(
           @drop="onDrop"
           @dragover.prevent
           @paste="onPaste"
-          placeholder="Type a message — Enter to send, Shift+Enter for newline. Drop files here, or click +."
+          placeholder="Type a message — Enter to send, Shift+Enter for newline. Drop files / images here, or click +."
           rows="2"
           class="flex-1 min-h-[40px] bg-elev text-text-base border border-border-base rounded-md px-2.5 py-2 text-sm font-ui resize-none leading-snug focus:outline-none focus:border-accent/60"
           :disabled="chat.status === 'running'"
