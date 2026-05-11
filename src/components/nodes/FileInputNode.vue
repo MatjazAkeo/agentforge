@@ -22,6 +22,7 @@ const borderColor = computed(() => {
 });
 
 const fileCount = computed(() => props.data.config.files?.length ?? 0);
+const hasImages = computed(() => (props.data.config.files ?? []).some((f) => f.kind === 'image'));
 
 function onDelete() {
   graph.removeNode(props.id);
@@ -51,6 +52,11 @@ function onDelete() {
     <div class="relative h-7 flex items-center justify-end pr-3 text-[11px]">
       <span class="text-text-dim font-mono text-[10px]">text</span>
       <Handle id="text" type="source" :position="Position.Right" :style="{ background: colorForType('string') }" />
+    </div>
+
+    <div v-if="hasImages" class="relative h-7 flex items-center justify-end pr-3 text-[11px]">
+      <span class="text-text-dim font-mono text-[10px]">images</span>
+      <Handle id="images" type="source" :position="Position.Right" :style="{ background: colorForType('images') }" />
     </div>
 
     <div
