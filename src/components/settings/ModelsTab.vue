@@ -160,24 +160,26 @@ function noteValue(m: ModelEntry): string {
 <template>
   <div class="flex flex-col gap-3">
     <!-- Filters -->
-    <div class="flex items-center gap-2 text-xs">
+    <div class="flex flex-col gap-2 text-xs">
       <input
         v-model="search"
         placeholder="Search models…"
-        class="flex-1 min-w-0 bg-elev text-text-base border border-border-base rounded px-2 py-1.5"
+        class="w-full bg-elev text-text-base border border-border-base rounded px-2 py-1.5"
       >
-      <label class="flex items-center gap-1 cursor-pointer">
-        <input v-model="onlyFree" type="checkbox" class="cursor-pointer">
-        <span>Free only</span>
-      </label>
-      <label class="flex items-center gap-1 cursor-pointer">
-        <input v-model="onlyTools" type="checkbox" class="cursor-pointer">
-        <span>Supports tools</span>
-      </label>
-      <label class="flex items-center gap-1 cursor-pointer">
-        <input v-model="onlyVision" type="checkbox" class="cursor-pointer">
-        <span>Vision</span>
-      </label>
+      <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+        <label class="flex items-center gap-1 cursor-pointer">
+          <input v-model="onlyFree" type="checkbox" class="cursor-pointer">
+          <span>Free only</span>
+        </label>
+        <label class="flex items-center gap-1 cursor-pointer">
+          <input v-model="onlyTools" type="checkbox" class="cursor-pointer">
+          <span>Supports tools</span>
+        </label>
+        <label class="flex items-center gap-1 cursor-pointer">
+          <input v-model="onlyVision" type="checkbox" class="cursor-pointer">
+          <span>Vision</span>
+        </label>
+      </div>
     </div>
 
     <!-- Configured models -->
