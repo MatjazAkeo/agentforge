@@ -16,6 +16,7 @@ const TYPE_COLORS = {
   tools: '#ffd54a',
   'tool-calls': '#ff5577',
   json: '#4ad7e2',
+  images: '#7ad48c',
   any: '#888888',
 };
 
@@ -33,7 +34,7 @@ const NODES = [
   },
   {
     type: 'llm-call', title: 'LLM Call',
-    inputs: [['messages', 'messages'], ['text', 'string'], ['tools', 'tools']],
+    inputs: [['messages', 'messages'], ['text', 'string'], ['images', 'images', true], ['tools', 'tools']],
     outputs: [['text', 'string'], ['messages', 'messages'], ['toolCalls', 'tool-calls'], ['usage', 'json']],
   },
   {
@@ -58,7 +59,7 @@ const NODES = [
   },
   {
     type: 'agent', title: 'Agent',
-    inputs: [['messages', 'messages'], ['text', 'string'], ['tools', 'tools']],
+    inputs: [['messages', 'messages'], ['text', 'string'], ['images', 'images', true], ['tools', 'tools']],
     outputs: [['text', 'string'], ['messages', 'messages'], ['iteration', 'number']],
   },
   {
@@ -74,12 +75,12 @@ const NODES = [
   {
     type: 'chat-input', title: 'Chat Input',
     inputs: [],
-    outputs: [['text', 'string'], ['messages', 'messages']],
+    outputs: [['text', 'string'], ['messages', 'messages'], ['images', 'images']],
   },
   {
     type: 'file-input', title: 'File Input',
     inputs: [],
-    outputs: [['text', 'string']],
+    outputs: [['text', 'string', true], ['images', 'images', true]],
   },
   {
     type: 'tool-pack', title: 'Tool Pack',
