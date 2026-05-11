@@ -1,25 +1,57 @@
 import { registerNodeDefinition, type NodeDefinition } from './registry';
 import type { LLMCallConfig } from '@/domain/node-types';
-import type { ChatMessage } from '@/openrouter/types';
+import type { ChatMessage, ContentPart } from '@/openrouter/types';
+import type { ImageRef } from '@/domain/images';
 import type { ToolDefinitionPayload } from './tool';
 import { llmOnce } from './_internals/llm-once';
 import { useRunStore } from '@/stores/run';
 import { useSettingsStore } from '@/stores/settings';
 import { estimateCallCostUsd } from '@/openrouter/credits';
+import { bytesToBase64 } from '@/files/image';
+import { readAssetBytes } from '@/persistence/assets-dir';
 
-function buildMessages(cfg: LLMCallConfig, inputs: Record<string, unknown>): ChatMessage[] {
+function buildMessages(
+  cfg: LLMCallConfig,
+  inputs: { messages?: ChatMessage[]; text?: string; images?: ImageRef[] },
+  resolvedImages: string[],
+): ChatMessage[] {
   const upstream = inputs.messages;
+
+  // Multi-turn mode — messages wins (ignores text + resolvedImages).
   if (Array.isArray(upstream)) {
-    if (cfg.systemPrompt && (upstream as ChatMessage[])[0]?.role !== 'system') {
-      return [{ role: 'system', content: cfg.systemPrompt }, ...(upstream as ChatMessage[])];
+    if (cfg.systemPrompt && upstream[0]?.role !== 'system') {
+      return [{ role: 'system', content: cfg.systemPrompt }, ...upstream];
     }
-    return upstream as ChatMessage[];
+    return upstream;
   }
+
+  // One-shot mode — synthesize from text + resolvedImages.
   const userText = typeof inputs.text === 'string' ? inputs.text : '';
   const messages: ChatMessage[] = [];
   if (cfg.systemPrompt) messages.push({ role: 'system', content: cfg.systemPrompt });
-  if (userText) messages.push({ role: 'user', content: userText });
+
+  if (resolvedImages.length === 0) {
+    if (userText) messages.push({ role: 'user', content: userText });
+  } else {
+    const parts: ContentPart[] = [];
+    if (userText) parts.push({ type: 'text', text: userText });
+    for (const url of resolvedImages) parts.push({ type: 'image_url', image_url: { url } });
+    messages.push({ role: 'user', content: parts });
+  }
   return messages;
+}
+
+async function resolveImagesToDataUrls(
+  refs: ImageRef[] | undefined,
+  graphFilePath: string | null,
+): Promise<string[]> {
+  if (!refs || refs.length === 0) return [];
+  return Promise.all(refs.map(async (ref) => {
+    if (ref.kind === 'inline') return ref.dataUrl;
+    if (!graphFilePath) throw new Error('llm-call: cannot resolve asset image — graph not saved');
+    const bytes = await readAssetBytes(graphFilePath, ref.filename);
+    return `data:${ref.mime};base64,${bytesToBase64(new Uint8Array(bytes))}`;
+  }));
 }
 
 function flattenTools(input: unknown): ToolDefinitionPayload[] {
@@ -38,7 +70,13 @@ export const llmCallNode: NodeDefinition = {
   outputPorts: ['text', 'toolCalls', 'messages', 'usage'],
   async run(node, inputs, ctx) {
     const cfg = node.config as LLMCallConfig;
-    const messages = buildMessages(cfg, inputs);
+    const refs = inputs.images as ImageRef[] | undefined;
+    const resolved = await resolveImagesToDataUrls(refs, ctx.graphFilePath);
+    const messages = buildMessages(
+      cfg,
+      inputs as { messages?: ChatMessage[]; text?: string; images?: ImageRef[] },
+      resolved,
+    );
     const tools = flattenTools(inputs.tools);
     useRunStore().incrementApiCalls();
 
@@ -77,3 +115,5 @@ export const llmCallNode: NodeDefinition = {
 };
 
 registerNodeDefinition(llmCallNode);
+
+export const buildMessagesForTest = buildMessages;
