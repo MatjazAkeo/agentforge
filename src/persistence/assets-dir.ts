@@ -55,6 +55,31 @@ export async function copyToAssets(graphPath: string, sourceAbsPath: string): Pr
   return candidate;
 }
 
+const EXT_FOR_MIME: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+};
+
+export async function writeOptimizedAsset(
+  graphPath: string,
+  sourceBasename: string,
+  bytes: Uint8Array,
+  mime: string,
+): Promise<string> {
+  const dir = await ensureAssetsDir(graphPath);
+  const ext = EXT_FOR_MIME[mime] ?? 'bin';
+  const stem = sourceBasename.replace(/\.[^.]+$/, '');
+  let candidate = `${stem}.${ext}`;
+  let n = 2;
+  while (await exists(`${dir}/${candidate}`)) {
+    candidate = `${stem}-${n}.${ext}`;
+    n++;
+  }
+  await writeFile(`${dir}/${candidate}`, bytes);
+  return candidate;
+}
+
 export async function readAssetBytes(graphPath: string, filename: string): Promise<ArrayBuffer> {
   const u8 = await readFile(`${assetsDirFor(graphPath)}/${filename}`);
   return u8.buffer.slice(u8.byteOffset, u8.byteOffset + u8.byteLength);
