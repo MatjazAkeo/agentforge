@@ -7,6 +7,103 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0-beta] — 2026-05-11
+
+Multimodal LLM support. Vision-capable models can now consume images via a
+new `images` wire type, end-to-end from File Input / chat composer through
+LLM Call and Agent. Plus JSON-mode UI, model-capability driven port
+visibility, and a new Vision Chat template.
+
+### Added
+
+- **Image input.** New `images` wire type (green `#7ad48c`). File Input
+  accepts `.png` / `.jpg` / `.webp` (50 MB raw cap, optimized at attach time
+  to 1568px longest edge / JPEG q=0.85 / EXIF stripped). Chat composer
+  ingests images via drop / paste / + button. LLM Call gains a dynamic
+  `images` input port that appears when the selected model has vision per
+  OpenRouter catalog (or via inspector tristate override Auto / On / Off).
+  Resolved images fold into the OpenRouter multimodal content array at the
+  API boundary. Precedence rule: `messages` is authoritative when wired;
+  `text + images` synthesizes a fresh user message together.
+- **Agent vision.** Same wiring on the Agent node — accepts `images` and
+  forwards them to the initial LLM iteration. Subsequent iterations use the
+  conversation history (with embedded multimodal content) automatically.
+- **Vision Chat template (#07).** `Chat Input → LLM Call (openrouter/free)
+  → Chat Output` scaffold. Drop screenshots into the composer and ask.
+- **`ImageRef` discriminated union** in `src/domain/images.ts`. `asset`
+  refs (File Input) point at side-car bytes; `inline` refs (chat composer)
+  carry data URLs directly. LLM Call's `resolveImagesToDataUrls` handles
+  both at the API boundary.
+- **`optimizeImage` pipeline** (`src/files/image.ts`). Decode via
+  `createImageBitmap` → resize → re-encode as JPEG q=0.85 (or PNG when alpha
+  is detected) → strip EXIF. Shared by File Input attach and chat composer
+  attach.
+- **JSON mode UI.** LLM Call inspector gains a `responseFormat` dropdown
+  (Free-form text / JSON object) visible only when the selected model's
+  catalog `supportsJsonMode` is true. Agent inspector gets the same; agent
+  runtime forwards `cfg.responseFormat` to every iteration.
+- **Edge-orphan modal.** Switching to a non-vision model with a wired
+  image edge shows a confirmation dialog; Continue removes the edge.
+- **File Input node card** now lists each attached file with filename +
+  size (B / KB / MB / GB) and an inline 36×36 thumbnail for images.
+- **Models tab vision indicator.** Green `vision` badge on configured
+  models and catalog entries whose `input_modalities` includes `image`.
+  New "Vision" filter alongside "Free only" and "Supports tools".
+- **Models tab catalog uptime.** Auto-fetches uptime for the top 50 of
+  the currently-filtered catalog list (in addition to configured models).
+  Avoids the 300+ request storm by gating on filter-derived window.
+- **Configured-model enrichment.** Opening Settings → Models re-pulls the
+  catalog and copies fresh `contextLength`, `pricing`, `input_modalities`,
+  etc. onto existing configured entries. Preserves user-edited notes.
+
+### Changed
+
+- **LLM Call node:** ports laid out as text → messages → **images** → tools.
+  Images sits semantically with the other user-input modalities. The tools
+  row hides entirely when the selected model doesn't support tool calls.
+- **File Input node:** ports are now dynamic — empty config or text-only
+  attachments show only `text`; image-only attachments show only `images`;
+  mixed shows both. Graph store auto-prunes orphan edges when a port
+  vanishes.
+- **Chat composer + bubble:** image attachments render as 32×32 thumbnail
+  chips in the composer strip and as inline thumbnails inside the user
+  bubble (click-to-expand modal). Text-file attachments stay as chips below
+  the bubble.
+- **Text file cap (chat + File Input):** lowered from 10 MB to **200 KB**
+  to align with realistic context windows for the default `openrouter/free`
+  routing target. Larger files would bust the model's input budget on the
+  first call anyway.
+- **Settings → Models** filter checkboxes moved below the search input
+  (was crowding the search field).
+- **Vue Flow Handle** layout in LLM Call's input-only rows now follows the
+  Loop Controller pattern (Handle-first, label after, `pl-3`) instead of
+  the `justify-between + opacity-0 spacer` hack. Fixes intermittent wire
+  endpoints snapping to the wrong row.
+
+### Fixed
+
+- **`createImageBitmap`-based optimization** correctly preserves alpha (16
+  px corner sample triggers PNG output when any pixel has alpha < 255).
+- **`metaToEntry`** now copies `architecture.input_modalities` through to
+  `ModelEntry`, so vision capability propagates from the live catalog.
+
+### Internal
+
+- New `src/openrouter/vision.ts` — `modelAcceptsImages` + `resolveImagesPortVisibility`.
+- `src/files/image.ts` exports `optimizeImage`, `bytesToBase64`, `OptimizeResult`.
+- `src/persistence/assets-dir.ts` gains `writeOptimizedAsset` — sibling of
+  `copyToAssets` that writes pre-prepared bytes with collision-suffix
+  discipline.
+- `ChatMessage.content` widened to `string | ContentPart[]` (backward-
+  compatible). `ContentPart` exported from `src/openrouter/types.ts`.
+- `ChatAttachment` is now a discriminated union (`kind: 'text' | 'image'`).
+  `composeTurnForLLM` skips images (they belong in multimodal content);
+  new `buildMessageContent` produces the multimodal array form for
+  history.
+- `ChatSession.userAttachments` carries the latest user turn's attachments
+  through the engine, so Chat Input can derive its `images` output.
+- 227 tests passing (was 190 at start of v0.2.0-beta cycle).
+
 ## [0.1.5] — 2026-05-08
 
 First **stable** release after the v0.1.5-beta.{0..3} test cycle. Two big
@@ -206,7 +303,8 @@ Six bundled starter graphs accessible from the toolbar:
 - In-app auto-updater verified by minisign-style signatures (independent of macOS Gatekeeper / Windows SmartScreen).
 - Bundled installers: `.dmg`, `.deb`, `.AppImage`, `-setup.exe`, `.msi`.
 
-[Unreleased]: https://github.com/MatjazAkeo/agentforge/compare/v0.1.5...HEAD
+[Unreleased]: https://github.com/MatjazAkeo/agentforge/compare/v0.2.0-beta...HEAD
+[0.2.0-beta]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.2.0-beta
 [0.1.5]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.1.5
 [0.1.4]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.1.4
 [0.1.3]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.1.3
