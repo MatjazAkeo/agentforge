@@ -8,6 +8,8 @@ import { DEFAULT_MODELS } from '@/config/default-models';
 import { modelOptionsForDropdown } from '@/config/virtual-models';
 import PortLegend from './PortLegend.vue';
 import IOValues from './IOValues.vue';
+import ModelChangeWarning from './llm-call/ModelChangeWarning.vue';
+import { resolveImagesPortVisibility, type ImagesPortMode } from '@/openrouter/vision';
 
 const props = defineProps<{ nodeId: string }>();
 const graph = useGraphStore();
@@ -25,6 +27,14 @@ const sectionsOpen = ref({
 
 const selectedIter = ref<number | null>(null);
 
+interface PendingChange {
+  targetModel: string;
+  targetMode: ImagesPortMode;
+  edgeCount: number;
+  apply: () => void;
+}
+const pendingChange = ref<PendingChange | null>(null);
+
 const modelOptions = computed(() =>
   modelOptionsForDropdown(settings.models.length > 0 ? settings.models : DEFAULT_MODELS),
 );
@@ -33,6 +43,59 @@ function update<K extends keyof LLMCallConfig>(key: K, value: LLMCallConfig[K]) 
   graph.updateNodeConfig(props.nodeId, { [key]: value });
 }
 function toggle(k: keyof typeof sectionsOpen.value) { sectionsOpen.value[k] = !sectionsOpen.value[k]; }
+
+function imageEdgeCount(): number {
+  return graph.edges.filter(
+    (e) => e.target === props.nodeId && e.targetHandle === 'images',
+  ).length;
+}
+
+function visibleAfter(targetModel: string, targetMode: ImagesPortMode): boolean {
+  return resolveImagesPortVisibility(targetMode, targetModel, settings.models);
+}
+
+function attemptChange(targetModel: string, targetMode: ImagesPortMode, applyFn: () => void) {
+  const count = imageEdgeCount();
+  const currentlyVisible = resolveImagesPortVisibility(
+    (cfg.value?.imagesPortMode ?? 'auto') as ImagesPortMode,
+    cfg.value?.model ?? '',
+    settings.models,
+  );
+  const willBeVisible = visibleAfter(targetModel, targetMode);
+  if (count > 0 && currentlyVisible && !willBeVisible) {
+    pendingChange.value = { targetModel, targetMode, edgeCount: count, apply: applyFn };
+  } else {
+    applyFn();
+  }
+}
+
+function onModelChange(newModel: string) {
+  attemptChange(
+    newModel,
+    (cfg.value?.imagesPortMode ?? 'auto') as ImagesPortMode,
+    () => graph.updateNodeConfig(props.nodeId, { model: newModel }),
+  );
+}
+
+function onPortModeChange(newMode: ImagesPortMode) {
+  attemptChange(
+    cfg.value?.model ?? '',
+    newMode,
+    () => graph.updateNodeConfig(props.nodeId, { imagesPortMode: newMode }),
+  );
+}
+
+function onCancelChange() { pendingChange.value = null; }
+
+function onConfirmChange() {
+  const pc = pendingChange.value;
+  if (!pc) return;
+  graph.edges
+    .filter((e) => e.target === props.nodeId && e.targetHandle === 'images')
+    .forEach((e) => graph.removeEdge(e.id));
+  pc.apply();
+  pendingChange.value = null;
+}
 
 const iterRecords = computed(() => result.value?.iterations ?? []);
 const selectedRecord = computed(() => {
@@ -70,6 +133,14 @@ const responseJson = computed(() => {
 
 <template>
   <div v-if="cfg">
+    <ModelChangeWarning
+      :open="pendingChange !== null"
+      :target-model="pendingChange?.targetModel ?? ''"
+      :edge-count="pendingChange?.edgeCount ?? 0"
+      @cancel="onCancelChange"
+      @confirm="onConfirmChange"
+    />
+
     <div v-if="iterRecords.length > 1" class="flex items-center gap-2 mb-2 text-xs">
       <span class="opacity-60">iteration</span>
       <select :value="selectedIter ?? iterRecords[iterRecords.length - 1].iteration"
@@ -90,7 +161,7 @@ const responseJson = computed(() => {
           Model
           <select
             :value="cfg.model"
-            @change="(e) => update('model', (e.target as HTMLSelectElement).value)"
+            @change="(e) => onModelChange((e.target as HTMLSelectElement).value)"
             class="bg-elev text-text-base border border-border-base rounded px-2 py-1.5 text-sm font-ui"
           >
             <option v-for="m in modelOptions" :key="m.id" :value="m.id">{{ m.displayName }}</option>
@@ -116,6 +187,18 @@ const responseJson = computed(() => {
             @input="(e) => update('temperature', parseFloat((e.target as HTMLInputElement).value))"
             class="bg-elev text-text-base border border-border-base rounded px-2 py-1.5 text-sm font-ui"
           >
+        </label>
+        <label class="flex flex-col gap-1 text-xs opacity-85">
+          Image port
+          <select
+            :value="cfg.imagesPortMode ?? 'auto'"
+            @change="(e) => onPortModeChange((e.target as HTMLSelectElement).value as ImagesPortMode)"
+            class="bg-elev text-text-base border border-border-base rounded px-2 py-1.5 text-sm font-ui"
+          >
+            <option value="auto">Auto (catalog)</option>
+            <option value="force-on">On</option>
+            <option value="force-off">Off</option>
+          </select>
         </label>
       </div>
     </section>
@@ -188,6 +271,7 @@ const responseJson = computed(() => {
         { id: 'text', type: 'string', description: 'Single user prompt. Becomes a `user` message before the call.' },
         { id: 'messages', type: 'messages', description: 'Existing conversation history to continue. Combined with `text` if no upstream messages.' },
         { id: 'tools', type: 'tools', description: 'Tool definitions the model may call. Wire from Tool or Tool Group.' },
+        { id: 'images', type: 'images', description: 'Image inputs (ImageRef[]) for vision-capable models. Port visibility tracks the selected model.' },
       ]"
       :outputs="[
         { id: 'text', type: 'string', description: 'Assistant\'s text reply (final or partial when tool-calling).' },
