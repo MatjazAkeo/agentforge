@@ -75,9 +75,7 @@ export function getSourcePortType(node: Node, handleId: string): DataType | null
       if (handleId === 'iteration') return 'number';
       return null;
     case 'chat-input':
-      if (handleId === 'text') return 'string';
-      if (handleId === 'messages') return 'messages';
-      if (handleId === 'images') return 'images';
+      if (handleId === 'context') return 'context';
       return null;
     default:
       return null;

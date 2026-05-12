@@ -120,11 +120,7 @@ export const useChatStore = defineStore('chat', () => {
       const run = await runGraph({
         graph: args.graph,
         apiKey: args.apiKey,
-        chatSession: {
-          userMessage: composeTurnForLLM(userTurn),
-          userAttachments: turnAttachments ?? [],
-          history,
-        },
+        chatSession: { history },
       });
       const outId = args.graph.nodes.find((n) => n.type === 'chat-output')?.id;
       const reply =

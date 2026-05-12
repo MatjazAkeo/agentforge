@@ -7,7 +7,7 @@ function makeNode(type: 'chat-input' | 'chat-output', config: Record<string, unk
   return { id: 'n', type, position: { x: 0, y: 0 }, config };
 }
 
-const baseCtx = (chatSession?: { userMessage: string; history: { role: string; content: string }[] }) => ({
+const baseCtx = (chatSession?: { history: { role: string; content: string }[] }) => ({
   signal: new AbortController().signal,
   details: {} as Record<string, unknown>,
   apiKey: '',
@@ -16,9 +16,8 @@ const baseCtx = (chatSession?: { userMessage: string; history: { role: string; c
 });
 
 describe('chatInputNode', () => {
-  it('emits text and messages from ctx.chatSession', async () => {
+  it('emits the full chat history as context', async () => {
     const session = {
-      userMessage: 'hello',
       history: [
         { role: 'user' as const, content: 'previous' },
         { role: 'assistant' as const, content: 'reply' },
@@ -26,8 +25,7 @@ describe('chatInputNode', () => {
       ],
     };
     const out = await chatInputNode.run(makeNode('chat-input'), {}, baseCtx(session));
-    expect(out.text).toBe('hello');
-    expect(out.messages).toEqual(session.history);
+    expect(out.context).toEqual(session.history);
   });
 
   it('throws when invoked without a chatSession (graph run from canvas, not chat)', async () => {

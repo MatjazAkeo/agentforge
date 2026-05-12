@@ -30,8 +30,7 @@ const warning = computed(() => {
     <IOValues :node-id="nodeId" />
     <PortLegend
       :outputs="[
-        { id: 'text', type: 'string', description: 'The latest user message (single turn).' },
-        { id: 'messages', type: 'messages', description: 'Full chat history including the latest user message.' },
+        { id: 'context', type: 'context', description: 'Full chat history with multimodal content (images) embedded in the latest user message.' },
       ]"
     />
   </div>
