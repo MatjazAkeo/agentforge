@@ -22,7 +22,7 @@ describe('runGraph (Input → Output)', () => {
         { id: 'a', type: 'input', position: { x: 0, y: 0 }, config: { name: 'q', defaultValue: 'hello' } },
         { id: 'b', type: 'output', position: { x: 0, y: 0 }, config: { format: 'auto' } },
       ],
-      edges: [{ id: 'e', source: 'a', sourceHandle: 'text', target: 'b', targetHandle: 'text' }],
+      edges: [{ id: 'e', source: 'a', sourceHandle: 'context', target: 'b', targetHandle: 'context' }],
       containsCustomCode: false,
     };
 
@@ -40,6 +40,20 @@ describe('runGraph (Input → Output)', () => {
 describe('runGraph with Loop Controller', () => {
   beforeEach(() => setActivePinia(createPinia()));
 
+  // After the context unification refactor, Input now wraps its defaultValue
+  // as Context[] — so when wired into a numeric Loop Controller channel, the
+  // body node receives Context[] instead of a string. The test bodies below
+  // extract text from Context[] before coercing to a number, mirroring how
+  // real graphs would use Prompt Template or Transform between Input and a
+  // numeric flow.
+  function toNum(v: unknown): number {
+    if (Array.isArray(v) && v.length > 0 && typeof (v[0] as { role?: unknown }).role === 'string') {
+      const last = v[v.length - 1] as { content: unknown };
+      return Number(typeof last.content === 'string' ? last.content : 0);
+    }
+    return Number(v);
+  }
+
   it('runs a counting loop end-to-end and exits via continue=false', async () => {
     // Register a tiny increment body node for this test only.
     registerNodeDefinition({
@@ -47,7 +61,7 @@ describe('runGraph with Loop Controller', () => {
       inputPorts: ['value'],
       outputPorts: ['result', 'continue'],
       async run(_node, inputs) {
-        const v = Number(inputs.value) + 1;
+        const v = toNum(inputs.value) + 1;
         return { result: v, continue: v < 3 };
       },
     });
@@ -63,11 +77,11 @@ describe('runGraph with Loop Controller', () => {
         { id: 'out', type: 'output', position: { x: 0, y: 0 }, config: { format: 'auto' } },
       ],
       edges: [
-        { id: 'e1', source: 'seed', sourceHandle: 'text', target: 'lc', targetHandle: 'default-n' },
+        { id: 'e1', source: 'seed', sourceHandle: 'context', target: 'lc', targetHandle: 'default-n' },
         { id: 'e2', source: 'lc', sourceHandle: 'output-n', target: 'inc', targetHandle: 'value' },
         { id: 'e3', source: 'inc', sourceHandle: 'result', target: 'lc', targetHandle: 'input-n' },
         { id: 'e4', source: 'inc', sourceHandle: 'continue', target: 'lc', targetHandle: 'continue' },
-        { id: 'e5', source: 'lc', sourceHandle: 'output-n', target: 'out', targetHandle: 'text' },
+        { id: 'e5', source: 'lc', sourceHandle: 'output-n', target: 'out', targetHandle: 'context' },
       ],
     };
 
@@ -89,7 +103,7 @@ describe('runGraph with Loop Controller', () => {
       inputPorts: ['value'],
       outputPorts: ['result', 'continue'],
       async run(_node, inputs) {
-        return { result: Number(inputs.value) + 1, continue: true }; // never halts on its own
+        return { result: toNum(inputs.value) + 1, continue: true }; // never halts on its own
       },
     });
 
@@ -104,11 +118,11 @@ describe('runGraph with Loop Controller', () => {
         { id: 'out', type: 'output', position: { x: 0, y: 0 }, config: { format: 'auto' } },
       ],
       edges: [
-        { id: 'e1', source: 'seed', sourceHandle: 'text', target: 'lc', targetHandle: 'default-n' },
+        { id: 'e1', source: 'seed', sourceHandle: 'context', target: 'lc', targetHandle: 'default-n' },
         { id: 'e2', source: 'lc', sourceHandle: 'output-n', target: 'inc', targetHandle: 'value' },
         { id: 'e3', source: 'inc', sourceHandle: 'result', target: 'lc', targetHandle: 'input-n' },
         { id: 'e4', source: 'inc', sourceHandle: 'continue', target: 'lc', targetHandle: 'continue' },
-        { id: 'e5', source: 'lc', sourceHandle: 'output-n', target: 'out', targetHandle: 'text' },
+        { id: 'e5', source: 'lc', sourceHandle: 'output-n', target: 'out', targetHandle: 'context' },
       ],
     };
 
@@ -137,11 +151,11 @@ describe('runGraph with Loop Controller', () => {
         { id: 'out', type: 'output', position: { x: 0, y: 0 }, config: { format: 'auto' } },
       ],
       edges: [
-        { id: 'e1', source: 'seed', sourceHandle: 'text', target: 'lc', targetHandle: 'default-n' },
+        { id: 'e1', source: 'seed', sourceHandle: 'context', target: 'lc', targetHandle: 'default-n' },
         { id: 'e2', source: 'lc', sourceHandle: 'output-n', target: 'inc', targetHandle: 'value' },
         { id: 'e3', source: 'inc', sourceHandle: 'result', target: 'lc', targetHandle: 'input-n' },
         { id: 'e4', source: 'inc', sourceHandle: 'continue', target: 'lc', targetHandle: 'continue' },
-        { id: 'e5', source: 'lc', sourceHandle: 'output-n', target: 'out', targetHandle: 'text' },
+        { id: 'e5', source: 'lc', sourceHandle: 'output-n', target: 'out', targetHandle: 'context' },
       ],
     };
 

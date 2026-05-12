@@ -46,8 +46,8 @@ function update(key: keyof PromptTemplateConfig, value: string) {
 
     <IOValues :node-id="nodeId" />
     <PortLegend
-      :inputs="[{ id: '<varname>', type: 'json', description: 'One target per {{varname}} in the template.' }]"
-      :outputs="[{ id: 'text', type: 'string', description: 'The template with all placeholders substituted.' }]"
+      :inputs="[{ id: '<varname>', type: 'context', description: 'One target per {{varname}} in the template. Last-message text is extracted for substitution.' }]"
+      :outputs="[{ id: 'context', type: 'context', description: 'Rendered template wrapped as a single user-message context.' }]"
     />
   </div>
 </template>

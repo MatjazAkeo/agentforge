@@ -49,7 +49,7 @@ function formatValue(v: unknown): string {
 
     <PortLegend
       :inputs="[
-        { id: 'text', type: 'string', description: 'Final value to display. Connect any source — non-string values are JSON-stringified.' },
+        { id: 'context', type: 'context', description: 'Renders the last message\'s text content (multimodal images skipped).' },
       ]"
     />
   </div>

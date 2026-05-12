@@ -35,7 +35,7 @@ function update(key: keyof ChatOutputConfig, value: ChatOutputConfig[keyof ChatO
     </div>
     <IOValues :node-id="nodeId" />
     <PortLegend
-      :inputs="[{ id: 'text', type: 'string', description: 'The assistant reply to display.' }]"
+      :inputs="[{ id: 'context', type: 'context', description: 'The assistant reply to display (last message text).' }]"
     />
   </div>
 </template>

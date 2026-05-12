@@ -40,7 +40,7 @@ function update<K extends keyof InputConfig>(key: K, value: InputConfig[K]) {
 
     <PortLegend
       :outputs="[
-        { id: 'value', type: 'string', description: 'The default value, passed downstream as a string.' },
+        { id: 'context', type: 'context', description: 'The value wrapped as a single user-message context.' },
       ]"
     />
   </div>

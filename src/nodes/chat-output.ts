@@ -1,12 +1,12 @@
 import { registerNodeDefinition, type NodeDefinition } from './registry';
+import { extractText, type Context } from '@/domain/context';
 
 export const chatOutputNode: NodeDefinition = {
   type: 'chat-output',
-  inputPorts: ['text'],
+  inputPorts: ['context'],
   outputPorts: [],
   async run(_node, inputs, ctx) {
-    const text = typeof inputs.text === 'string' ? inputs.text : String(inputs.text ?? '');
-    ctx.details.value = text;
+    ctx.details.value = extractText(inputs.context as Context[] | undefined);
     return {};
   },
 };

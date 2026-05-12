@@ -1,5 +1,6 @@
 import { registerNodeDefinition, type NodeDefinition } from './registry';
 import type { PromptTemplateConfig } from '@/domain/node-types';
+import { wrapAsContext } from '@/domain/context';
 import { renderTemplate } from './_internals/template-vars';
 
 export const promptTemplateNode: NodeDefinition = {
@@ -7,10 +8,11 @@ export const promptTemplateNode: NodeDefinition = {
   // The static port lists describe the OUTPUT only; dynamic inputs are resolved
   // by port-types.ts at connection time using the live template config.
   inputPorts: [],
-  outputPorts: ['text'],
+  outputPorts: ['context'],
   async run(node, inputs) {
     const cfg = node.config as PromptTemplateConfig;
-    return { text: renderTemplate(cfg.template ?? '', inputs) };
+    const rendered = renderTemplate(cfg.template ?? '', inputs);
+    return { context: wrapAsContext(rendered) };
   },
 };
 

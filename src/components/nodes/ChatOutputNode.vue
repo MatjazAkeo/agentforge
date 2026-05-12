@@ -36,8 +36,8 @@ function onDelete() { graph.removeNode(props.id); }
         class="opacity-0 group-hover:opacity-100 transition w-5 h-5 rounded text-text-dim hover:bg-error/25 hover:text-error flex items-center justify-center text-base leading-none">×</button>
     </div>
     <div class="relative h-6 rounded-b-md flex items-center px-3 text-[11px]">
-      <Handle id="text" type="target" :position="Position.Left" :style="{ background: colorForType('string') }" />
-      <span class="text-text-dim font-mono text-[10px]">text</span>
+      <Handle id="context" type="target" :position="Position.Left" :style="{ background: colorForType('context') }" />
+      <span class="text-text-dim font-mono text-[10px]">context</span>
     </div>
   </div>
 </template>

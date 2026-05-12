@@ -30,7 +30,7 @@ export function colorForType(type: DataType | null): string {
 export function getSourcePortType(node: Node, handleId: string): DataType | null {
   switch (node.type) {
     case 'input':
-      if (handleId === 'text') return 'string';
+      if (handleId === 'context') return 'context';
       return null;
     case 'file-input':
       if (handleId === 'text') return 'string';
@@ -58,7 +58,7 @@ export function getSourcePortType(node: Node, handleId: string): DataType | null
       if (handleId === 'result') return 'json';
       return null;
     case 'prompt-template':
-      if (handleId === 'text') return 'string';
+      if (handleId === 'context') return 'context';
       return null;
     case 'loop-controller': {
       const cfg = node.config as { valueChannels?: Array<{ name: string; type?: DataType }> };
@@ -89,7 +89,7 @@ export function getSourcePortType(node: Node, handleId: string): DataType | null
 export function getTargetPortType(node: Node, handleId: string): DataType | null {
   switch (node.type) {
     case 'output':
-      if (handleId === 'text') return 'string';
+      if (handleId === 'context') return 'context';
       return null;
     case 'llm-call':
       if (handleId === 'text') return 'string';
@@ -115,7 +115,7 @@ export function getTargetPortType(node: Node, handleId: string): DataType | null
       const re = /\{\{\s*([A-Za-z_][A-Za-z0-9_]*)\s*\}\}/g;
       let m: RegExpExecArray | null;
       while ((m = re.exec(tpl)) !== null) {
-        if (m[1] === handleId) return 'json';
+        if (m[1] === handleId) return 'context';
       }
       return null;
     }
@@ -141,7 +141,7 @@ export function getTargetPortType(node: Node, handleId: string): DataType | null
       if (handleId === 'images') return 'images';
       return null;
     case 'chat-output':
-      if (handleId === 'text') return 'string';
+      if (handleId === 'context') return 'context';
       return null;
     default:
       return null;

@@ -42,8 +42,8 @@ function onDelete() { graph.removeNode(props.id); }
     <!-- Output row FIRST so its handle Y stays stable as placeholders come and go.
          Inputs follow below — one row per placeholder. -->
     <div class="relative h-6 flex items-center justify-end pr-3 text-[11px]">
-      <span class="text-text-dim font-mono text-[10px]">text</span>
-      <Handle id="text" type="source" :position="Position.Right" :style="{ background: colorForType('string') }" />
+      <span class="text-text-dim font-mono text-[10px]">context</span>
+      <Handle id="context" type="source" :position="Position.Right" :style="{ background: colorForType('context') }" />
     </div>
 
     <div v-if="placeholders.length === 0" class="px-3 py-2 text-[11px] text-text-dim italic opacity-60 rounded-b-md border-t border-border-base bg-node-inset">
@@ -55,7 +55,7 @@ function onDelete() { graph.removeNode(props.id); }
         :key="name"
         class="relative h-6 flex items-center px-3 text-[11px]"
       >
-        <Handle :id="name" type="target" :position="Position.Left" :style="{ background: colorForType('json') }" />
+        <Handle :id="name" type="target" :position="Position.Left" :style="{ background: colorForType('context') }" />
         <span class="text-text-dim font-mono text-[10px]">{{ name }}</span>
       </div>
     </div>

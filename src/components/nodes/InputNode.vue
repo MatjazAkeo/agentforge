@@ -46,7 +46,7 @@ function onDelete() {
       <span class="w-2 h-2 rounded-full bg-[#5cd97a] flex-shrink-0" title="source" />
       <div class="flex-1 min-w-0">
         <div class="text-text-base font-medium text-xs leading-tight">Input</div>
-        <div class="text-text-dim text-[10px] font-mono truncate">Input · text</div>
+        <div class="text-text-dim text-[10px] font-mono truncate">Input · context</div>
       </div>
       <button
         type="button"
@@ -57,8 +57,8 @@ function onDelete() {
     </div>
 
     <div class="relative h-7 flex items-center justify-end pr-3 text-[11px]">
-      <span class="text-text-dim font-mono text-[10px]">text</span>
-      <Handle id="text" type="source" :position="Position.Right" :style="{ background: colorForType('string') }" />
+      <span class="text-text-dim font-mono text-[10px]">context</span>
+      <Handle id="context" type="source" :position="Position.Right" :style="{ background: colorForType('context') }" />
     </div>
 
     <div

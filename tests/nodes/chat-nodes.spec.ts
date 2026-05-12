@@ -38,15 +38,19 @@ describe('chatInputNode', () => {
 });
 
 describe('chatOutputNode', () => {
-  it('records the input text on details.value', async () => {
+  it('extracts the last message text from context onto details.value', async () => {
     const ctx = baseCtx();
-    await chatOutputNode.run(makeNode('chat-output', { format: 'markdown' }), { text: 'hi there' }, ctx);
+    await chatOutputNode.run(
+      makeNode('chat-output', { format: 'markdown' }),
+      { context: [{ role: 'assistant', content: 'hi there' }] },
+      ctx,
+    );
     expect(ctx.details.value).toBe('hi there');
   });
 
-  it('coerces non-string input via String()', async () => {
+  it('records empty string when context is missing', async () => {
     const ctx = baseCtx();
-    await chatOutputNode.run(makeNode('chat-output', { format: 'text' }), { text: 42 as unknown as string }, ctx);
-    expect(ctx.details.value).toBe('42');
+    await chatOutputNode.run(makeNode('chat-output', { format: 'text' }), {}, ctx);
+    expect(ctx.details.value).toBe('');
   });
 });
