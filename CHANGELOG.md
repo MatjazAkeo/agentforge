@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1-beta] — 2026-05-12
+
+UX polish for the Add Node menu — categorized two-step picker.
+
+### Changed
+
+- **Add Node menu is now a two-step categorized picker.** Step 1 lists
+  five categories (Input, Output, LLM, Tools, Parse) with item counts
+  and a cross-category search box. Step 2 lists the nodes within the
+  selected category; the whole header row doubles as a clickable
+  back-to-step-1 affordance. Esc on step 2 goes back; Esc on step 1
+  closes. Arrow keys and Enter are mode-aware throughout.
+
 ## [0.3.0-beta] — 2026-05-12
 
 Context unification. Every LLM-bound node now speaks a single `context`
@@ -396,7 +409,8 @@ Six bundled starter graphs accessible from the toolbar:
 - In-app auto-updater verified by minisign-style signatures (independent of macOS Gatekeeper / Windows SmartScreen).
 - Bundled installers: `.dmg`, `.deb`, `.AppImage`, `-setup.exe`, `.msi`.
 
-[Unreleased]: https://github.com/MatjazAkeo/agentforge/compare/v0.3.0-beta...HEAD
+[Unreleased]: https://github.com/MatjazAkeo/agentforge/compare/v0.3.1-beta...HEAD
+[0.3.1-beta]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.3.1-beta
 [0.3.0-beta]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.3.0-beta
 [0.2.0-beta]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.2.0-beta
 [0.1.5]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.1.5
