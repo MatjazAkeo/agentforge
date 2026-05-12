@@ -1,14 +1,5 @@
-export type ContentPart =
-  | { type: 'text'; text: string }
-  | { type: 'image_url'; image_url: { url: string } };
-
-export interface Context {
-  role: 'system' | 'user' | 'assistant' | 'tool';
-  content: string | ContentPart[];
-  tool_call_id?: string;
-  name?: string;
-  tool_calls?: ToolCall[];
-}
+import type { Context, ContentPart } from '@/domain/context';
+export type { Context, ContentPart };
 
 export interface ToolCall {
   id: string;
