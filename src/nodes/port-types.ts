@@ -9,7 +9,7 @@ import type { Node } from '@/domain/graph';
  *   - `json`       — Arbitrary JSON-shaped data (Tool Runner's `results` output)
  *   - `images`     — ImageRef[] (image references for LLM multimodal input)
  */
-export type DataType = 'string' | 'number' | 'messages' | 'tools' | 'tool-calls' | 'json' | 'images';
+export type DataType = 'string' | 'number' | 'messages' | 'tools' | 'tool-calls' | 'json' | 'images' | 'context';
 
 const TYPE_COLORS: Record<DataType, string> = {
   string: '#ffaa55',
@@ -19,6 +19,7 @@ const TYPE_COLORS: Record<DataType, string> = {
   'tool-calls': '#ff5577',
   json: '#4ad7e2',
   images: '#7ad48c',
+  context: '#b388ff',
 };
 
 export function colorForType(type: DataType | null): string {

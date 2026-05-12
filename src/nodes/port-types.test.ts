@@ -21,3 +21,9 @@ describe('images wire type', () => {
     expect(getTargetPortType(node, 'images')).toBe('images');
   });
 });
+
+describe('context wire type', () => {
+  it('has the messages purple color', () => {
+    expect(colorForType('context')).toBe('#b388ff');
+  });
+});
