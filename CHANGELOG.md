@@ -7,6 +7,69 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.2] — 2026-05-12
+
+Smarter edge routing. Custom Vue Flow edge component replaces the default
+bezier with smoothstep at corner radius 30, routing around node bounding
+boxes via a local-detour heuristic. Parallel edges into the same target
+spread into nested lanes. Feedback / loop-back edges wrap around. First
+non-beta release since v0.1.5 — context unification (0.3.0-beta), Add Node
+menu (0.3.1-beta), and the edge routing in this release have all stabilized.
+
+### Added
+
+- **Routed edges with obstacle avoidance.** Every wire type now uses a
+  custom `RoutedEdge` component. Edges build a natural step path, then
+  iteratively insert detours around any node bbox they would cross. 12px
+  obstacle padding; detour side chosen by the obstacle's position relative
+  to the source-target midpoint to minimize path-length increase.
+- **Smoothstep rendering at r=30.** Corners are quadratic Béziers, clamped
+  per-corner to half the shorter adjacent segment so rounding never overlaps
+  itself.
+- **Parallel-edge lane spreading.** When multiple edges enter the same
+  target node, each gets a perpendicular offset (24px lane step matching
+  the node port pitch, symmetric around zero, sorted by source-node y).
+  Approach corridors and detour heights stagger so the lanes are visually
+  distinct.
+- **Loop-back wrap-around.** Feedback edges where the source port direction
+  conflicts with the target's relative position (e.g., Tool Runner.context
+  → Loop Controller.input — source right but target is left of source) now
+  route as a deliberate U-shape: out the source port, up to a channel above
+  both nodes, across, down to target.y, into target. Multiple parallel
+  loop-back edges form nested concentric U-shapes; the horizontal corridor
+  spread is 2× the channel y spread for visual distinction.
+- **Source/target nodes treated as obstacles.** Edges actively avoid
+  cutting through the bodies of their own endpoint nodes — only the segment
+  that connects to the source port and the segment that connects to the
+  target port are allowed inside those bboxes. Fixes natural paths cutting
+  through wide nodes (LLM Call, Agent, Loop Controller) when the mid-leg
+  falls inside source/target x range.
+- **Diagonal short-circuit.** When the vertical step in a horizontal-flow
+  natural path is below 30px (and no lane spreading is active), the path
+  becomes a clean diagonal instead of a degenerate H-V-H with tightly-
+  clamped corners.
+- **Pluggable routing strategy.** `ACTIVE_ROUTING_STRATEGY` constant in
+  `compute-path.ts` switches between `local-detour` (this release) and
+  `pathfinding` (stub for future A\* upgrade). Same `PathInput` /
+  `PathOutput` contract either way.
+
+### Changed
+
+- Edges no longer cut across node bodies. The previous default bezier
+  curves are gone; nothing in the saved graph format changed, so existing
+  graphs render with the new style on next open.
+
+### Known limitations
+
+- Strategy B's heuristic can produce ugly paths in very dense scenes (>3
+  obstacles in line of sight, stacked vertical obstacles). The escape hatch
+  is strategy C (A\* pathfinding); the architecture is ready for it but
+  the implementation is deferred.
+- Edge re-routing on node drag is a one-frame snap, not animated.
+- `WRAP_CHANNEL_OFFSET = 150` is a fixed estimate that clears the tall
+  built-in nodes (Loop Controller, LLM Call, Agent at ~150–170px). Wider
+  custom layouts may want this tunable; future work.
+
 ## [0.3.1-beta] — 2026-05-12
 
 UX polish for the Add Node menu — categorized two-step picker.
@@ -409,7 +472,8 @@ Six bundled starter graphs accessible from the toolbar:
 - In-app auto-updater verified by minisign-style signatures (independent of macOS Gatekeeper / Windows SmartScreen).
 - Bundled installers: `.dmg`, `.deb`, `.AppImage`, `-setup.exe`, `.msi`.
 
-[Unreleased]: https://github.com/MatjazAkeo/agentforge/compare/v0.3.1-beta...HEAD
+[Unreleased]: https://github.com/MatjazAkeo/agentforge/compare/v0.3.2...HEAD
+[0.3.2]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.3.2
 [0.3.1-beta]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.3.1-beta
 [0.3.0-beta]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.3.0-beta
 [0.2.0-beta]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.2.0-beta
