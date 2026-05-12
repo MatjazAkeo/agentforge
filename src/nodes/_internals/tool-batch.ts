@@ -1,4 +1,4 @@
-import type { ChatMessage, ToolCall } from '@/openrouter/types';
+import type { Context, ToolCall } from '@/openrouter/types';
 import type { ToolDefinitionPayload } from '../tool';
 import { runInSandbox, type SandboxHelpers } from '@/sandbox/runner';
 import type { ToolRunResult } from '../tool-runner';
@@ -12,7 +12,7 @@ export interface ToolBatchArgs {
 
 export interface ToolBatchResult {
   results: ToolRunResult[];
-  toolMessages: ChatMessage[];
+  toolMessages: Context[];
 }
 
 export async function runToolBatch(args: ToolBatchArgs): Promise<ToolBatchResult> {
@@ -40,7 +40,7 @@ export async function runToolBatch(args: ToolBatchArgs): Promise<ToolBatchResult
     if (sb.kind === 'ok') results.push({ toolCallId: call.id, name: call.function.name, input: parsed, output: sb.value, durationMs: sb.durationMs });
     else results.push({ toolCallId: call.id, name: call.function.name, input: parsed, error: sb.message, durationMs: sb.durationMs });
   }));
-  const toolMessages: ChatMessage[] = results.map((r) => ({
+  const toolMessages: Context[] = results.map((r) => ({
     role: 'tool', tool_call_id: r.toolCallId, name: r.name,
     // Serialize structured outputs as JSON so the LLM sees the actual data
     // instead of "[object Object]". Strings pass through verbatim.

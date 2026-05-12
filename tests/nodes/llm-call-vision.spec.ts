@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { buildMessagesForTest } from '@/nodes/llm-call';
 import type { ImageRef } from '@/domain/images';
-import type { ChatMessage } from '@/openrouter/types';
+import type { Context } from '@/openrouter/types';
 
 const cfg = {
   model: 'm',
@@ -45,7 +45,7 @@ describe('buildMessages — multimodal one-shot mode', () => {
 
 describe('buildMessages — precedence rule (messages wins)', () => {
   it('ignores text + resolvedImages when messages is wired', () => {
-    const history: ChatMessage[] = [{ role: 'user', content: 'prior' }];
+    const history: Context[] = [{ role: 'user', content: 'prior' }];
     const images: ImageRef[] = [{ kind: 'inline', dataUrl: 'data:image/jpeg;base64,xxx', mime: 'image/jpeg' }];
     const result = buildMessagesForTest(
       cfg,

@@ -1,6 +1,6 @@
 import { registerNodeDefinition, type NodeDefinition } from './registry';
 import type { ToolDefinitionPayload } from './tool';
-import type { ChatMessage, ToolCall } from '@/openrouter/types';
+import type { Context, ToolCall } from '@/openrouter/types';
 import { runToolBatch } from './_internals/tool-batch';
 
 export interface ToolRunResult {
@@ -25,7 +25,7 @@ export const toolRunnerNode: NodeDefinition = {
   async run(_node, inputs, ctx) {
     const toolCalls = (inputs.toolCalls as ToolCall[] | undefined) ?? [];
     const tools = flatten(inputs.tools);
-    const messagesIn = (inputs.messages as ChatMessage[] | undefined) ?? [];
+    const messagesIn = (inputs.messages as Context[] | undefined) ?? [];
     const { results, toolMessages } = await runToolBatch({ toolCalls, tools, signal: ctx.signal });
     ctx.details.results = results;
     return { messages: [...messagesIn, ...toolMessages], results };

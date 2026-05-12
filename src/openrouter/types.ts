@@ -2,7 +2,7 @@ export type ContentPart =
   | { type: 'text'; text: string }
   | { type: 'image_url'; image_url: { url: string } };
 
-export interface ChatMessage {
+export interface Context {
   role: 'system' | 'user' | 'assistant' | 'tool';
   content: string | ContentPart[];
   tool_call_id?: string;
@@ -18,7 +18,7 @@ export interface ToolCall {
 
 export interface ChatCompletionRequest {
   model: string;
-  messages: ChatMessage[];
+  messages: Context[];
   temperature?: number;
   max_tokens?: number | null;
   stream?: boolean;
@@ -37,7 +37,7 @@ export interface ChatCompletionUsage {
 
 export interface ChatCompletionChoice {
   index: number;
-  message: ChatMessage;
+  message: Context;
   finish_reason: string;
 }
 

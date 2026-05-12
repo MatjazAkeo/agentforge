@@ -1,6 +1,6 @@
 import { registerNodeDefinition, type NodeDefinition } from './registry';
 import type { AgentConfig } from '@/domain/node-types';
-import type { ChatMessage, ContentPart } from '@/openrouter/types';
+import type { Context, ContentPart } from '@/openrouter/types';
 import type { ImageRef } from '@/domain/images';
 import type { ToolDefinitionPayload } from './tool';
 import { llmOnce } from './_internals/llm-once';
@@ -31,17 +31,17 @@ function buildInitialMessages(
   cfg: AgentConfig,
   inputs: Record<string, unknown>,
   resolvedImages: string[],
-): ChatMessage[] {
+): Context[] {
   const upstream = inputs.messages;
   // Multi-turn mode — messages wins (matches LLM Call precedence rule).
   if (Array.isArray(upstream)) {
-    if (cfg.systemPrompt && (upstream as ChatMessage[])[0]?.role !== 'system') {
-      return [{ role: 'system', content: cfg.systemPrompt }, ...(upstream as ChatMessage[])];
+    if (cfg.systemPrompt && (upstream as Context[])[0]?.role !== 'system') {
+      return [{ role: 'system', content: cfg.systemPrompt }, ...(upstream as Context[])];
     }
-    return upstream as ChatMessage[];
+    return upstream as Context[];
   }
   // One-shot mode — synthesize from text + resolvedImages.
-  const messages: ChatMessage[] = [];
+  const messages: Context[] = [];
   if (cfg.systemPrompt) messages.push({ role: 'system', content: cfg.systemPrompt });
   const userText = typeof inputs.text === 'string' ? inputs.text : '';
   if (resolvedImages.length === 0) {
@@ -90,7 +90,7 @@ export const agentNode: NodeDefinition = {
         onContentDelta: (d) => ctx.onStreamUpdate?.(d),
       });
       lastText = llm.text;
-      const assistantMsg: ChatMessage = { role: 'assistant', content: llm.text };
+      const assistantMsg: Context = { role: 'assistant', content: llm.text };
       if (llm.toolCalls.length > 0) assistantMsg.tool_calls = llm.toolCalls;
       messages = [...messages, assistantMsg];
 

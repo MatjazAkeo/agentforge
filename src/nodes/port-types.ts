@@ -3,7 +3,7 @@ import type { Node } from '@/domain/graph';
 /**
  * Wire types — only what's structurally distinct:
  *   - `string`     — text-shaped data (covers former text / number / json / markdown variants)
- *   - `messages`   — ChatMessage[] (conversation history)
+ *   - `messages`   — Context[] (conversation history)
  *   - `tools`      — Tool definition list
  *   - `tool-calls` — Tool invocation list emitted by an LLM (distinct from `tools`)
  *   - `json`       — Arbitrary JSON-shaped data (Tool Runner's `results` output)

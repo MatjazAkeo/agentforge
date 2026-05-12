@@ -1,4 +1,4 @@
-import type { ChatMessage, ToolCall } from '@/openrouter/types';
+import type { Context, ToolCall } from '@/openrouter/types';
 import { streamChatCompletion } from '@/openrouter/client';
 import type { ToolDefinitionPayload } from '../tool';
 
@@ -9,7 +9,7 @@ export interface LLMOnceArgs {
   temperature: number;
   maxTokens?: number | null;
   responseFormat?: 'text' | 'json_object' | null;
-  messages: ChatMessage[];
+  messages: Context[];
   tools: ToolDefinitionPayload[];
   onContentDelta?: (delta: string) => void;
   onUsage?: (u: { input: number; output: number }) => void;

@@ -4,7 +4,7 @@ import { setActivePinia, createPinia } from 'pinia';
 import { toolRunnerNode } from '@/nodes/tool-runner';
 import type { Node } from '@/domain/graph';
 import type { ToolDefinitionPayload } from '@/nodes/tool';
-import type { ChatMessage } from '@/openrouter/types';
+import type { Context } from '@/openrouter/types';
 
 // Reuse the worker polyfill set up in Task 3
 beforeAll(async () => {
@@ -21,7 +21,7 @@ describe('tool-runner node', () => {
       timeoutMs: 1000,
     }];
     const node: Node = { id: 'r', type: 'tool-runner', position: { x: 0, y: 0 }, config: {} };
-    const messages: ChatMessage[] = [
+    const messages: Context[] = [
       { role: 'user', content: 'add 2 and 3' },
       { role: 'assistant', content: '', tool_calls: [{ id: 'c1', type: 'function', function: { name: 'add', arguments: '{"a":2,"b":3}' } }] },
     ];
@@ -33,7 +33,7 @@ describe('tool-runner node', () => {
     const ctx = { signal: new AbortController().signal, details: {} as Record<string, unknown>, apiKey: '', graphFilePath: null };
     const out = await toolRunnerNode.run(node, inputs, ctx);
 
-    const outMessages = out.messages as ChatMessage[];
+    const outMessages = out.messages as Context[];
     expect(outMessages.length).toBe(3);
     expect(outMessages[2].role).toBe('tool');
     expect(outMessages[2].content).toBe('5');

@@ -1,6 +1,6 @@
 import { registerNodeDefinition, type NodeDefinition } from './registry';
 import type { LLMCallConfig } from '@/domain/node-types';
-import type { ChatMessage, ContentPart } from '@/openrouter/types';
+import type { Context, ContentPart } from '@/openrouter/types';
 import type { ImageRef } from '@/domain/images';
 import type { ToolDefinitionPayload } from './tool';
 import { llmOnce } from './_internals/llm-once';
@@ -12,9 +12,9 @@ import { readAssetBytes } from '@/persistence/assets-dir';
 
 function buildMessages(
   cfg: LLMCallConfig,
-  inputs: { messages?: ChatMessage[]; text?: string; images?: ImageRef[] },
+  inputs: { messages?: Context[]; text?: string; images?: ImageRef[] },
   resolvedImages: string[],
-): ChatMessage[] {
+): Context[] {
   const upstream = inputs.messages;
 
   // Multi-turn mode — messages wins (ignores text + resolvedImages).
@@ -27,7 +27,7 @@ function buildMessages(
 
   // One-shot mode — synthesize from text + resolvedImages.
   const userText = typeof inputs.text === 'string' ? inputs.text : '';
-  const messages: ChatMessage[] = [];
+  const messages: Context[] = [];
   if (cfg.systemPrompt) messages.push({ role: 'system', content: cfg.systemPrompt });
 
   if (resolvedImages.length === 0) {
@@ -74,7 +74,7 @@ export const llmCallNode: NodeDefinition = {
     const resolved = await resolveImagesToDataUrls(refs, ctx.graphFilePath);
     const messages = buildMessages(
       cfg,
-      inputs as { messages?: ChatMessage[]; text?: string; images?: ImageRef[] },
+      inputs as { messages?: Context[]; text?: string; images?: ImageRef[] },
       resolved,
     );
     const tools = flattenTools(inputs.tools);
@@ -103,7 +103,7 @@ export const llmCallNode: NodeDefinition = {
     ctx.details.timing = out.timing;
     ctx.details.toolCalls = out.toolCalls;
 
-    const assistantMessage: ChatMessage = { role: 'assistant', content: out.text };
+    const assistantMessage: Context = { role: 'assistant', content: out.text };
     if (out.toolCalls.length > 0) assistantMessage.tool_calls = out.toolCalls;
     return {
       text: out.text,

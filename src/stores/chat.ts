@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import type { Graph } from '@/domain/graph';
-import type { ChatMessage, ContentPart } from '@/openrouter/types';
+import type { Context, ContentPart } from '@/openrouter/types';
 import type { ImageMime } from '@/domain/images';
 import { runGraph } from '@/engine/runner';
 import { wrapFileBlock, concatFileBlocks } from '@/files/wrapping';
@@ -108,10 +108,10 @@ export const useChatStore = defineStore('chat', () => {
     clearAttachments();
     status.value = 'running';
 
-    // Build the ChatMessage[] history. Each user turn re-composes its
+    // Build the Context[] history. Each user turn re-composes its
     // attachments inline (text only in the string fold; images as ContentPart[]).
     // Assistant turns pass through unchanged.
-    const history: ChatMessage[] = thread.value.map((t) => ({
+    const history: Context[] = thread.value.map((t) => ({
       role: t.role,
       content: buildMessageContent(t),
     }));
