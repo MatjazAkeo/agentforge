@@ -29,6 +29,9 @@ import PromptTemplateNode from './nodes/PromptTemplateNode.vue';
 import ChatInputNode from './nodes/ChatInputNode.vue';
 import ChatOutputNode from './nodes/ChatOutputNode.vue';
 import ContextGroupNode from './nodes/ContextGroupNode.vue';
+import RoutedEdge from './edges/RoutedEdge.vue';
+import { assignLanes } from './edges/path/assign-lanes';
+import type { BBox, RoutedEdgeData } from './edges/path/routing/types';
 
 const GRID = 20;
 const HELPER_THRESHOLD = 5; // px in flow coords
@@ -40,13 +43,47 @@ const ui = useUiStore();
 const { project, viewport, getNodes, setNodes, setEdges } = useVueFlow();
 
 const nodeTypes = { input: markRaw(InputNode), 'file-input': markRaw(FileInputNode), output: markRaw(OutputNode), 'llm-call': markRaw(LLMCallNode), tool: markRaw(ToolNode), 'tool-group': markRaw(ToolGroupNode), 'tool-runner': markRaw(ToolRunnerNode), 'tool-pack': markRaw(ToolPackNode), 'loop-controller': markRaw(LoopControllerNode), 'agent': markRaw(AgentNode), 'transform': markRaw(TransformNode), 'prompt-template': markRaw(PromptTemplateNode), 'chat-input': markRaw(ChatInputNode), 'chat-output': markRaw(ChatOutputNode), 'context-group': markRaw(ContextGroupNode) } as Record<string, ReturnType<typeof markRaw>>;
+const edgeTypes = { default: markRaw(RoutedEdge) } as Record<string, ReturnType<typeof markRaw>>;
+
+function nodeBBox(node: { id: string; position: { x: number; y: number } }): BBox {
+  // Vue Flow doesn't expose measured dimensions through our store. Use the
+  // canvas defaults; the routing heuristic tolerates a small mismatch.
+  return {
+    nodeId: node.id,
+    x: node.position.x,
+    y: node.position.y,
+    w: NODE_DEFAULT_W,
+    h: NODE_DEFAULT_H,
+  };
+}
 
 const flowNodes = computed<VFNode[]>(() =>
   graph.nodes.map((n) => ({ id: n.id, type: n.type, position: n.position, data: { config: n.config } })),
 );
-const flowEdges = computed<VFEdge[]>(() =>
-  graph.edges.map((e) => ({ id: e.id, source: e.source, target: e.target, sourceHandle: e.sourceHandle, targetHandle: e.targetHandle })),
-);
+const flowEdges = computed(() => {
+  const nodesById = new Map(graph.nodes.map((n) => [n.id, n]));
+  const allBBoxes = graph.nodes.map(nodeBBox);
+  const lanes = assignLanes(graph.edges, graph.nodes);
+
+  return graph.edges.map((e): VFEdge => {
+    const srcNode = nodesById.get(e.source);
+    const wireType = srcNode ? getSourcePortType(srcNode, e.sourceHandle ?? '') : null;
+    const obstacles = allBBoxes.filter((b) => b.nodeId !== e.source && b.nodeId !== e.target);
+    const data: RoutedEdgeData = {
+      wireType,
+      obstacles,
+      laneOffset: lanes.get(e.id) ?? 0,
+    };
+    return {
+      id: e.id,
+      source: e.source,
+      target: e.target,
+      sourceHandle: e.sourceHandle,
+      targetHandle: e.targetHandle,
+      data,
+    };
+  });
+});
 
 // Imperative sync: our Pinia store is the single source of truth. We push the
 // full canonical state to Vue Flow on every change via setNodes/setEdges
@@ -263,6 +300,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown, true));
   <div ref="canvasRef" class="w-full h-full relative" @contextmenu="onContextMenu">
     <VueFlow
       :node-types="nodeTypes"
+      :edge-types="edgeTypes"
       :fit-view-on-init="true"
       :is-valid-connection="isValidConnection"
       @node-click="onNodeClick"
