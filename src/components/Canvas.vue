@@ -208,6 +208,7 @@ function targetAcceptsMultiEdge(nodeId: string, handleId: string): boolean {
   const node = graph.nodes.find((n) => n.id === nodeId);
   if (!node) return false;
   if (node.type === 'tool-group' && handleId === 'tools') return true;
+  if (node.type === 'context-group' && handleId === 'contexts') return true;
   return false;
 }
 

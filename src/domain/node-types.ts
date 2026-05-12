@@ -15,7 +15,8 @@ export type NodeType =
   | 'chat-input'
   | 'chat-output'
   | 'file-input'
-  | 'tool-pack';
+  | 'tool-pack'
+  | 'context-group';
 
 export interface InputConfig {
   name: string;
@@ -43,6 +44,10 @@ export interface ToolConfig {
 }
 
 export interface ToolGroupConfig {
+  label: string;                                   // shown on the node card; cosmetic only
+}
+
+export interface ContextGroupConfig {
   label: string;                                   // shown on the node card; cosmetic only
 }
 
@@ -150,6 +155,7 @@ export type NodeConfig =
   | LLMCallConfig
   | ToolConfig
   | ToolGroupConfig
+  | ContextGroupConfig
   | ToolRunnerConfig
   | TransformConfig
   | PromptTemplateConfig
