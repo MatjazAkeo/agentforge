@@ -83,7 +83,7 @@ export interface ChatOutputConfig {
  * (`default-X`, `input-X`, `output-X`) get the right color and validate against the
  * right shape, instead of all defaulting to the polymorphic `json` wildcard.
  */
-export type LoopChannelType = 'string' | 'messages' | 'tools' | 'tool-calls' | 'json';
+export type LoopChannelType = 'tools' | 'tool-calls' | 'json' | 'context';
 
 export interface LoopControllerConfig {
   maxIterations: number;            // default 25

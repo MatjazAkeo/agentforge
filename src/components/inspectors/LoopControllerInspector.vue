@@ -66,8 +66,7 @@ function removeChannel(i: number) {
             class="bg-elev text-text-base border border-border-base rounded px-2 py-1 text-[11px] font-mono w-full"
             title="Channel wire type">
             <option value="json">json (any)</option>
-            <option value="string">string</option>
-            <option value="messages">messages</option>
+            <option value="context">context</option>
             <option value="tools">tools</option>
             <option value="tool-calls">tool-calls</option>
           </select>

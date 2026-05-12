@@ -2,23 +2,19 @@ import type { Node } from '@/domain/graph';
 
 /**
  * Wire types — only what's structurally distinct:
- *   - `string`     — text-shaped data (covers former text / number / json / markdown variants)
- *   - `messages`   — Context[] (conversation history)
+ *   - `context`    — Context[] (conversation history, multimodal-aware)
+ *   - `number`     — numeric values (e.g., Loop Controller iteration counter)
  *   - `tools`      — Tool definition list
  *   - `tool-calls` — Tool invocation list emitted by an LLM (distinct from `tools`)
- *   - `json`       — Arbitrary JSON-shaped data (Tool Runner's `results` output)
- *   - `images`     — ImageRef[] (image references for LLM multimodal input)
+ *   - `json`       — Arbitrary JSON-shaped data (Tool Runner's `results` output, Transform, Loop Controller channels)
  */
-export type DataType = 'string' | 'number' | 'messages' | 'tools' | 'tool-calls' | 'json' | 'images' | 'context';
+export type DataType = 'number' | 'tools' | 'tool-calls' | 'json' | 'context';
 
 const TYPE_COLORS: Record<DataType, string> = {
-  string: '#ffaa55',
   number: '#9aa0a8',
-  messages: '#b388ff',
   tools: '#ffd54a',
   'tool-calls': '#ff5577',
   json: '#4ad7e2',
-  images: '#7ad48c',
   context: '#b388ff',
 };
 
