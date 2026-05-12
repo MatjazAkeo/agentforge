@@ -27,9 +27,14 @@ describe('llm-call node', () => {
       },
     };
     const ctx = { signal: new AbortController().signal, details: {} as Record<string, unknown>, apiKey: 'test-key', graphFilePath: null };
-    const out = await llmCallNode.run(node, { userMessage: 'capital of France?' }, ctx);
+    const out = await llmCallNode.run(node, { context: [{ role: 'user', content: 'capital of France?' }] }, ctx);
 
-    expect(out.text).toBe('Paris');
+    // Output context = system prompt (prepended) + incoming user + new assistant reply.
+    expect(out.context).toEqual([
+      { role: 'system', content: 'Be concise.' },
+      { role: 'user', content: 'capital of France?' },
+      { role: 'assistant', content: 'Paris' },
+    ]);
     expect(out.usage).toEqual({ input: 3, output: 1 });
     expect(ctx.details.request).toBeDefined();
     expect(ctx.details.timing).toBeDefined();

@@ -36,8 +36,7 @@ export function getSourcePortType(node: Node, handleId: string): DataType | null
       if (handleId === 'context') return 'context';
       return null;
     case 'llm-call':
-      if (handleId === 'text') return 'string';
-      if (handleId === 'messages') return 'messages';
+      if (handleId === 'context') return 'context';
       if (handleId === 'toolCalls') return 'tool-calls';
       return null;
     case 'tool':
@@ -70,8 +69,7 @@ export function getSourcePortType(node: Node, handleId: string): DataType | null
       return null;
     }
     case 'agent':
-      if (handleId === 'text') return 'string';
-      if (handleId === 'messages') return 'messages';
+      if (handleId === 'context') return 'context';
       if (handleId === 'iteration') return 'number';
       return null;
     case 'chat-input':
@@ -89,10 +87,8 @@ export function getTargetPortType(node: Node, handleId: string): DataType | null
       if (handleId === 'context') return 'context';
       return null;
     case 'llm-call':
-      if (handleId === 'text') return 'string';
-      if (handleId === 'messages') return 'messages';
+      if (handleId === 'context') return 'context';
       if (handleId === 'tools') return 'tools';
-      if (handleId === 'images') return 'images';
       return null;
     case 'tool-group':
       if (handleId === 'tools') return 'tools';
@@ -132,10 +128,8 @@ export function getTargetPortType(node: Node, handleId: string): DataType | null
       return null;
     }
     case 'agent':
-      if (handleId === 'text') return 'string';
-      if (handleId === 'messages') return 'messages';
+      if (handleId === 'context') return 'context';
       if (handleId === 'tools') return 'tools';
-      if (handleId === 'images') return 'images';
       return null;
     case 'chat-output':
       if (handleId === 'context') return 'context';

@@ -66,18 +66,6 @@ const showJsonMode = computed(() => {
         @input="(e) => update('maxIterations', parseInt((e.target as HTMLInputElement).value, 10) || 25)"
         class="bg-elev text-text-base border border-border-base rounded px-2 py-1.5 text-sm font-ui">
     </label>
-    <label class="flex flex-col gap-1 text-xs opacity-85">
-      Image port
-      <select
-        :value="cfg.imagesPortMode ?? 'auto'"
-        @change="(e) => update('imagesPortMode', (e.target as HTMLSelectElement).value as AgentConfig['imagesPortMode'])"
-        class="bg-elev text-text-base border border-border-base rounded px-2 py-1.5 text-sm font-ui"
-      >
-        <option value="auto">Auto (catalog)</option>
-        <option value="force-on">On</option>
-        <option value="force-off">Off</option>
-      </select>
-    </label>
     <label v-if="showJsonMode" class="flex flex-col gap-1 text-xs opacity-85">
       Response format
       <select
@@ -106,14 +94,11 @@ const showJsonMode = computed(() => {
     <IOValues :node-id="nodeId" />
     <PortLegend
       :inputs="[
-        { id: 'text', type: 'string', description: 'Initial user prompt for the agent.' },
-        { id: 'messages', type: 'messages', description: 'Existing conversation to continue.' },
+        { id: 'context', type: 'context', description: 'Full conversation state. Multimodal content (images) embedded inside user messages.' },
         { id: 'tools', type: 'tools', description: 'Tools the agent may call. Wire from a Tool Group. Visible only when the selected model supports tools.' },
-        { id: 'images', type: 'images', description: 'Image inputs (ImageRef[]) for the initial user message. Port visibility tracks the selected model.' },
       ]"
       :outputs="[
-        { id: 'text', type: 'string', description: 'Final assistant text after the loop terminates.' },
-        { id: 'messages', type: 'messages', description: 'Full conversation including tool turns.' },
+        { id: 'context', type: 'context', description: 'Full conversation after the loop terminates (history + assistant reply + tool turns).' },
         { id: 'iteration', type: 'number', description: 'Number of iterations the agent ran.' },
       ]"
     />

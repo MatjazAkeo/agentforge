@@ -1,11 +1,9 @@
 import { registerNodeDefinition, type NodeDefinition } from './registry';
 import type { AgentConfig } from '@/domain/node-types';
-import type { Context, ContentPart } from '@/openrouter/types';
-import type { ImageRef } from '@/domain/images';
+import type { Context } from '@/openrouter/types';
 import type { ToolDefinitionPayload } from './tool';
 import { llmOnce } from './_internals/llm-once';
 import { runToolBatch } from './_internals/tool-batch';
-import { resolveImagesToDataUrls } from './llm-call';
 import { useRunStore } from '@/stores/run';
 import { useSettingsStore } from '@/stores/settings';
 import { estimateCallCostUsd } from '@/openrouter/credits';
@@ -27,46 +25,24 @@ function flattenTools(input: unknown): ToolDefinitionPayload[] {
   return [input as ToolDefinitionPayload];
 }
 
-function buildInitialMessages(
-  cfg: AgentConfig,
-  inputs: Record<string, unknown>,
-  resolvedImages: string[],
-): Context[] {
-  const upstream = inputs.messages;
-  // Multi-turn mode — messages wins (matches LLM Call precedence rule).
-  if (Array.isArray(upstream)) {
-    if (cfg.systemPrompt && (upstream as Context[])[0]?.role !== 'system') {
-      return [{ role: 'system', content: cfg.systemPrompt }, ...(upstream as Context[])];
-    }
-    return upstream as Context[];
+function buildInitialMessages(cfg: AgentConfig, contextIn: Context[] | undefined): Context[] {
+  const upstream = contextIn ?? [];
+  if (cfg.systemPrompt && upstream[0]?.role !== 'system') {
+    return [{ role: 'system', content: cfg.systemPrompt }, ...upstream];
   }
-  // One-shot mode — synthesize from text + resolvedImages.
-  const messages: Context[] = [];
-  if (cfg.systemPrompt) messages.push({ role: 'system', content: cfg.systemPrompt });
-  const userText = typeof inputs.text === 'string' ? inputs.text : '';
-  if (resolvedImages.length === 0) {
-    if (userText) messages.push({ role: 'user', content: userText });
-  } else {
-    const parts: ContentPart[] = [];
-    if (userText) parts.push({ type: 'text', text: userText });
-    for (const url of resolvedImages) parts.push({ type: 'image_url', image_url: { url } });
-    messages.push({ role: 'user', content: parts });
-  }
-  return messages;
+  return upstream;
 }
 
 export const agentNode: NodeDefinition = {
   type: 'agent',
-  inputPorts: ['messages', 'text', 'tools', 'images'],
-  outputPorts: ['text', 'messages', 'iteration'],
+  inputPorts: ['context', 'tools'],
+  outputPorts: ['context', 'iteration'],
   async run(node, inputs, ctx) {
     const cfg = node.config as AgentConfig;
     const tools = flattenTools(inputs.tools);
-    const imageRefs = inputs.images as ImageRef[] | undefined;
-    const resolvedImages = await resolveImagesToDataUrls(imageRefs, ctx.graphFilePath);
-    let messages = buildInitialMessages(cfg, inputs, resolvedImages);
+    const incoming = inputs.context as Context[] | undefined;
+    let messages = buildInitialMessages(cfg, incoming);
     const iterations: AgentIteration[] = [];
-    let lastText = '';
     const runStore = useRunStore();
 
     for (let i = 1; i <= cfg.maxIterations; i++) {
@@ -89,7 +65,6 @@ export const agentNode: NodeDefinition = {
         },
         onContentDelta: (d) => ctx.onStreamUpdate?.(d),
       });
-      lastText = llm.text;
       const assistantMsg: Context = { role: 'assistant', content: llm.text };
       if (llm.toolCalls.length > 0) assistantMsg.tool_calls = llm.toolCalls;
       messages = [...messages, assistantMsg];
@@ -111,7 +86,7 @@ export const agentNode: NodeDefinition = {
           output: { text: llm.text, toolCalls: [] },
           details: { llm: richRecord.llm, tools: [] },
         });
-        return { text: lastText, messages, iteration: i };
+        return { context: messages, iteration: i };
       }
 
       const batch = await runToolBatch({ toolCalls: llm.toolCalls, tools, signal: ctx.signal });

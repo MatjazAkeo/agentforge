@@ -32,7 +32,6 @@ export interface LLMCallConfig {
   temperature: number;
   maxTokens: number | null;
   responseFormat: 'text' | 'json_object' | null;
-  imagesPortMode?: 'auto' | 'force-on' | 'force-off';
 }
 
 export interface ToolConfig {
@@ -101,7 +100,6 @@ export interface AgentConfig {
   maxTokens: number | null;
   maxIterations: number;            // default 25
   stopCondition: 'no-tool-calls';   // only option in v1
-  imagesPortMode?: 'auto' | 'force-on' | 'force-off';
   /** Constrains the model's `content` field across every iteration. Tool calls
    *  are already structured in the API; JSON mode only affects assistant text. */
   responseFormat?: 'text' | 'json_object' | null;

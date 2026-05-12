@@ -66,7 +66,6 @@ function defaultConfig(type: NodeType): Record<string, unknown> {
       temperature: 0.7,
       maxTokens: null,
       responseFormat: null,
-      imagesPortMode: 'auto',
     };
     case 'tool': return {
       name: 'my_tool',
@@ -93,7 +92,6 @@ function defaultConfig(type: NodeType): Record<string, unknown> {
       maxTokens: null,
       maxIterations: 25,
       stopCondition: 'no-tool-calls',
-      imagesPortMode: 'auto',
     };
     case 'transform': return { mode: 'json-parse' };
     case 'prompt-template': return { template: 'Hello {{name}}!' };

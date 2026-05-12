@@ -5,7 +5,6 @@ import { useRunStore } from '@/stores/run';
 import { useGraphStore } from '@/stores/graph';
 import { useSettingsStore } from '@/stores/settings';
 import { colorForType } from '@/nodes/port-types';
-import { resolveImagesPortVisibility, type ImagesPortMode } from '@/openrouter/vision';
 import type { LLMCallConfig } from '@/domain/node-types';
 
 const props = defineProps<{ id: string; data: { config: LLMCallConfig } }>();
@@ -49,14 +48,6 @@ const previewText = computed(() => {
   return '— not yet run —';
 });
 
-const showImagesPort = computed(() =>
-  resolveImagesPortVisibility(
-    (props.data.config.imagesPortMode ?? 'auto') as ImagesPortMode,
-    props.data.config.model,
-    settings.models,
-  ),
-);
-
 // Tools/toolCalls visibility tracks the selected model's catalog capability.
 // Unknown models default to shown so custom / unlisted model IDs aren't
 // stripped of their wiring just because the catalog doesn't know about them.
@@ -99,26 +90,14 @@ function onDelete() {
 
     <!-- Paired port rows. Inputs left, outputs right. -->
     <div class="py-1">
-      <!-- Row 1: text in | text out -->
+      <!-- Row 1: context in | context out -->
       <div class="relative h-6 flex items-center justify-between px-3 text-[11px]">
-        <span class="text-text-dim font-mono text-[10px]">text</span>
-        <Handle id="text" type="target" :position="Position.Left" :style="{ background: colorForType('string') }" />
-        <span class="text-text-dim font-mono text-[10px]">text</span>
-        <Handle id="text" type="source" :position="Position.Right" :style="{ background: colorForType('string') }" />
+        <span class="text-text-dim font-mono text-[10px]">context</span>
+        <Handle id="context" type="target" :position="Position.Left" :style="{ background: colorForType('context') }" />
+        <span class="text-text-dim font-mono text-[10px]">context</span>
+        <Handle id="context" type="source" :position="Position.Right" :style="{ background: colorForType('context') }" />
       </div>
-      <!-- Row 2: messages in | messages out -->
-      <div class="relative h-6 flex items-center justify-between px-3 text-[11px]">
-        <span class="text-text-dim font-mono text-[10px]">messages</span>
-        <Handle id="messages" type="target" :position="Position.Left" :style="{ background: colorForType('messages') }" />
-        <span class="text-text-dim font-mono text-[10px]">messages</span>
-        <Handle id="messages" type="source" :position="Position.Right" :style="{ background: colorForType('messages') }" />
-      </div>
-      <!-- Row 3: images in | (no output) — only when model has vision -->
-      <div v-if="showImagesPort" class="relative h-6 flex items-center pl-3 text-[11px]">
-        <Handle id="images" type="target" :position="Position.Left" :style="{ background: colorForType('images') }" />
-        <span class="text-text-dim font-mono text-[10px]">images</span>
-      </div>
-      <!-- Row 4: tools in | toolCalls out — only when model supports tools -->
+      <!-- Row 2: tools in | toolCalls out — only when model supports tools -->
       <div v-if="showToolsPort" class="relative h-6 flex items-center justify-between px-3 text-[11px]">
         <span class="text-text-dim font-mono text-[10px]">tools</span>
         <Handle id="tools" type="target" :position="Position.Left" :style="{ background: colorForType('tools') }" />

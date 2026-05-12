@@ -24,14 +24,15 @@ describe('agentNode', () => {
     vi.spyOn(toolBatchModule, 'runToolBatch').mockResolvedValue({ results: [], toolMessages: [] });
   });
 
-  it('returns text immediately when LLM emits no tool calls', async () => {
+  it('returns context immediately when LLM emits no tool calls', async () => {
     vi.spyOn(llmOnceModule, 'llmOnce').mockResolvedValue({
       text: 'final', toolCalls: [],
       request: {}, response: { text: 'final' },
       usage: { input: 1, output: 2 }, timing: { totalMs: 1, firstTokenMs: 0 },
     });
-    const out = await agentNode.run(makeAgent(), { text: 'hi' }, ctx());
-    expect(out.text).toBe('final');
+    const out = await agentNode.run(makeAgent(), { context: [{ role: 'user', content: 'hi' }] }, ctx());
+    const ctxOut = out.context as Array<{ role: string; content: string }>;
+    expect(ctxOut[ctxOut.length - 1]).toEqual({ role: 'assistant', content: 'final' });
     expect(out.iteration).toBe(1);
   });
 
@@ -44,9 +45,10 @@ describe('agentNode', () => {
     ];
     vi.spyOn(llmOnceModule, 'llmOnce').mockImplementation(async () => responses.shift()!);
     const tools = [{ name: 'noop', description: '', inputSchema: { type: 'object' }, code: 'return null;', timeoutMs: 1000 }];
-    const out = await agentNode.run(makeAgent(), { text: 'go', tools }, ctx());
+    const out = await agentNode.run(makeAgent(), { context: [{ role: 'user', content: 'go' }], tools }, ctx());
     expect(out.iteration).toBe(2);
-    expect(out.text).toBe('done');
+    const ctxOut = out.context as Array<{ role: string; content: string }>;
+    expect(ctxOut[ctxOut.length - 1]).toEqual({ role: 'assistant', content: 'done' });
   });
 
   it('errors when maxIterations is exceeded', async () => {
@@ -57,6 +59,6 @@ describe('agentNode', () => {
     const node = makeAgent();
     (node.config as Record<string, unknown>).maxIterations = 2;
     const tools = [{ name: 'x', description: '', inputSchema: { type: 'object' }, code: 'return 1;', timeoutMs: 1000 }];
-    await expect(agentNode.run(node, { text: 'go', tools }, ctx())).rejects.toThrow(/maxIterations/);
+    await expect(agentNode.run(node, { context: [{ role: 'user', content: 'go' }], tools }, ctx())).rejects.toThrow(/maxIterations/);
   });
 });
