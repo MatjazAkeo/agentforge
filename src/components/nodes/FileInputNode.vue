@@ -26,10 +26,6 @@ const borderColor = computed(() => {
 
 const files = computed(() => props.data.config.files ?? []);
 const fileCount = computed(() => files.value.length);
-const hasImages = computed(() => files.value.some((f) => f.kind === 'image'));
-// Show the text port when there's something text-shaped to emit: empty config
-// (legacy compat, default to 'text') OR at least one text-kind file attached.
-const hasText = computed(() => files.value.length === 0 || files.value.some((f) => (f.kind ?? 'text') === 'text'));
 
 // Thumbnail cache for image entries on the node card. Keyed by filename,
 // resolved on the file row's first mount and reused on subsequent renders.
@@ -79,14 +75,9 @@ function onDelete() {
       >×</button>
     </div>
 
-    <div v-if="hasText" class="relative h-7 flex items-center justify-end pr-3 text-[11px]">
-      <span class="text-text-dim font-mono text-[10px]">text</span>
-      <Handle id="text" type="source" :position="Position.Right" :style="{ background: colorForType('string') }" />
-    </div>
-
-    <div v-if="hasImages" class="relative h-7 flex items-center justify-end pr-3 text-[11px]">
-      <span class="text-text-dim font-mono text-[10px]">images</span>
-      <Handle id="images" type="source" :position="Position.Right" :style="{ background: colorForType('images') }" />
+    <div class="relative h-7 flex items-center justify-end pr-3 text-[11px]">
+      <span class="text-text-dim font-mono text-[10px]">context</span>
+      <Handle id="context" type="source" :position="Position.Right" :style="{ background: colorForType('context') }" />
     </div>
 
     <div class="rounded-b-md border-t border-border-base bg-node-inset">

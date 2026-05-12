@@ -1,35 +1,36 @@
 import { registerNodeDefinition, type NodeDefinition } from './registry';
 import type { FileInputConfig } from '@/domain/node-types';
-import type { ImageRef, ImageMime } from '@/domain/images';
+import type { ImageMime } from '@/domain/images';
+import { wrapAsContextMixed } from '@/domain/context';
 import { readAssetBytes, assetExists } from '@/persistence/assets-dir';
+import { bytesToBase64 } from '@/files/image';
 import { extractText, extensionOf } from '@/files/extract';
 import { wrapFileBlock, concatFileBlocks } from '@/files/wrapping';
 
 export const fileInputNode: NodeDefinition = {
   type: 'file-input',
   inputPorts: [],
-  outputPorts: ['text', 'images'],
+  outputPorts: ['context'],
   async run(node, _inputs, ctx) {
     const cfg = node.config as FileInputConfig;
     const files = cfg.files ?? [];
 
-    const textFiles = files.filter((f) => (f.kind ?? 'text') === 'text');
-    const imageFiles = files.filter((f) => f.kind === 'image');
-
     if (files.length === 0) {
       ctx.details.fileCount = 0;
-      return { text: '' };
+      return { context: [{ role: 'user' as const, content: '' }] };
     }
 
     if (!ctx.graphFilePath) {
       throw new Error('file-input: save the graph first — file inputs need a saved location to find their side-car directory.');
     }
 
-    const out: { text?: string; images?: ImageRef[] } = {};
+    const textFiles = files.filter((f) => (f.kind ?? 'text') === 'text');
+    const imageFiles = files.filter((f) => f.kind === 'image');
 
+    let textPortion = '';
+    const emptyFiles: string[] = [];
     if (textFiles.length > 0) {
       const blocks: string[] = [];
-      const emptyFiles: string[] = [];
       for (const f of textFiles) {
         if (!(await assetExists(ctx.graphFilePath, f.filename))) {
           throw new Error(`file-input: missing asset ${f.filename} — was the assets folder moved?`);
@@ -40,22 +41,24 @@ export const fileInputNode: NodeDefinition = {
         if (content.trim().length === 0) emptyFiles.push(f.filename);
         blocks.push(wrapFileBlock(f.filename, content));
       }
-      out.text = concatFileBlocks(blocks);
-      ctx.details.emptyFiles = emptyFiles;
-      ctx.details.charCount = blocks.reduce((sum, b) => sum + b.length, 0);
+      textPortion = concatFileBlocks(blocks);
     }
 
-    if (imageFiles.length > 0) {
-      out.images = imageFiles.map((f): ImageRef => ({
-        kind: 'asset',
-        filename: f.filename,
-        mime: (f.mime ?? 'image/jpeg') as ImageMime,
-      }));
+    const imageDataUrls: string[] = [];
+    for (const f of imageFiles) {
+      if (!(await assetExists(ctx.graphFilePath, f.filename))) {
+        throw new Error(`file-input: missing asset ${f.filename} — was the assets folder moved?`);
+      }
+      const bytes = await readAssetBytes(ctx.graphFilePath, f.filename);
+      const mime = (f.mime ?? 'image/jpeg') as ImageMime;
+      imageDataUrls.push(`data:${mime};base64,${bytesToBase64(new Uint8Array(bytes))}`);
     }
 
     ctx.details.fileCount = files.length;
     ctx.details.imageCount = imageFiles.length;
-    return out;
+    ctx.details.emptyFiles = emptyFiles;
+    ctx.details.charCount = textPortion.length;
+    return { context: wrapAsContextMixed(textPortion, imageDataUrls) };
   },
 };
 

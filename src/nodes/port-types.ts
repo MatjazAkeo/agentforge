@@ -33,8 +33,7 @@ export function getSourcePortType(node: Node, handleId: string): DataType | null
       if (handleId === 'context') return 'context';
       return null;
     case 'file-input':
-      if (handleId === 'text') return 'string';
-      if (handleId === 'images') return 'images';
+      if (handleId === 'context') return 'context';
       return null;
     case 'llm-call':
       if (handleId === 'text') return 'string';

@@ -2,7 +2,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import type { Graph, Node, Edge } from '@/domain/graph';
-import type { FileInputConfig } from '@/domain/node-types';
 import { dbRegistry } from '@/sqlite/db-registry';
 
 function newEmptyGraph(): Graph {
@@ -106,26 +105,6 @@ export const useGraphStore = defineStore('graph', () => {
     n.config = { ...n.config, ...config };
     dirty.value = true;
     recomputeContainsCustomCode();
-
-    if (n.type === 'file-input') {
-      const cfg = n.config as FileInputConfig;
-      const files = cfg.files ?? [];
-      const hasImages = files.some((f) => f.kind === 'image');
-      // Mirrors FileInputNode.vue's `hasText` rule: empty config still emits
-      // an empty text wire (legacy compat), otherwise text port exists only
-      // when at least one text-kind file is attached.
-      const hasText = files.length === 0 || files.some((f) => (f.kind ?? 'text') === 'text');
-      if (!hasImages) {
-        graph.value.edges = graph.value.edges.filter(
-          (e) => !(e.source === id && e.sourceHandle === 'images'),
-        );
-      }
-      if (!hasText) {
-        graph.value.edges = graph.value.edges.filter(
-          (e) => !(e.source === id && e.sourceHandle === 'text'),
-        );
-      }
-    }
   }
 
   function updateNodePosition(id: string, x: number, y: number) {

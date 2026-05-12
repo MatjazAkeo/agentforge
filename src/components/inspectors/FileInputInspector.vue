@@ -216,8 +216,7 @@ refreshMissing();
 
     <PortLegend
       :outputs="[
-        { id: 'text', type: 'string', description: 'Concatenated XML-wrapped file content.' },
-        { id: 'images', type: 'images', description: 'Array of ImageRef assets (when image files are configured).' },
+        { id: 'context', type: 'context', description: 'Single user-message context with concatenated file blocks plus inlined image data URLs.' },
       ]"
     />
   </div>
