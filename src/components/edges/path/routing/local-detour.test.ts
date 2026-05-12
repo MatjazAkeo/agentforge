@@ -42,6 +42,26 @@ describe('routeWithLocalDetour', () => {
     ]);
   });
 
+  it('uses a wrap-around U-shape for loop-back edges (source-right, target to the left of source)', () => {
+    // Feedback edge pattern: source-right port, but target is to the LEFT of source.
+    // Without wrap-around, the natural H-V-H midX would put the path through the
+    // source node's body.
+    const wp = routeWithLocalDetour(input({
+      source: { x: 800, y: 600 },
+      target: { x: 100, y: 200 },
+    }));
+    // EXIT_CLEARANCE = 30, WRAP_CHANNEL_OFFSET = 100.
+    // exitX = 800 + 30 = 830, approachX = 100 - 30 = 70, channelY = min(600, 200) - 100 = 100.
+    expect(wp).toEqual([
+      { x: 800, y: 600 },
+      { x: 830, y: 600 },
+      { x: 830, y: 100 },
+      { x: 70, y: 100 },
+      { x: 70, y: 200 },
+      { x: 100, y: 200 },
+    ]);
+  });
+
   it('keeps the H-V-H step pattern when laneOffset is nonzero, even if step is tiny', () => {
     // Step of 10px is below threshold, BUT laneOffset = 12 (would be from a 2-edge group)
     // forces the step to stay so lane spreading still works.

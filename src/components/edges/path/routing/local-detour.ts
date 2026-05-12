@@ -2,6 +2,11 @@ import type { BBox, PathInput, Point, PortPosition } from './types';
 
 const OBSTACLE_PADDING = 12;
 const MAX_DETOUR_ITERATIONS = 8;
+const EXIT_CLEARANCE = 30;
+// Wrap-around channel offset — far enough above min endpoint y to clear a default
+// NODE_DEFAULT_H=80 node plus inflation/padding margin. Hardcoded since the source/
+// target node bboxes aren't passed in.
+const WRAP_CHANNEL_OFFSET = 100;
 
 interface InflatedRect { x1: number; y1: number; x2: number; y2: number; nodeId: string }
 interface HSeg { kind: 'h'; y: number; xMin: number; xMax: number }
@@ -53,6 +58,28 @@ function buildNaturalPath(input: PathInput): Point[] {
   const { source, target, sourcePosition, targetPosition, laneOffset = 0 } = input;
 
   if (isHorizontalFlow(sourcePosition, targetPosition)) {
+    // Loop-back: source port direction would require backtracking through the
+    // source node's body. Wrap above both endpoints instead.
+    const isLoopBack =
+      (sourcePosition === 'right' && source.x > target.x) ||
+      (sourcePosition === 'left'  && source.x < target.x);
+
+    if (isLoopBack) {
+      const exitX = sourcePosition === 'right' ? source.x + EXIT_CLEARANCE : source.x - EXIT_CLEARANCE;
+      const approachX = targetPosition === 'left'
+        ? target.x - EXIT_CLEARANCE
+        : target.x + EXIT_CLEARANCE;
+      const channelY = Math.min(source.y, target.y) - WRAP_CHANNEL_OFFSET + laneOffset;
+      return [
+        source,
+        { x: exitX, y: source.y },
+        { x: exitX, y: channelY },
+        { x: approachX, y: channelY },
+        { x: approachX, y: target.y },
+        target,
+      ];
+    }
+
     if (source.y === target.y) return [source, target];
     // Tiny vertical step would force smoothstep corners to clamp tight.
     // Go diagonal instead — but only when laneOffset is 0, since parallel-edge
@@ -68,6 +95,26 @@ function buildNaturalPath(input: PathInput): Point[] {
   }
 
   if (isVerticalFlow(sourcePosition, targetPosition)) {
+    const isLoopBack =
+      (sourcePosition === 'bottom' && source.y > target.y) ||
+      (sourcePosition === 'top'    && source.y < target.y);
+
+    if (isLoopBack) {
+      const exitY = sourcePosition === 'bottom' ? source.y + EXIT_CLEARANCE : source.y - EXIT_CLEARANCE;
+      const approachY = targetPosition === 'top'
+        ? target.y - EXIT_CLEARANCE
+        : target.y + EXIT_CLEARANCE;
+      const channelX = Math.min(source.x, target.x) - WRAP_CHANNEL_OFFSET + laneOffset;
+      return [
+        source,
+        { x: source.x, y: exitY },
+        { x: channelX, y: exitY },
+        { x: channelX, y: approachY },
+        { x: target.x, y: approachY },
+        target,
+      ];
+    }
+
     if (source.x === target.x) return [source, target];
     if (laneOffset === 0 && Math.abs(target.x - source.x) < 30) return [source, target];
     const midY = (source.y + target.y) / 2 + laneOffset;
