@@ -33,6 +33,28 @@ describe('routeWithLocalDetour', () => {
     ]);
   });
 
+  it('returns a straight diagonal when vertical step is below 30px (no lane offset)', () => {
+    // Step of 15px is below the 30px threshold; falls back to a 2-waypoint diagonal.
+    const wp = routeWithLocalDetour(input({ target: { x: 400, y: 115 } }));
+    expect(wp).toEqual([
+      { x: 0, y: 100 },
+      { x: 400, y: 115 },
+    ]);
+  });
+
+  it('keeps the H-V-H step pattern when laneOffset is nonzero, even if step is tiny', () => {
+    // Step of 10px is below threshold, BUT laneOffset = 12 (would be from a 2-edge group)
+    // forces the step to stay so lane spreading still works.
+    const wp = routeWithLocalDetour(input({
+      target: { x: 400, y: 110 },
+      laneOffset: 12,
+    }));
+    // 4 waypoints: source, two corners at midX (212 = 200 + 12), target.
+    expect(wp).toHaveLength(4);
+    expect(wp[1]).toEqual({ x: 212, y: 100 });
+    expect(wp[2]).toEqual({ x: 212, y: 110 });
+  });
+
   it('routes over an obstacle on the source-target line (same-y case)', () => {
     // Obstacle straddles y=100 between source (0,100) and target (400,100).
     const obstacle: BBox = { x: 150, y: 80, w: 100, h: 40, nodeId: 'obs' };

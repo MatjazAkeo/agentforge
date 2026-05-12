@@ -1,13 +1,17 @@
 import type { Edge, Node } from '@/domain/graph';
 
-const LANE_STEP = 8;
+const LANE_STEP = 24;
 
 export function assignLanes(edges: Edge[], nodes: Node[]): Map<string, number> {
   const nodeById = new Map(nodes.map((n) => [n.id, n]));
   const groups = new Map<string, Edge[]>();
 
   for (const e of edges) {
-    const key = `${e.target}|${e.targetHandle}`;
+    // Group by target node only — edges entering the same node share an approach
+    // corridor and need distinct lanes even when their target handles differ.
+    // The lane offset shifts the routing path; each edge still peels off to its
+    // own port at the very end.
+    const key = e.target;
     const list = groups.get(key);
     if (list) list.push(e);
     else groups.set(key, [e]);

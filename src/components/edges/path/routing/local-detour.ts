@@ -54,6 +54,10 @@ function buildNaturalPath(input: PathInput): Point[] {
 
   if (isHorizontalFlow(sourcePosition, targetPosition)) {
     if (source.y === target.y) return [source, target];
+    // Tiny vertical step would force smoothstep corners to clamp tight.
+    // Go diagonal instead — but only when laneOffset is 0, since parallel-edge
+    // spreading needs the H-V-H middle leg to shift.
+    if (laneOffset === 0 && Math.abs(target.y - source.y) < 30) return [source, target];
     const midX = (source.x + target.x) / 2 + laneOffset;
     return [
       source,
@@ -65,6 +69,7 @@ function buildNaturalPath(input: PathInput): Point[] {
 
   if (isVerticalFlow(sourcePosition, targetPosition)) {
     if (source.x === target.x) return [source, target];
+    if (laneOffset === 0 && Math.abs(target.x - source.x) < 30) return [source, target];
     const midY = (source.y + target.y) / 2 + laneOffset;
     return [
       source,
