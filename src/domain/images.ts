@@ -1,9 +1,5 @@
 export type ImageMime = 'image/jpeg' | 'image/png' | 'image/webp';
 
-export type ImageRef =
-  | { kind: 'asset'; filename: string; mime: ImageMime }
-  | { kind: 'inline'; dataUrl: string; mime: ImageMime };
-
 export interface TargetDimensions {
   width: number;
   height: number;
