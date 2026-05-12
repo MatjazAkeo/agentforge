@@ -14,6 +14,7 @@ export const nodeSchema = z.object({
     'input', 'output', 'llm-call', 'tool', 'tool-group', 'tool-runner',
     'prompt-template', 'transform', 'loop-controller', 'agent',
     'chat-input', 'chat-output', 'file-input', 'tool-pack',
+    'context-group',
   ]),
   position: positionSchema,
   config: z.record(z.string(), z.unknown()),
