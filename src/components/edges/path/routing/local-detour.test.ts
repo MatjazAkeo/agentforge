@@ -50,14 +50,34 @@ describe('routeWithLocalDetour', () => {
       source: { x: 800, y: 600 },
       target: { x: 100, y: 200 },
     }));
-    // EXIT_CLEARANCE = 30, WRAP_CHANNEL_OFFSET = 100.
-    // exitX = 800 + 30 = 830, approachX = 100 - 30 = 70, channelY = min(600, 200) - 100 = 100.
+    // EXIT_CLEARANCE = 50, WRAP_CHANNEL_OFFSET = 100, laneOffset = 0.
+    // exitX = 800 + 50 = 850, approachX = 100 - 50 = 50, channelY = min(600, 200) - 100 = 100.
     expect(wp).toEqual([
       { x: 800, y: 600 },
-      { x: 830, y: 600 },
-      { x: 830, y: 100 },
-      { x: 70, y: 100 },
-      { x: 70, y: 200 },
+      { x: 850, y: 600 },
+      { x: 850, y: 100 },
+      { x: 50, y: 100 },
+      { x: 50, y: 200 },
+      { x: 100, y: 200 },
+    ]);
+  });
+
+  it('staggers all three wrap-around corridors when laneOffset is nonzero', () => {
+    // Same feedback geometry; non-zero laneOffset should nest the U-shape further out.
+    const wp = routeWithLocalDetour(input({
+      source: { x: 800, y: 600 },
+      target: { x: 100, y: 200 },
+      laneOffset: 24, // typical lane for a 2-or-3 edge group
+    }));
+    // laneOffset = +24 → exitX = 800 + 50 + 24 = 874,
+    //                   approachX = 100 - 50 - 24 = 26,
+    //                   channelY = min(600, 200) - 100 - 24 = 76.
+    expect(wp).toEqual([
+      { x: 800, y: 600 },
+      { x: 874, y: 600 },
+      { x: 874, y: 76 },
+      { x: 26, y: 76 },
+      { x: 26, y: 200 },
       { x: 100, y: 200 },
     ]);
   });

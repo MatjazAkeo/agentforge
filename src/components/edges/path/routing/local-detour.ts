@@ -2,7 +2,7 @@ import type { BBox, PathInput, Point, PortPosition } from './types';
 
 const OBSTACLE_PADDING = 12;
 const MAX_DETOUR_ITERATIONS = 8;
-const EXIT_CLEARANCE = 30;
+const EXIT_CLEARANCE = 50;
 // Wrap-around channel offset — far enough above min endpoint y to clear a default
 // NODE_DEFAULT_H=80 node plus inflation/padding margin. Hardcoded since the source/
 // target node bboxes aren't passed in.
@@ -65,11 +65,16 @@ function buildNaturalPath(input: PathInput): Point[] {
       (sourcePosition === 'left'  && source.x < target.x);
 
     if (isLoopBack) {
-      const exitX = sourcePosition === 'right' ? source.x + EXIT_CLEARANCE : source.x - EXIT_CLEARANCE;
+      // Lane offset shifts all three corridor coordinates so parallel wrap-around
+      // edges form nested concentric U-shapes (no overlap on the approach corridor).
+      // Sign convention: positive lane offset widens the U outward on all three axes.
+      const exitX = sourcePosition === 'right'
+        ? source.x + EXIT_CLEARANCE + laneOffset
+        : source.x - EXIT_CLEARANCE - laneOffset;
       const approachX = targetPosition === 'left'
-        ? target.x - EXIT_CLEARANCE
-        : target.x + EXIT_CLEARANCE;
-      const channelY = Math.min(source.y, target.y) - WRAP_CHANNEL_OFFSET + laneOffset;
+        ? target.x - EXIT_CLEARANCE - laneOffset
+        : target.x + EXIT_CLEARANCE + laneOffset;
+      const channelY = Math.min(source.y, target.y) - WRAP_CHANNEL_OFFSET - laneOffset;
       return [
         source,
         { x: exitX, y: source.y },
@@ -100,11 +105,13 @@ function buildNaturalPath(input: PathInput): Point[] {
       (sourcePosition === 'top'    && source.y < target.y);
 
     if (isLoopBack) {
-      const exitY = sourcePosition === 'bottom' ? source.y + EXIT_CLEARANCE : source.y - EXIT_CLEARANCE;
+      const exitY = sourcePosition === 'bottom'
+        ? source.y + EXIT_CLEARANCE + laneOffset
+        : source.y - EXIT_CLEARANCE - laneOffset;
       const approachY = targetPosition === 'top'
-        ? target.y - EXIT_CLEARANCE
-        : target.y + EXIT_CLEARANCE;
-      const channelX = Math.min(source.x, target.x) - WRAP_CHANNEL_OFFSET + laneOffset;
+        ? target.y - EXIT_CLEARANCE - laneOffset
+        : target.y + EXIT_CLEARANCE + laneOffset;
+      const channelX = Math.min(source.x, target.x) - WRAP_CHANNEL_OFFSET - laneOffset;
       return [
         source,
         { x: source.x, y: exitY },
