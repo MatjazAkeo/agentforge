@@ -148,11 +148,21 @@ function buildNaturalPath(input: PathInput): Point[] {
 function findFirstCollision(
   waypoints: Point[],
   obstacles: InflatedRect[],
+  sourceNodeId?: string,
+  targetNodeId?: string,
 ): { segIdx: number; obstacle: InflatedRect } | null {
+  const lastSegIdx = waypoints.length - 2;
   for (let i = 0; i < waypoints.length - 1; i++) {
     const seg = makeSegment(waypoints[i], waypoints[i + 1]);
     if (!seg) continue;
+    const isFirstSeg = i === 0;
+    const isLastSeg = i === lastSegIdx;
     for (const obs of obstacles) {
+      // The source/target bbox is intersected by the segment that connects
+      // to its port. Skip those specific obstacles on their respective endpoint
+      // segments; every other obstacle is checked on every segment.
+      if (isFirstSeg && sourceNodeId !== undefined && obs.nodeId === sourceNodeId) continue;
+      if (isLastSeg && targetNodeId !== undefined && obs.nodeId === targetNodeId) continue;
       if (intersects(seg, obs)) return { segIdx: i, obstacle: obs };
     }
   }
@@ -243,7 +253,7 @@ export function routeWithLocalDetour(input: PathInput): Point[] {
   let waypoints = buildNaturalPath(input);
 
   for (let iter = 0; iter < MAX_DETOUR_ITERATIONS; iter++) {
-    const collision = findFirstCollision(waypoints, inflatedObstacles);
+    const collision = findFirstCollision(waypoints, inflatedObstacles, input.sourceNodeId, input.targetNodeId);
     if (!collision) break;
 
     const { segIdx, obstacle } = collision;

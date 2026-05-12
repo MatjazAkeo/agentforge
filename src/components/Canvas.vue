@@ -68,11 +68,16 @@ const flowEdges = computed(() => {
   return graph.edges.map((e): VFEdge => {
     const srcNode = nodesById.get(e.source);
     const wireType = srcNode ? getSourcePortType(srcNode, e.sourceHandle ?? '') : null;
-    const obstacles = allBBoxes.filter((b) => b.nodeId !== e.source && b.nodeId !== e.target);
+    // All node bboxes are obstacles, including the edge's own source/target.
+    // local-detour.ts skips collision detection on the endpoint segments so
+    // they can legitimately start/end inside their nodes' bboxes.
+    const obstacles = allBBoxes;
     const data: RoutedEdgeData = {
       wireType,
       obstacles,
       laneOffset: lanes.get(e.id) ?? 0,
+      sourceNodeId: e.source,
+      targetNodeId: e.target,
     };
     return {
       id: e.id,

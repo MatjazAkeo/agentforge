@@ -20,10 +20,16 @@ export interface PathInput {
   target: Point;
   sourcePosition: PortPosition;
   targetPosition: PortPosition;
-  /** Obstacle bboxes EXCLUDING the source and target node bboxes. */
+  /** Obstacle bboxes. INCLUDES source and target node bboxes; first and last
+   *  path segments skip collision detection on those specifically. */
   obstacles: BBox[];
   /** Perpendicular shift in px for parallel-edge spreading. Default 0. */
   laneOffset?: number;
+  /** Source node id — used to skip collision detection on the source bbox
+   *  for the first path segment (which is allowed to start inside it). */
+  sourceNodeId?: string;
+  /** Target node id — same for the last path segment. */
+  targetNodeId?: string;
 }
 
 export interface PathOutput {
@@ -38,4 +44,6 @@ export interface RoutedEdgeData {
   wireType: DataType | null;
   obstacles: BBox[];
   laneOffset: number;
+  sourceNodeId: string;
+  targetNodeId: string;
 }

@@ -14,6 +14,8 @@ const path = computed(() => computePath({
   targetPosition: props.targetPosition,
   obstacles: props.data?.obstacles ?? [],
   laneOffset: props.data?.laneOffset ?? 0,
+  sourceNodeId: props.data?.sourceNodeId,
+  targetNodeId: props.data?.targetNodeId,
 }));
 
 const stroke = computed(() => colorForType(props.data?.wireType ?? null));
