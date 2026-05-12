@@ -228,18 +228,23 @@ export async function driveLoop(args: LoopDriverArgs): Promise<LoopDriverResult>
           (e) => e.target === id && !body.backEdges.some((b) => b.id === e.id),
         );
         const inputs: Record<string, unknown> = {};
+        const accumulated = new Set<string>();
         for (const edge of incoming) {
           const src = edge.source === controllerId
             ? controllerOutputs
             : (bodyOutputsByNode.get(edge.source) ?? outputsByNode.get(edge.source) ?? {});
-          // Fan-in (multiple edges to same handle) — promote to array on the second hit.
-          if (edge.targetHandle in inputs) {
-            const existing = inputs[edge.targetHandle];
-            inputs[edge.targetHandle] = Array.isArray(existing)
-              ? [...existing, src[edge.sourceHandle]]
-              : [existing, src[edge.sourceHandle]];
+          const value = src[edge.sourceHandle];
+          const handle = edge.targetHandle;
+          // Fan-in accumulates as a tuple [v1, v2, ...] — values preserved as-is.
+          if (handle in inputs) {
+            if (accumulated.has(handle)) {
+              (inputs[handle] as unknown[]).push(value);
+            } else {
+              inputs[handle] = [inputs[handle], value];
+              accumulated.add(handle);
+            }
           } else {
-            inputs[edge.targetHandle] = src[edge.sourceHandle];
+            inputs[handle] = value;
           }
         }
 

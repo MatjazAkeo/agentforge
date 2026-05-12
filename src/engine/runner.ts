@@ -108,20 +108,25 @@ export async function runGraph(args: RunGraphArgs): Promise<Run> {
       }
 
       // Build inputs from upstream outputs. If multiple edges land on the same target
-      // handle, collect their source values into a flat array (Tool Group fan-in).
+      // handle, accumulate their source values into a tuple [v1, v2, ...]. Each value
+      // is preserved as-is — never spread — so an upstream that emits an array (e.g.
+      // Context Group's Context[] sources) keeps its shape. Tool Group's flattenTools
+      // handles both flat and nested cases downstream.
       const inputs: Record<string, unknown> = {};
-      const seenHandles = new Set<string>();
+      const accumulated = new Set<string>();
       for (const edge of incoming.get(id) ?? []) {
         const sourceOutputs = outputsByNode.get(edge.source) ?? {};
         const value = sourceOutputs[edge.sourceHandle];
         const handle = edge.targetHandle;
-        if (seenHandles.has(handle)) {
-          // Promote to array on second-and-subsequent edge.
-          const existing = inputs[handle];
-          inputs[handle] = Array.isArray(existing) ? [...existing, value] : [existing, value];
+        if (handle in inputs) {
+          if (accumulated.has(handle)) {
+            (inputs[handle] as unknown[]).push(value);
+          } else {
+            inputs[handle] = [inputs[handle], value];
+            accumulated.add(handle);
+          }
         } else {
           inputs[handle] = value;
-          seenHandles.add(handle);
         }
       }
 
