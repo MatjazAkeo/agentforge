@@ -75,30 +75,30 @@
     {
       "id": "e1",
       "source": "in",
-      "sourceHandle": "text",
+      "sourceHandle": "context",
       "target": "llm1",
-      "targetHandle": "text"
+      "targetHandle": "context"
     },
     {
       "id": "e2",
       "source": "in",
-      "sourceHandle": "text",
+      "sourceHandle": "context",
       "target": "llm2",
-      "targetHandle": "text"
+      "targetHandle": "context"
     },
     {
       "id": "e3",
       "source": "llm1",
-      "sourceHandle": "text",
+      "sourceHandle": "context",
       "target": "out1",
-      "targetHandle": "text"
+      "targetHandle": "context"
     },
     {
       "id": "e4",
       "source": "llm2",
-      "sourceHandle": "text",
+      "sourceHandle": "context",
       "target": "out2",
-      "targetHandle": "text"
+      "targetHandle": "context"
     }
   ]
 }

@@ -30,7 +30,7 @@
         "valueChannels": [
           {
             "name": "text",
-            "type": "string"
+            "type": "context"
           }
         ]
       }
@@ -116,7 +116,7 @@
     {
       "id": "e1",
       "source": "in",
-      "sourceHandle": "text",
+      "sourceHandle": "context",
       "target": "lc",
       "targetHandle": "default-text"
     },
@@ -125,26 +125,26 @@
       "source": "lc",
       "sourceHandle": "output-text",
       "target": "rev",
-      "targetHandle": "text"
+      "targetHandle": "context"
     },
     {
       "id": "e3",
       "source": "rev",
-      "sourceHandle": "text",
+      "sourceHandle": "context",
       "target": "critic",
-      "targetHandle": "text"
+      "targetHandle": "context"
     },
     {
       "id": "e4",
       "source": "rev",
-      "sourceHandle": "text",
+      "sourceHandle": "context",
       "target": "lc",
       "targetHandle": "input-text"
     },
     {
       "id": "e5",
       "source": "critic",
-      "sourceHandle": "text",
+      "sourceHandle": "context",
       "target": "parse",
       "targetHandle": "value"
     },
@@ -174,7 +174,7 @@
       "source": "lc",
       "sourceHandle": "output-text",
       "target": "out",
-      "targetHandle": "text"
+      "targetHandle": "context"
     }
   ]
 }

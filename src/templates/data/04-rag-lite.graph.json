@@ -109,23 +109,23 @@
     {
       "id": "e1",
       "source": "in",
-      "sourceHandle": "text",
+      "sourceHandle": "context",
       "target": "tpl",
       "targetHandle": "q"
     },
     {
       "id": "e2",
       "source": "url",
-      "sourceHandle": "text",
+      "sourceHandle": "context",
       "target": "tpl",
       "targetHandle": "u"
     },
     {
       "id": "e3",
       "source": "tpl",
-      "sourceHandle": "text",
+      "sourceHandle": "context",
       "target": "ag",
-      "targetHandle": "text"
+      "targetHandle": "context"
     },
     {
       "id": "e4",
@@ -144,9 +144,9 @@
     {
       "id": "e6",
       "source": "ag",
-      "sourceHandle": "text",
+      "sourceHandle": "context",
       "target": "out",
-      "targetHandle": "text"
+      "targetHandle": "context"
     }
   ]
 }

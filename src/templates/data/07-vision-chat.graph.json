@@ -27,8 +27,7 @@
         "systemPrompt": "You are a helpful vision assistant. When the user attaches an image, describe what you see and answer their questions about it clearly and concisely. If no image is attached, respond to their text as a normal chat assistant.",
         "temperature": 0.5,
         "maxTokens": null,
-        "responseFormat": null,
-        "imagesPortMode": "auto"
+        "responseFormat": null
       }
     },
     {
@@ -47,16 +46,16 @@
     {
       "id": "e1",
       "source": "ci",
-      "sourceHandle": "messages",
+      "sourceHandle": "context",
       "target": "llm",
-      "targetHandle": "messages"
+      "targetHandle": "context"
     },
     {
       "id": "e2",
       "source": "llm",
-      "sourceHandle": "text",
+      "sourceHandle": "context",
       "target": "co",
-      "targetHandle": "text"
+      "targetHandle": "context"
     }
   ]
 }

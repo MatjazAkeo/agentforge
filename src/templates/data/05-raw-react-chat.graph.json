@@ -95,8 +95,8 @@
         "maxIterations": 6,
         "valueChannels": [
           {
-            "name": "messages",
-            "type": "messages"
+            "name": "context",
+            "type": "context"
           }
         ]
       }
@@ -153,16 +153,9 @@
     {
       "id": "e01",
       "source": "ci",
-      "sourceHandle": "messages",
+      "sourceHandle": "context",
       "target": "lc",
-      "targetHandle": "default-messages"
-    },
-    {
-      "id": "e02",
-      "source": "ci",
-      "sourceHandle": "text",
-      "target": "llm",
-      "targetHandle": "text"
+      "targetHandle": "default-context"
     },
     {
       "id": "e03",
@@ -195,9 +188,9 @@
     {
       "id": "e07",
       "source": "lc",
-      "sourceHandle": "output-messages",
+      "sourceHandle": "output-context",
       "target": "llm",
-      "targetHandle": "messages"
+      "targetHandle": "context"
     },
     {
       "id": "e08",
@@ -209,16 +202,16 @@
     {
       "id": "e09",
       "source": "llm",
-      "sourceHandle": "messages",
+      "sourceHandle": "context",
       "target": "tr",
-      "targetHandle": "messages"
+      "targetHandle": "context"
     },
     {
       "id": "e10",
       "source": "tr",
-      "sourceHandle": "messages",
+      "sourceHandle": "context",
       "target": "lc",
-      "targetHandle": "input-messages"
+      "targetHandle": "input-context"
     },
     {
       "id": "e11",
@@ -230,7 +223,7 @@
     {
       "id": "e12",
       "source": "lc",
-      "sourceHandle": "output-messages",
+      "sourceHandle": "output-context",
       "target": "last",
       "targetHandle": "value"
     },
@@ -239,7 +232,7 @@
       "source": "last",
       "sourceHandle": "result",
       "target": "co",
-      "targetHandle": "text"
+      "targetHandle": "context"
     }
   ]
 }

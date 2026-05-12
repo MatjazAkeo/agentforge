@@ -49,16 +49,16 @@
     {
       "id": "e1",
       "source": "in",
-      "sourceHandle": "text",
+      "sourceHandle": "context",
       "target": "llm",
-      "targetHandle": "text"
+      "targetHandle": "context"
     },
     {
       "id": "e2",
       "source": "llm",
-      "sourceHandle": "text",
+      "sourceHandle": "context",
       "target": "out",
-      "targetHandle": "text"
+      "targetHandle": "context"
     }
   ]
 }

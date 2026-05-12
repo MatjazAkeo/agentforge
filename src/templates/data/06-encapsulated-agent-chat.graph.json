@@ -116,16 +116,9 @@
     {
       "id": "e1",
       "source": "ci",
-      "sourceHandle": "messages",
+      "sourceHandle": "context",
       "target": "ag",
-      "targetHandle": "messages"
-    },
-    {
-      "id": "e2",
-      "source": "ci",
-      "sourceHandle": "text",
-      "target": "ag",
-      "targetHandle": "text"
+      "targetHandle": "context"
     },
     {
       "id": "e3",
@@ -151,9 +144,9 @@
     {
       "id": "e6",
       "source": "ag",
-      "sourceHandle": "text",
+      "sourceHandle": "context",
       "target": "co",
-      "targetHandle": "text"
+      "targetHandle": "context"
     }
   ]
 }
