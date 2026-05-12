@@ -18,6 +18,7 @@ const ALL_OPTIONS: NodeOption[] = [
   { type: 'llm-call', label: 'LLM Call', description: 'Send a chat completion to OpenRouter' },
   { type: 'tool', label: 'Tool', description: 'Define a callable function the LLM can use' },
   { type: 'tool-group', label: 'Tool Group', description: 'Aggregate multiple tools into a single edge' },
+  { type: 'context-group', label: 'Context Group', description: 'Merge multiple context wires (system + body + last-user fold)' },
   { type: 'tool-runner', label: 'Tool Runner', description: 'Execute tool calls emitted by an LLM' },
   { type: 'tool-pack', label: 'Tool Pack', description: 'Group multiple tools in one node — plain or SQLite-backed' },
   { type: 'loop-controller', label: 'Loop Controller', description: 'Cycle anchor for ReAct, retry, refinement loops' },
@@ -75,6 +76,7 @@ function defaultConfig(type: NodeType): Record<string, unknown> {
       timeoutMs: 30000,
     };
     case 'tool-group': return { label: 'tools' };
+    case 'context-group': return { label: 'context' };
     case 'tool-runner': return {};
     case 'tool-pack': return {
       flavor: 'none',

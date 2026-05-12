@@ -16,6 +16,7 @@ import ChatInputInspector from './inspectors/ChatInputInspector.vue';
 import ChatOutputInspector from './inspectors/ChatOutputInspector.vue';
 import FileInputInspector from './inspectors/FileInputInspector.vue';
 import ToolPackInspector from './inspectors/ToolPackInspector.vue';
+import ContextGroupInspector from './inspectors/ContextGroupInspector.vue';
 
 const ui = useUiStore();
 const graph = useGraphStore();
@@ -87,6 +88,9 @@ const selectedNode = computed(() => {
       </div>
       <div v-else-if="selectedNode.type === 'chat-output'">
         <ChatOutputInspector :nodeId="selectedNode.id" />
+      </div>
+      <div v-else-if="selectedNode.type === 'context-group'">
+        <ContextGroupInspector :nodeId="selectedNode.id" />
       </div>
       <div v-else class="opacity-50">Inspector for {{ selectedNode.type }} added in a later task.</div>
     </div>
