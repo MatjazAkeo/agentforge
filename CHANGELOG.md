@@ -7,6 +7,99 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0-beta] — 2026-05-12
+
+Context unification. Every LLM-bound node now speaks a single `context`
+wire instead of separate `text` / `messages` / `images` ports. New
+Context Group node merges multiple context wires via an OpenRouter-aligned
+merge-last-user algorithm — the canonical way to combine "text question +
+file attachment" into one multimodal user message at the API boundary.
+
+### Added
+
+- **`context` wire type** (purple `#b388ff` — same color as the legacy
+  `messages` wire for visual continuity). Carries `Context[]` (renamed
+  from `ChatMessage[]`). Every wire from a source-side LLM-aware node is
+  now this single shape.
+- **`src/domain/context.ts`** module with pure, unit-tested helpers:
+  `wrapAsContext`, `wrapImagesAsContext`, `wrapAsContextMixed`,
+  `extractText`, `findLastIndex`, `mergeContextsMergeLastUser`. The merge
+  algorithm pools and dedupes system messages, concatenates body messages
+  in edge order, and folds each input's last-user content into one final
+  multimodal user message (`ContentPart[]` when mixed; collapses to
+  string when single-text).
+- **Context Group node.** Multi-edge fan-in mirror of Tool Group.
+  Accepts any number of `context` wires on its `contexts` input, emits
+  one merged context. Selectable from the Add Node menu. Inspector shows
+  live input count.
+- **Transform `Context[]` auto-extraction.** `json-parse` and
+  `regex-extract` modes now detect a `Context[]` input and call
+  `extractText()` before processing — unblocks the self-critique template
+  where the critic LLM emits a JSON object as its assistant message text.
+  `json-path` and `custom` modes keep `Context[]` as-is (they walk
+  structure).
+
+### Changed
+
+- **All source-side ports collapsed to `context`.** Input, File Input,
+  Chat Input, Prompt Template, LLM Call, Agent, Tool Runner emit a
+  single `context` output. File Input now resolves image bytes to data
+  URLs inline at run time and embeds them as `image_url` parts inside
+  the context wire.
+- **All sink-side ports collapsed to `context`.** LLM Call, Agent, Tool
+  Runner, Output, Chat Output, Prompt Template variable inputs all
+  accept a single `context`. String-needing consumers (Output, Chat
+  Output, template substitution) auto-extract text via `extractText()`.
+- **Loop Controller channel types.** `LoopChannelType` narrowed to
+  `tools | tool-calls | json | context`. Bundled and local graphs using
+  the legacy `string` / `messages` types automatically retyped to
+  `context`.
+- **Bundled templates rewritten.** All 7 starter graphs migrated to the
+  unified context shape. Multi-edge legacy (text + messages into one
+  LLM Call) collapsed via messages-wins precedence. `imagesPortMode`
+  config field removed from LLM Call / Agent entries.
+- **Node SVG generator** updated to reflect the new port shapes; 16
+  diagrams regenerated for the wiki.
+
+### Removed
+
+- **`text`, `messages`, `images` wire types** (and their corresponding
+  TYPE_COLORS entries). The `images` wire was 0.2.0-beta only.
+- **`imagesPortMode` config** on LLM Call and Agent. With no separate
+  images port to gate, the model-capability override is moot.
+- **`src/openrouter/vision.ts`** — `modelAcceptsImages` and
+  `resolveImagesPortVisibility` are no longer needed. Vision capability
+  is now implicit (vision-capable models accept the multimodal content
+  embedded in the context wire).
+- **`ModelChangeWarning` modal** — its only job was warning about an
+  orphaned `images` edge on model switch. No more images port, no more
+  modal.
+- **`ImageRef` type** from `src/domain/images.ts`. `ImageMime` and
+  `computeTargetDimensions` stay (still used by `optimizeImage` at
+  attach time).
+
+### Fixed
+
+- **Multi-edge fan-in no longer flattens array-valued sources.** Both
+  `runner.ts` and `loop-driver.ts` accumulate multi-edge values as a
+  tuple `[v1, v2, ...]` without spreading. The old spread-on-array
+  behavior worked for Tool Group (sources emit single objects) but
+  corrupted Context Group (sources emit `Context[]`, which got
+  flattened into the accumulator).
+- **`NodeType` Zod schema synced with TS union.** `context-group` is
+  now accepted by the load-time validator. Graphs using new node types
+  no longer fail on open with `invalid_value`.
+
+### Migration
+
+No automatic graph migration. Bundled templates were rewritten in
+place; user graphs in `~/.../graphs/` need a manual sweep: rename
+every edge handle of `text` / `messages` / `images` to `context`,
+collapse multi-edge legacy into a single Context Group input where
+"text + image" was the intent. A v0.2.0-beta graph opened in v0.3.0
+will fail validation with a clear "edge points to non-existent port"
+error.
+
 ## [0.2.0-beta] — 2026-05-11
 
 Multimodal LLM support. Vision-capable models can now consume images via a
@@ -303,7 +396,8 @@ Six bundled starter graphs accessible from the toolbar:
 - In-app auto-updater verified by minisign-style signatures (independent of macOS Gatekeeper / Windows SmartScreen).
 - Bundled installers: `.dmg`, `.deb`, `.AppImage`, `-setup.exe`, `.msi`.
 
-[Unreleased]: https://github.com/MatjazAkeo/agentforge/compare/v0.2.0-beta...HEAD
+[Unreleased]: https://github.com/MatjazAkeo/agentforge/compare/v0.3.0-beta...HEAD
+[0.3.0-beta]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.3.0-beta
 [0.2.0-beta]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.2.0-beta
 [0.1.5]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.1.5
 [0.1.4]: https://github.com/MatjazAkeo/agentforge/releases/tag/v0.1.4
