@@ -1,6 +1,13 @@
 import { registerNodeDefinition, type NodeDefinition } from './registry';
 import type { TransformConfig } from '@/domain/node-types';
 import { renderTemplate } from './_internals/template-vars';
+import { extractText, type Context } from '@/domain/context';
+
+function isContextArray(v: unknown): v is Context[] {
+  if (!Array.isArray(v) || v.length === 0) return false;
+  const first = v[0] as { role?: unknown } | undefined;
+  return !!first && typeof first === 'object' && typeof first.role === 'string';
+}
 
 const PATH_SEGMENT = /([^.[\]]+)|\[(-?\d+)\]/g;
 
@@ -36,10 +43,11 @@ export const transformNode: NodeDefinition = {
 
     switch (cfg.mode) {
       case 'json-parse': {
-        if (typeof value !== 'string') {
+        const src = isContextArray(value) ? extractText(value) : value;
+        if (typeof src !== 'string') {
           throw new Error('Transform json-parse: input is not a string');
         }
-        try { return { result: JSON.parse(value) }; }
+        try { return { result: JSON.parse(src) }; }
         catch (e) { throw new Error(`Transform json-parse: invalid JSON — ${(e as Error).message}`); }
       }
       case 'json-stringify': {
@@ -56,12 +64,13 @@ export const transformNode: NodeDefinition = {
         // arrives as `false`, which String() turns into "false" — the regex can
         // then match it. null/undefined become "" so they never match anything
         // (returning null, the falsy halt-signal in continue wires).
+        const src = isContextArray(value) ? extractText(value) : value;
         const str =
-          typeof value === 'string'
-            ? value
-            : value === null || value === undefined
+          typeof src === 'string'
+            ? src
+            : src === null || src === undefined
               ? ''
-              : String(value);
+              : String(src);
         const re = new RegExp(cfg.pattern);
         const match = str.match(re);
         if (!match) return { result: null };

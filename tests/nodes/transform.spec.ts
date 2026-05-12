@@ -163,4 +163,30 @@ describe('transformNode', () => {
     );
     expect(out.result).toBe('Hello world!');
   });
+
+  it('json-parse: auto-extracts text from a Context[] input', async () => {
+    const context = [
+      { role: 'user', content: 'parse this' },
+      { role: 'assistant', content: '{"good":true,"critique":""}' },
+    ];
+    const out = await transformNode.run(
+      makeNode({ mode: 'json-parse' }),
+      { value: context },
+      ctx(),
+    );
+    expect(out.result).toEqual({ good: true, critique: '' });
+  });
+
+  it('regex-extract: auto-extracts text from a Context[] input', async () => {
+    const context = [
+      { role: 'user', content: 'evaluate' },
+      { role: 'assistant', content: 'order #42 placed' },
+    ];
+    const out = await transformNode.run(
+      makeNode({ mode: 'regex-extract', pattern: '\\d+' }),
+      { value: context },
+      ctx(),
+    );
+    expect(out.result).toBe('42');
+  });
 });
