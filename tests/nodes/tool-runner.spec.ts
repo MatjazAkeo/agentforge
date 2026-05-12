@@ -21,23 +21,23 @@ describe('tool-runner node', () => {
       timeoutMs: 1000,
     }];
     const node: Node = { id: 'r', type: 'tool-runner', position: { x: 0, y: 0 }, config: {} };
-    const messages: Context[] = [
+    const context: Context[] = [
       { role: 'user', content: 'add 2 and 3' },
       { role: 'assistant', content: '', tool_calls: [{ id: 'c1', type: 'function', function: { name: 'add', arguments: '{"a":2,"b":3}' } }] },
     ];
     const inputs = {
       toolCalls: [{ id: 'c1', type: 'function', function: { name: 'add', arguments: '{"a":2,"b":3}' } }],
       tools,
-      messages,
+      context,
     };
     const ctx = { signal: new AbortController().signal, details: {} as Record<string, unknown>, apiKey: '', graphFilePath: null };
     const out = await toolRunnerNode.run(node, inputs, ctx);
 
-    const outMessages = out.messages as Context[];
-    expect(outMessages.length).toBe(3);
-    expect(outMessages[2].role).toBe('tool');
-    expect(outMessages[2].content).toBe('5');
-    expect(outMessages[2].tool_call_id).toBe('c1');
+    const outContext = out.context as Context[];
+    expect(outContext.length).toBe(3);
+    expect(outContext[2].role).toBe('tool');
+    expect(outContext[2].content).toBe('5');
+    expect(outContext[2].tool_call_id).toBe('c1');
   });
 
   it('records an error on the result row when tool not found', async () => {
@@ -46,7 +46,7 @@ describe('tool-runner node', () => {
     const inputs = {
       toolCalls: [{ id: 'c1', type: 'function', function: { name: 'unknown', arguments: '{}' } }],
       tools: [],
-      messages: [],
+      context: [],
     };
     const ctx = { signal: new AbortController().signal, details: {} as Record<string, unknown>, apiKey: '', graphFilePath: null };
     const out = await toolRunnerNode.run(node, inputs, ctx);

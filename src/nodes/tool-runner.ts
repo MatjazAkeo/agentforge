@@ -20,15 +20,15 @@ function flatten(input: unknown): ToolDefinitionPayload[] {
 
 export const toolRunnerNode: NodeDefinition = {
   type: 'tool-runner',
-  inputPorts: ['toolCalls', 'tools', 'messages'],
-  outputPorts: ['messages', 'results'],
+  inputPorts: ['toolCalls', 'tools', 'context'],
+  outputPorts: ['context', 'results'],
   async run(_node, inputs, ctx) {
     const toolCalls = (inputs.toolCalls as ToolCall[] | undefined) ?? [];
     const tools = flatten(inputs.tools);
-    const messagesIn = (inputs.messages as Context[] | undefined) ?? [];
+    const contextIn = (inputs.context as Context[] | undefined) ?? [];
     const { results, toolMessages } = await runToolBatch({ toolCalls, tools, signal: ctx.signal });
     ctx.details.results = results;
-    return { messages: [...messagesIn, ...toolMessages], results };
+    return { context: [...contextIn, ...toolMessages], results };
   },
 };
 

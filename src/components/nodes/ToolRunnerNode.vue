@@ -52,19 +52,19 @@ function onDelete() {
     </div>
 
     <!-- Paired port rows: input on left, output on right of the same row.
-         Inputs ordered tools, messages, toolCalls top-to-bottom. -->
+         Inputs ordered tools, context, toolCalls top-to-bottom. -->
     <div class="py-1">
-      <!-- Row 1: tools in | messages out -->
+      <!-- Row 1: tools in | context out -->
       <div class="relative h-6 flex items-center justify-between px-3 text-[11px]">
         <span class="text-text-dim font-mono text-[10px]">tools</span>
         <Handle id="tools" type="target" :position="Position.Left" :style="{ background: colorForType('tools') }" />
-        <span class="text-text-dim font-mono text-[10px]">messages</span>
-        <Handle id="messages" type="source" :position="Position.Right" :style="{ background: colorForType('messages') }" />
+        <span class="text-text-dim font-mono text-[10px]">context</span>
+        <Handle id="context" type="source" :position="Position.Right" :style="{ background: colorForType('context') }" />
       </div>
-      <!-- Row 2: messages in | results out -->
+      <!-- Row 2: context in | results out -->
       <div class="relative h-6 flex items-center justify-between px-3 text-[11px]">
-        <span class="text-text-dim font-mono text-[10px]">messages</span>
-        <Handle id="messages" type="target" :position="Position.Left" :style="{ background: colorForType('messages') }" />
+        <span class="text-text-dim font-mono text-[10px]">context</span>
+        <Handle id="context" type="target" :position="Position.Left" :style="{ background: colorForType('context') }" />
         <span class="text-text-dim font-mono text-[10px]">results</span>
         <Handle id="results" type="source" :position="Position.Right" :style="{ background: colorForType('json') }" />
       </div>

@@ -49,7 +49,7 @@ export function getSourcePortType(node: Node, handleId: string): DataType | null
       if (handleId === 'tools') return 'tools';
       return null;
     case 'tool-runner':
-      if (handleId === 'messages') return 'messages';
+      if (handleId === 'context') return 'context';
       if (handleId === 'results') return 'json';
       return null;
     case 'transform':
@@ -96,7 +96,7 @@ export function getTargetPortType(node: Node, handleId: string): DataType | null
     case 'tool-runner':
       if (handleId === 'toolCalls') return 'tool-calls';
       if (handleId === 'tools') return 'tools';
-      if (handleId === 'messages') return 'messages';
+      if (handleId === 'context') return 'context';
       return null;
     case 'transform':
       if (handleId === 'value') return 'json';

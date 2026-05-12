@@ -51,11 +51,11 @@ const results = computed(() =>
     <PortLegend
       :inputs="[
         { id: 'tools', type: 'tools', description: 'Tool definitions used to look up and execute each call.' },
-        { id: 'messages', type: 'messages', description: 'Conversation so far. Tool-result messages are appended.' },
+        { id: 'context', type: 'context', description: 'Conversation so far. Tool-result messages are appended.' },
         { id: 'toolCalls', type: 'tool-calls', description: 'Tool invocations from an LLM Call to execute.' },
       ]"
       :outputs="[
-        { id: 'messages', type: 'messages', description: 'Conversation with `tool` role results appended — feed back to LLM Call.' },
+        { id: 'context', type: 'context', description: 'Conversation with `tool` role results appended — feed back to LLM Call.' },
         { id: 'results', type: 'json', description: 'Raw structured results (name, input, output/error, durationMs).' },
       ]"
     />
