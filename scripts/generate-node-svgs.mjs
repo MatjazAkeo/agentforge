@@ -10,13 +10,11 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const TYPE_COLORS = {
-  string: '#ffaa55',
+  context: '#b388ff',
   number: '#9aa0a8',
-  messages: '#b388ff',
   tools: '#ffd54a',
   'tool-calls': '#ff5577',
   json: '#4ad7e2',
-  images: '#7ad48c',
   any: '#888888',
 };
 
@@ -25,17 +23,17 @@ const NODES = [
   {
     type: 'input', title: 'Input',
     inputs: [],
-    outputs: [['text', 'string']],
+    outputs: [['context', 'context']],
   },
   {
     type: 'output', title: 'Output',
-    inputs: [['text', 'string']],
+    inputs: [['context', 'context']],
     outputs: [],
   },
   {
     type: 'llm-call', title: 'LLM Call',
-    inputs: [['messages', 'messages'], ['text', 'string'], ['images', 'images', true], ['tools', 'tools']],
-    outputs: [['text', 'string'], ['messages', 'messages'], ['toolCalls', 'tool-calls'], ['usage', 'json']],
+    inputs: [['context', 'context'], ['tools', 'tools']],
+    outputs: [['context', 'context'], ['toolCalls', 'tool-calls'], ['usage', 'json']],
   },
   {
     type: 'tool', title: 'Tool',
@@ -49,8 +47,13 @@ const NODES = [
   },
   {
     type: 'tool-runner', title: 'Tool Runner',
-    inputs: [['toolCalls', 'tool-calls'], ['tools', 'tools'], ['messages', 'messages']],
-    outputs: [['messages', 'messages'], ['results', 'json']],
+    inputs: [['toolCalls', 'tool-calls'], ['tools', 'tools'], ['context', 'context']],
+    outputs: [['context', 'context'], ['results', 'json']],
+  },
+  {
+    type: 'context-group', title: 'Context Group',
+    inputs: [['contexts', 'context']],
+    outputs: [['context', 'context']],
   },
   {
     type: 'loop-controller', title: 'Loop Controller',
@@ -59,13 +62,13 @@ const NODES = [
   },
   {
     type: 'agent', title: 'Agent',
-    inputs: [['messages', 'messages'], ['text', 'string'], ['images', 'images', true], ['tools', 'tools']],
-    outputs: [['text', 'string'], ['messages', 'messages'], ['iteration', 'number']],
+    inputs: [['context', 'context'], ['tools', 'tools']],
+    outputs: [['context', 'context'], ['iteration', 'number']],
   },
   {
     type: 'prompt-template', title: 'Prompt Template',
-    inputs: [['{{ var }}', 'any', true]],
-    outputs: [['text', 'string']],
+    inputs: [['{{ var }}', 'context', true]],
+    outputs: [['context', 'context']],
   },
   {
     type: 'transform', title: 'Transform',
@@ -75,12 +78,12 @@ const NODES = [
   {
     type: 'chat-input', title: 'Chat Input',
     inputs: [],
-    outputs: [['text', 'string'], ['messages', 'messages'], ['images', 'images']],
+    outputs: [['context', 'context']],
   },
   {
     type: 'file-input', title: 'File Input',
     inputs: [],
-    outputs: [['text', 'string', true], ['images', 'images', true]],
+    outputs: [['context', 'context']],
   },
   {
     type: 'tool-pack', title: 'Tool Pack',
@@ -89,7 +92,7 @@ const NODES = [
   },
   {
     type: 'chat-output', title: 'Chat Output',
-    inputs: [['text', 'string']],
+    inputs: [['context', 'context']],
     outputs: [],
   },
 ];
