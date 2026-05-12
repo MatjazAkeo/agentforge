@@ -50,13 +50,13 @@ describe('routeWithLocalDetour', () => {
       source: { x: 800, y: 600 },
       target: { x: 100, y: 200 },
     }));
-    // EXIT_CLEARANCE = 50, WRAP_CHANNEL_OFFSET = 100, laneOffset = 0.
-    // exitX = 800 + 50 = 850, approachX = 100 - 50 = 50, channelY = min(600, 200) - 100 = 100.
+    // EXIT_CLEARANCE = 50, WRAP_CHANNEL_OFFSET = 150, laneOffset = 0.
+    // exitX = 800 + 50 = 850, approachX = 100 - 50 = 50, channelY = min(600, 200) - 150 = 50.
     expect(wp).toEqual([
       { x: 800, y: 600 },
       { x: 850, y: 600 },
-      { x: 850, y: 100 },
-      { x: 50, y: 100 },
+      { x: 850, y: 50 },
+      { x: 50, y: 50 },
       { x: 50, y: 200 },
       { x: 100, y: 200 },
     ]);
@@ -64,20 +64,22 @@ describe('routeWithLocalDetour', () => {
 
   it('staggers all three wrap-around corridors when laneOffset is nonzero', () => {
     // Same feedback geometry; non-zero laneOffset should nest the U-shape further out.
+    // Corridor sides (exitX, approachX) scale at 2x of laneOffset; channelY at 1x.
     const wp = routeWithLocalDetour(input({
       source: { x: 800, y: 600 },
       target: { x: 100, y: 200 },
       laneOffset: 24, // typical lane for a 2-or-3 edge group
     }));
-    // laneOffset = +24 → exitX = 800 + 50 + 24 = 874,
-    //                   approachX = 100 - 50 - 24 = 26,
-    //                   channelY = min(600, 200) - 100 - 24 = 76.
+    // corridorLane = 24 * 2 = 48.
+    // exitX = 800 + 50 + 48 = 898,
+    // approachX = 100 - 50 - 48 = 2,
+    // channelY = min(600, 200) - 150 - 24 = 26.
     expect(wp).toEqual([
       { x: 800, y: 600 },
-      { x: 874, y: 600 },
-      { x: 874, y: 76 },
-      { x: 26, y: 76 },
-      { x: 26, y: 200 },
+      { x: 898, y: 600 },
+      { x: 898, y: 26 },
+      { x: 2, y: 26 },
+      { x: 2, y: 200 },
       { x: 100, y: 200 },
     ]);
   });

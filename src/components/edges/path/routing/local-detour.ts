@@ -3,10 +3,15 @@ import type { BBox, PathInput, Point, PortPosition } from './types';
 const OBSTACLE_PADDING = 12;
 const MAX_DETOUR_ITERATIONS = 8;
 const EXIT_CLEARANCE = 50;
-// Wrap-around channel offset — far enough above min endpoint y to clear a default
-// NODE_DEFAULT_H=80 node plus inflation/padding margin. Hardcoded since the source/
-// target node bboxes aren't passed in.
-const WRAP_CHANNEL_OFFSET = 100;
+// Wrap-around channel offset — vertical (or horizontal in vertical-flow) distance
+// from the closer endpoint to the wrap-around corridor. Sized to clear tall nodes
+// like Loop Controller / LLM Call / Agent which can run ~150px+.
+const WRAP_CHANNEL_OFFSET = 150;
+// In a wrap-around, the corridor sides (exitX / approachX) get a wider lane spread
+// than the channel (channelY). Nested U-shapes look better with horizontal lanes
+// further apart than the vertical channel offsets — keeps approach corridors
+// visually distinct without inflating the U-shape height too much.
+const WRAP_CORRIDOR_LANE_FACTOR = 2;
 
 interface InflatedRect { x1: number; y1: number; x2: number; y2: number; nodeId: string }
 interface HSeg { kind: 'h'; y: number; xMin: number; xMax: number }
@@ -68,12 +73,14 @@ function buildNaturalPath(input: PathInput): Point[] {
       // Lane offset shifts all three corridor coordinates so parallel wrap-around
       // edges form nested concentric U-shapes (no overlap on the approach corridor).
       // Sign convention: positive lane offset widens the U outward on all three axes.
+      // Horizontal corridors use a wider lane spread than channelY.
+      const corridorLane = laneOffset * WRAP_CORRIDOR_LANE_FACTOR;
       const exitX = sourcePosition === 'right'
-        ? source.x + EXIT_CLEARANCE + laneOffset
-        : source.x - EXIT_CLEARANCE - laneOffset;
+        ? source.x + EXIT_CLEARANCE + corridorLane
+        : source.x - EXIT_CLEARANCE - corridorLane;
       const approachX = targetPosition === 'left'
-        ? target.x - EXIT_CLEARANCE - laneOffset
-        : target.x + EXIT_CLEARANCE + laneOffset;
+        ? target.x - EXIT_CLEARANCE - corridorLane
+        : target.x + EXIT_CLEARANCE + corridorLane;
       const channelY = Math.min(source.y, target.y) - WRAP_CHANNEL_OFFSET - laneOffset;
       return [
         source,
@@ -105,12 +112,13 @@ function buildNaturalPath(input: PathInput): Point[] {
       (sourcePosition === 'top'    && source.y < target.y);
 
     if (isLoopBack) {
+      const corridorLane = laneOffset * WRAP_CORRIDOR_LANE_FACTOR;
       const exitY = sourcePosition === 'bottom'
-        ? source.y + EXIT_CLEARANCE + laneOffset
-        : source.y - EXIT_CLEARANCE - laneOffset;
+        ? source.y + EXIT_CLEARANCE + corridorLane
+        : source.y - EXIT_CLEARANCE - corridorLane;
       const approachY = targetPosition === 'top'
-        ? target.y - EXIT_CLEARANCE - laneOffset
-        : target.y + EXIT_CLEARANCE + laneOffset;
+        ? target.y - EXIT_CLEARANCE - corridorLane
+        : target.y + EXIT_CLEARANCE + corridorLane;
       const channelX = Math.min(source.x, target.x) - WRAP_CHANNEL_OFFSET - laneOffset;
       return [
         source,
